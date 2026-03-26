@@ -1,24 +1,24 @@
-import React, { useState, useEffect } from 'react'
-import { toastService, type Toast } from '@/lib/toast'
+import React, { useState, useEffect } from "react";
+import { toastService, type Toast } from "@/lib/toast";
 
 export const ToastContainer: React.FC = () => {
-  const [toasts, setToasts] = useState<Toast[]>([])
+  const [toasts, setToasts] = useState<Toast[]>([]);
 
   useEffect(() => {
-    setToasts([...toastService['toasts']])
+    setToasts([...toastService["toasts"]]);
 
     const listener = (updatedToasts: Toast[]) => {
-      setToasts([...updatedToasts])
-    }
+      setToasts([...updatedToasts]);
+    };
 
-    toastService.addListener(listener)
+    toastService.addListener(listener);
 
     return () => {
-      toastService.removeListener(listener)
-    }
-  }, [])
+      toastService.removeListener(listener);
+    };
+  }, []);
 
-  if (toasts.length === 0) return null
+  if (toasts.length === 0) return null;
 
   return (
     <div className="fixed top-4 right-4 z-50 space-y-2">
@@ -30,26 +30,26 @@ export const ToastContainer: React.FC = () => {
         />
       ))}
     </div>
-  )
-}
+  );
+};
 
 const ToastItem: React.FC<{ toast: Toast; onClose: () => void }> = ({
   toast,
   onClose,
 }) => {
-  const getToastStyles = (type: Toast['type']) => {
+  const getToastStyles = (type: Toast["type"]) => {
     switch (type) {
-      case 'success':
-        return 'bg-green-500 text-white border-green-600'
-      case 'error':
-        return 'bg-red-500 text-white border-red-600'
-      case 'warning':
-        return 'bg-yellow-500 text-white border-yellow-600'
-      case 'info':
+      case "success":
+        return "bg-green-500 text-white border-green-600";
+      case "error":
+        return "bg-red-500 text-white border-red-600";
+      case "warning":
+        return "bg-yellow-500 text-white border-yellow-600";
+      case "info":
       default:
-        return 'bg-blue-500 text-white border-blue-600'
+        return "bg-blue-500 text-white border-blue-600";
     }
-  }
+  };
 
   return (
     <div
@@ -74,5 +74,5 @@ const ToastItem: React.FC<{ toast: Toast; onClose: () => void }> = ({
         </button>
       </div>
     </div>
-  )
-}
+  );
+};

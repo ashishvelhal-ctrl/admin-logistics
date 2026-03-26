@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from "zod";
 
 export const apiErrorSchema = z.object({
   error: z.object({
@@ -7,6 +7,6 @@ export const apiErrorSchema = z.object({
     code: z.string().optional(),
     timestamp: z.string().optional(),
   }),
-})
+});
 
-export type ApiError = z.infer<typeof apiErrorSchema>
+export type ApiError = z.infer<typeof apiErrorSchema>;

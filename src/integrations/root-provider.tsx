@@ -1,6 +1,6 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-import type { QueryClientConfig } from '@tanstack/react-query'
+import type { QueryClientConfig } from "@tanstack/react-query";
 
 export function getContext() {
   const queryConfig: QueryClientConfig = {
@@ -14,12 +14,12 @@ export function getContext() {
         retry: (failureCount, error: any) => {
           // Don't retry on 4xx errors or network errors
           if (error?.response?.status >= 400 && error?.response?.status < 500) {
-            return false
+            return false;
           }
-          if (error?.code === 'NETWORK_ERROR') {
-            return false
+          if (error?.code === "NETWORK_ERROR") {
+            return false;
           }
-          return failureCount < 3
+          return failureCount < 3;
         },
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
         // Add error boundary integration
@@ -29,30 +29,30 @@ export function getContext() {
         retry: false,
         onError: (error) => {
           // Global mutation error handling can be added here
-          console.error('Mutation error:', error)
+          console.error("Mutation error:", error);
         },
         // Add optimistic update defaults
         onMutate: undefined,
         onSettled: undefined,
       },
     },
-  }
+  };
 
-  const queryClient = new QueryClient(queryConfig)
+  const queryClient = new QueryClient(queryConfig);
 
   return {
     queryClient,
-  }
+  };
 }
 
 export function Provider({
   children,
   queryClient,
 }: {
-  children: React.ReactNode
-  queryClient: QueryClient
+  children: React.ReactNode;
+  queryClient: QueryClient;
 }) {
   return (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  )
+  );
 }

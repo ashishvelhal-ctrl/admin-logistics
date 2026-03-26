@@ -1,56 +1,56 @@
-import { useState } from 'react'
+import { useState } from "react";
 
-import { useSendOTP } from '../hooks/useSendOtp'
+import { useSendOTP } from "../hooks/useSendOtp";
 
-import { OtpVerification } from './OtpVerification'
+import { OtpVerification } from "./OtpVerification";
 
-import { Button } from '@/components/ui/button'
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export const LoginComponent = () => {
-  const sendOTP = useSendOTP()
+  const sendOTP = useSendOTP();
 
-  const [phone, setPhone] = useState('')
-  const [otpSent, setOtpSent] = useState(false)
-  const [error, setError] = useState('')
+  const [phone, setPhone] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    if (!phone) return
+    if (!phone) return;
 
-    setError('')
+    setError("");
 
     sendOTP.mutate(
       {
-        phone_number: phone,
-        hash_code: Math.random().toString(36).slice(2),
+        phoneNumber: phone,
+        hashCode: Math.random().toString(36).slice(2),
       },
       {
         onSuccess: () => {
-          setOtpSent(true)
+          setOtpSent(true);
         },
         onError: () => {
-          setError('Failed to send OTP')
+          setError("Failed to send OTP");
         },
       },
-    )
-  }
+    );
+  };
 
   if (otpSent) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-100">
         <OtpVerification phone={phone} />
       </div>
-    )
+    );
   }
 
   return (
@@ -85,8 +85,8 @@ export const LoginComponent = () => {
                 placeholder="Enter phone number"
                 value={phone}
                 onChange={(e) => {
-                  const value = e.target.value
-                  setPhone(value)
+                  const value = e.target.value;
+                  setPhone(value);
                 }}
                 className="h-11 bg-common-bg"
                 required
@@ -98,13 +98,13 @@ export const LoginComponent = () => {
               className="w-full bg-icon-1-color hover:bg-icon-1-color text-white font-medium py-2"
               disabled={sendOTP.isPending}
             >
-              {sendOTP.isPending ? 'Sending...' : 'Send OTP'}
+              {sendOTP.isPending ? "Sending..." : "Send OTP"}
             </Button>
           </form>
         </CardContent>
       </Card>
     </div>
-  )
-}
+  );
+};
 
-export default LoginComponent
+export default LoginComponent;

@@ -1,7 +1,7 @@
-import { z } from 'zod'
+import { z } from "zod";
 
-export const authMeReq = z.object({})
-export type AuthMeReq = z.infer<typeof authMeReq>
+export const authMeReq = z.object({});
+export type AuthMeReq = z.infer<typeof authMeReq>;
 
 export const authMeRes = z.object({
   message: z.string(),
@@ -13,5 +13,5 @@ export const authMeRes = z.object({
     deletedAt: z.union([z.null(), z.string()]),
     isVerified: z.boolean(),
   }),
-})
-export type AuthMeRes = z.infer<typeof authMeRes>
+});
+export type AuthMeRes = z.infer<typeof authMeRes>;

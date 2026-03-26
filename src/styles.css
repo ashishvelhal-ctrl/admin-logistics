@@ -1,20 +1,20 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap");
 
-@import 'tailwindcss';
+@import "tailwindcss";
 
-@import 'tw-animate-css';
+@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
 body {
   @apply m-0;
-  font-family: 'Poppins';
+  font-family: "Poppins";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 code {
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 :root {
@@ -156,10 +156,10 @@ code {
 }
 
 @layer utilities {
-  [class*='hover:text-[var(--icon-1-color)]']:hover {
+  [class*="hover:text-[var(--icon-1-color)]"]:hover {
     color: #256b56 !important;
   }
-  [class*='hover:bg-[var(--icon-1-color)]']:hover {
+  [class*="hover:bg-[var(--icon-1-color)]"]:hover {
     background-color: #256b56 !important;
   }
 }

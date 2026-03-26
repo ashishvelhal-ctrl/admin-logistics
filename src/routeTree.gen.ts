@@ -9,11 +9,19 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as adminRouteRouteImport } from './routes/(admin)/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as promoterHomeRouteImport } from './routes/(promoter)/home'
+import { Route as adminPromoterListRouteImport } from './routes/(admin)/promoterList'
+import { Route as adminPromoterFormRouteImport } from './routes/(admin)/promoterForm'
+import { Route as adminPromoterEditRouteImport } from './routes/(admin)/promoterEdit'
 import { Route as adminDashboardRouteImport } from './routes/(admin)/dashboard'
 
+const adminRouteRoute = adminRouteRouteImport.update({
+  id: '/(admin)',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -29,53 +37,103 @@ const promoterHomeRoute = promoterHomeRouteImport.update({
   path: '/home',
   getParentRoute: () => rootRouteImport,
 } as any)
+const adminPromoterListRoute = adminPromoterListRouteImport.update({
+  id: '/promoterList',
+  path: '/promoterList',
+  getParentRoute: () => adminRouteRoute,
+} as any)
+const adminPromoterFormRoute = adminPromoterFormRouteImport.update({
+  id: '/promoterForm',
+  path: '/promoterForm',
+  getParentRoute: () => adminRouteRoute,
+} as any)
+const adminPromoterEditRoute = adminPromoterEditRouteImport.update({
+  id: '/promoterEdit',
+  path: '/promoterEdit',
+  getParentRoute: () => adminRouteRoute,
+} as any)
 const adminDashboardRoute = adminDashboardRouteImport.update({
-  id: '/(admin)/dashboard',
+  id: '/dashboard',
   path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => adminRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof adminDashboardRoute
+  '/promoterEdit': typeof adminPromoterEditRoute
+  '/promoterForm': typeof adminPromoterFormRoute
+  '/promoterList': typeof adminPromoterListRoute
   '/home': typeof promoterHomeRoute
   '/auth/login': typeof AuthLoginRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof adminDashboardRoute
+  '/promoterEdit': typeof adminPromoterEditRoute
+  '/promoterForm': typeof adminPromoterFormRoute
+  '/promoterList': typeof adminPromoterListRoute
   '/home': typeof promoterHomeRoute
   '/auth/login': typeof AuthLoginRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/(admin)': typeof adminRouteRouteWithChildren
   '/(admin)/dashboard': typeof adminDashboardRoute
+  '/(admin)/promoterEdit': typeof adminPromoterEditRoute
+  '/(admin)/promoterForm': typeof adminPromoterFormRoute
+  '/(admin)/promoterList': typeof adminPromoterListRoute
   '/(promoter)/home': typeof promoterHomeRoute
   '/auth/login': typeof AuthLoginRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/home' | '/auth/login'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/promoterEdit'
+    | '/promoterForm'
+    | '/promoterList'
+    | '/home'
+    | '/auth/login'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/home' | '/auth/login'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/promoterEdit'
+    | '/promoterForm'
+    | '/promoterList'
+    | '/home'
+    | '/auth/login'
   id:
     | '__root__'
     | '/'
+    | '/(admin)'
     | '/(admin)/dashboard'
+    | '/(admin)/promoterEdit'
+    | '/(admin)/promoterForm'
+    | '/(admin)/promoterList'
     | '/(promoter)/home'
     | '/auth/login'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  adminDashboardRoute: typeof adminDashboardRoute
+  adminRouteRoute: typeof adminRouteRouteWithChildren
   promoterHomeRoute: typeof promoterHomeRoute
   AuthLoginRoute: typeof AuthLoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/(admin)': {
+      id: '/(admin)'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof adminRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -97,19 +155,58 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof promoterHomeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/(admin)/promoterList': {
+      id: '/(admin)/promoterList'
+      path: '/promoterList'
+      fullPath: '/promoterList'
+      preLoaderRoute: typeof adminPromoterListRouteImport
+      parentRoute: typeof adminRouteRoute
+    }
+    '/(admin)/promoterForm': {
+      id: '/(admin)/promoterForm'
+      path: '/promoterForm'
+      fullPath: '/promoterForm'
+      preLoaderRoute: typeof adminPromoterFormRouteImport
+      parentRoute: typeof adminRouteRoute
+    }
+    '/(admin)/promoterEdit': {
+      id: '/(admin)/promoterEdit'
+      path: '/promoterEdit'
+      fullPath: '/promoterEdit'
+      preLoaderRoute: typeof adminPromoterEditRouteImport
+      parentRoute: typeof adminRouteRoute
+    }
     '/(admin)/dashboard': {
       id: '/(admin)/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof adminDashboardRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof adminRouteRoute
     }
   }
 }
 
+interface adminRouteRouteChildren {
+  adminDashboardRoute: typeof adminDashboardRoute
+  adminPromoterEditRoute: typeof adminPromoterEditRoute
+  adminPromoterFormRoute: typeof adminPromoterFormRoute
+  adminPromoterListRoute: typeof adminPromoterListRoute
+}
+
+const adminRouteRouteChildren: adminRouteRouteChildren = {
+  adminDashboardRoute: adminDashboardRoute,
+  adminPromoterEditRoute: adminPromoterEditRoute,
+  adminPromoterFormRoute: adminPromoterFormRoute,
+  adminPromoterListRoute: adminPromoterListRoute,
+}
+
+const adminRouteRouteWithChildren = adminRouteRoute._addFileChildren(
+  adminRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  adminDashboardRoute: adminDashboardRoute,
+  adminRouteRoute: adminRouteRouteWithChildren,
   promoterHomeRoute: promoterHomeRoute,
   AuthLoginRoute: AuthLoginRoute,
 }

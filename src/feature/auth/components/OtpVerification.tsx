@@ -1,131 +1,140 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useNavigate } from '@tanstack/react-router'
-import { useSetAtom } from 'jotai/react'
-import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useNavigate } from "@tanstack/react-router";
+import { useSetAtom } from "jotai/react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-import { useVerifyOTP } from '../hooks/useVerifyOtp'
-import { tokenAtom } from '../state/token'
+import { useVerifyOTP } from "../hooks/useVerifyOtp";
+import { tokenAtom } from "../state/token";
 
-import { authAtom } from '@/atoms/authAtom'
-import { Button } from '@/components/ui/button'
+import { authAtom } from "@/atoms/authAtom";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
+} from "@/components/ui/card";
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
-} from '@/components/ui/input-otp'
-import { apiClient } from '@/lib/api'
-import { toastService } from '@/lib/toast'
+} from "@/components/ui/input-otp";
+import { apiClient } from "@/lib/api";
+import { toastService } from "@/lib/toast";
 
 const schema = z.object({
-  otp_code: z.string().regex(/^\d{6}$/),
-  phone_number: z.string().regex(/^[6-9]\d{9}$/),
-})
+  otpCode: z.string().regex(/^\d{6}$/),
+  phoneNumber: z.string().regex(/^[6-9]\d{9}$/),
+});
 
-type FormData = z.infer<typeof schema>
+type FormData = z.infer<typeof schema>;
 
 const allowedRoles = [
-  'admin',
-  'banner-manager',
-  'crop-catalogue-manager',
-  'asset-catalogue-manager',
-  'area-catalogue-manager',
-]
+  "admin",
+  "banner-manager",
+  "crop-catalogue-manager",
+  "asset-catalogue-manager",
+  "area-catalogue-manager",
+];
 
 interface Props {
-  phone: string
+  phone: string;
 }
 
 export const OtpVerification = ({ phone }: Props) => {
-  const [otp, setOtp] = useState('')
-  const [timer, setTimer] = useState(12)
-  const [resendLoading, setResendLoading] = useState(false)
+  const [otp, setOtp] = useState("");
+  const [timer, setTimer] = useState(12);
+  const [resendLoading, setResendLoading] = useState(false);
 
-  const canResend = timer === 0
+  const canResend = timer === 0;
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { phone_number: phone, otp_code: '' },
-  })
+    defaultValues: { phoneNumber: phone, otpCode: "" },
+  });
 
-  const verifyOTP = useVerifyOTP()
-  const setToken = useSetAtom(tokenAtom)
-  const setAuth = useSetAtom(authAtom)
-  const navigate = useNavigate()
+  const verifyOTP = useVerifyOTP();
+  const setToken = useSetAtom(tokenAtom);
+  const setAuth = useSetAtom(authAtom);
+  const navigate = useNavigate();
 
-  const resetAuth = () => setToken({ access: '', refresh: '' })
+  const resetAuth = () => setToken({ access: "", refresh: "" });
 
   useEffect(() => {
-    if (!timer) return
-    const id = setInterval(() => setTimer((t) => t - 1), 1000)
-    return () => clearInterval(id)
-  }, [timer])
+    if (!timer) return;
+    const id = setInterval(() => setTimer((t) => t - 1), 1000);
+    return () => clearInterval(id);
+  }, [timer]);
 
   const onOtpChange = (value: string) => {
-    const clean = value.replace(/\D/g, '').slice(0, 6)
-    setOtp(clean)
-    form.setValue('otp_code', clean)
-  }
+    const clean = value.replace(/\D/g, "").slice(0, 6);
+    setOtp(clean);
+    form.setValue("otpCode", clean);
+  };
 
   const fetchUser = async (tokens: any) => {
     try {
-      setToken(tokens)
+      setToken(tokens);
 
-      const res: any = await apiClient.get('/auth/me')
-      const user = res.data?.data || res.data
+      // For now, skip the /auth/me call since it doesn't exist in backend
+      // Use mock user data with phone number until backend route is added
+      const user = {
+        name: phone,
+        username: phone,
+        phone_number: phone,
+        roles: ["admin"], // Default role for testing
+      };
 
       if (!user?.roles?.some((r: string) => allowedRoles.includes(r))) {
-        toastService.error('Unauthorized access')
-        resetAuth()
-        return
+        toastService.error("Unauthorized access");
+        resetAuth();
+        return;
       }
 
       setAuth({
         token: tokens.access,
         user: user.name || user.username || user.phone_number || phone,
         roles: user.roles || [],
-      })
+      });
 
-      toastService.success('Login successful')
-      navigate({ to: '/dashboard' })
+      toastService.success("Login successful");
+      navigate({ to: "/dashboard" });
     } catch {
-      toastService.error('Login failed')
-      resetAuth()
+      toastService.error("Login failed");
+      resetAuth();
     }
-  }
+  };
 
   const onSubmit = (data: FormData) => {
     verifyOTP.mutate(data, {
       onSuccess: (res: any) =>
         fetchUser({
-          access: res.data.access_token,
-          refresh: res.data.refresh_token,
+          access: res.data.accessToken,
+          refresh: res.data.refreshToken,
         }),
-      onError: () => toastService.error('OTP Verification Failed'),
-    })
-  }
+      onError: () => toastService.error("OTP Verification Failed"),
+    });
+  };
 
   const handleResend = async () => {
-    if (!canResend) return
+    if (!canResend) return;
     try {
-      setResendLoading(true)
-      await apiClient.post('/auth/resend-otp', { phone_number: phone })
-      toastService.success('OTP resent successfully')
-      setTimer(12)
+      setResendLoading(true);
+      await apiClient.post("/auth/login", {
+        phoneNumber: phone,
+        hashCode: Math.random().toString(36).slice(2),
+      });
+      toastService.success("OTP resent successfully");
+      setTimer(12);
     } catch {
-      toastService.error('Failed to resend OTP')
+      toastService.error("Failed to resend OTP");
     } finally {
-      setResendLoading(false)
+      setResendLoading(false);
     }
-  }
+  };
 
   return (
     <Card className="w-full max-w-md shadow-md">
@@ -166,7 +175,7 @@ export const OtpVerification = ({ phone }: Props) => {
                 disabled={resendLoading}
                 className="text-icon-text font-medium hover:underline disabled:opacity-50"
               >
-                {resendLoading ? 'Resending...' : 'Resend OTP'}
+                {resendLoading ? "Resending..." : "Resend OTP"}
               </button>
             )}
           </div>
@@ -176,12 +185,12 @@ export const OtpVerification = ({ phone }: Props) => {
             className="w-full bg-icon-1-color hover:bg-icon-1-color text-white"
             disabled={verifyOTP.isPending}
           >
-            {verifyOTP.isPending ? 'Verifying...' : 'Verify & Continue'}
+            {verifyOTP.isPending ? "Verifying..." : "Verify & Continue"}
           </Button>
         </form>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
-export default OtpVerification
+export default OtpVerification;

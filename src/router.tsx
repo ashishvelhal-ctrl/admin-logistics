@@ -1,13 +1,13 @@
-import { createRouter } from '@tanstack/react-router'
-import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query'
+import { createRouter } from "@tanstack/react-router";
+import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 
-import * as TanstackQuery from './integrations/root-provider'
-import { routeTree } from './routeTree.gen'
+import * as TanstackQuery from "./integrations/root-provider";
+import { routeTree } from "./routeTree.gen";
 
-import { ToastContainer } from '@/components/ui/toast'
+import { ToastContainer } from "@/components/ui/toast";
 
 interface RouterContext {
-  queryClient: ReturnType<typeof TanstackQuery.getContext>['queryClient']
+  queryClient: ReturnType<typeof TanstackQuery.getContext>["queryClient"];
 }
 
 // Create a proper error boundary component
@@ -15,8 +15,8 @@ const ErrorBoundary = ({
   error,
   reset,
 }: {
-  error: Error
-  reset: () => void
+  error: Error;
+  reset: () => void;
 }) => (
   <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
     <div className="text-center max-w-md">
@@ -38,15 +38,15 @@ const ErrorBoundary = ({
       </button>
     </div>
   </div>
-)
+);
 
 export const getRouter = () => {
-  const rqContext = TanstackQuery.getContext()
+  const rqContext = TanstackQuery.getContext();
 
   const router = createRouter({
     routeTree,
     context: { ...rqContext } as RouterContext,
-    defaultPreload: 'intent',
+    defaultPreload: "intent",
     defaultErrorComponent: ErrorBoundary,
     defaultPendingComponent: () => (
       <div className="flex items-center justify-center min-h-screen">
@@ -59,11 +59,14 @@ export const getRouter = () => {
           <ToastContainer />
           {props.children}
         </TanstackQuery.Provider>
-      )
+      );
     },
-  })
+  });
 
-  setupRouterSsrQueryIntegration({ router, queryClient: rqContext.queryClient })
+  setupRouterSsrQueryIntegration({
+    router,
+    queryClient: rqContext.queryClient,
+  });
 
-  return router
-}
+  return router;
+};

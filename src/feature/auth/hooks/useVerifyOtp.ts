@@ -1,42 +1,42 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation } from "@tanstack/react-query";
 
-import { otpVerifyRes } from '../schema/otp'
+import { otpVerifyRes } from "../schema/otp";
 
-import { logApiError } from '@/hooks/useApiError'
-import { apiClient } from '@/lib/api'
-import { handleApiError } from '@/lib/errorHandler'
+import { logApiError } from "@/hooks/useApiError";
+import { apiClient } from "@/lib/api";
+import { handleApiError } from "@/lib/errorHandler";
 
 const verifyOTPFn = async (phone: string, otp: string) => {
   try {
-    const res = await apiClient.post('/auth/verify-otp', {
-      phone_number: phone,
-      otp_code: otp,
-    })
+    const res = await apiClient.post("/auth/verify-otp", {
+      phoneNumber: phone,
+      otpCode: otp,
+    });
     try {
-      return otpVerifyRes.parse(res)
+      return otpVerifyRes.parse(res);
     } catch (parseError) {
-      console.error('OTP verify response parse error:', parseError)
-      return res // Return raw data if parse fails
+      console.error("OTP verify response parse error:", parseError);
+      return res; // Return raw data if parse fails
     }
   } catch (err) {
-    logApiError(err)
-    handleApiError(err)
+    logApiError(err);
+    handleApiError(err);
   }
-}
+};
 
 export const useVerifyOTP = () => {
   return useMutation({
     mutationFn: ({
-      phone_number,
-      otp_code,
+      phoneNumber,
+      otpCode,
     }: {
-      phone_number: string
-      otp_code: string
-    }) => verifyOTPFn(phone_number, otp_code),
-    mutationKey: ['auth', 'verify-otp'],
+      phoneNumber: string;
+      otpCode: string;
+    }) => verifyOTPFn(phoneNumber, otpCode),
+    mutationKey: ["auth", "verify-otp"],
     retry: false,
     onError: (error) => {
-      console.error('Failed to verify OTP:', error)
+      console.error("Failed to verify OTP:", error);
     },
-  })
-}
+  });
+};
