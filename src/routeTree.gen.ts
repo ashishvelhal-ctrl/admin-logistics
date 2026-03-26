@@ -11,8 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
-import { Route as promoterDashboardRouteImport } from './routes/(promoter)/dashboard'
-import { Route as adminDashboardRouteImport } from './routes/(admin)/Dashboard'
+import { Route as promoterHomeRouteImport } from './routes/(promoter)/home'
+import { Route as adminDashboardRouteImport } from './routes/(admin)/dashboard'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -24,53 +24,53 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   path: '/auth/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const promoterDashboardRoute = promoterDashboardRouteImport.update({
-  id: '/(promoter)/dashboard',
-  path: '/dashboard',
+const promoterHomeRoute = promoterHomeRouteImport.update({
+  id: '/(promoter)/home',
+  path: '/home',
   getParentRoute: () => rootRouteImport,
 } as any)
 const adminDashboardRoute = adminDashboardRouteImport.update({
-  id: '/(admin)/Dashboard',
-  path: '/Dashboard',
+  id: '/(admin)/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/Dashboard': typeof adminDashboardRoute
-  '/dashboard': typeof promoterDashboardRoute
+  '/dashboard': typeof adminDashboardRoute
+  '/home': typeof promoterHomeRoute
   '/auth/login': typeof AuthLoginRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/Dashboard': typeof adminDashboardRoute
-  '/dashboard': typeof promoterDashboardRoute
+  '/dashboard': typeof adminDashboardRoute
+  '/home': typeof promoterHomeRoute
   '/auth/login': typeof AuthLoginRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/(admin)/Dashboard': typeof adminDashboardRoute
-  '/(promoter)/dashboard': typeof promoterDashboardRoute
+  '/(admin)/dashboard': typeof adminDashboardRoute
+  '/(promoter)/home': typeof promoterHomeRoute
   '/auth/login': typeof AuthLoginRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/Dashboard' | '/dashboard' | '/auth/login'
+  fullPaths: '/' | '/dashboard' | '/home' | '/auth/login'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/Dashboard' | '/dashboard' | '/auth/login'
+  to: '/' | '/dashboard' | '/home' | '/auth/login'
   id:
     | '__root__'
     | '/'
-    | '/(admin)/Dashboard'
-    | '/(promoter)/dashboard'
+    | '/(admin)/dashboard'
+    | '/(promoter)/home'
     | '/auth/login'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   adminDashboardRoute: typeof adminDashboardRoute
-  promoterDashboardRoute: typeof promoterDashboardRoute
+  promoterHomeRoute: typeof promoterHomeRoute
   AuthLoginRoute: typeof AuthLoginRoute
 }
 
@@ -90,17 +90,17 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/(promoter)/dashboard': {
-      id: '/(promoter)/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof promoterDashboardRouteImport
+    '/(promoter)/home': {
+      id: '/(promoter)/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof promoterHomeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/(admin)/Dashboard': {
-      id: '/(admin)/Dashboard'
-      path: '/Dashboard'
-      fullPath: '/Dashboard'
+    '/(admin)/dashboard': {
+      id: '/(admin)/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
       preLoaderRoute: typeof adminDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
@@ -110,7 +110,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   adminDashboardRoute: adminDashboardRoute,
-  promoterDashboardRoute: promoterDashboardRoute,
+  promoterHomeRoute: promoterHomeRoute,
   AuthLoginRoute: AuthLoginRoute,
 }
 export const routeTree = rootRouteImport
