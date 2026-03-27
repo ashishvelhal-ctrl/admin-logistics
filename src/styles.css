@@ -58,6 +58,7 @@ code {
   --text-color: #4b5563;
   --heading-color: #1f2937;
   --role-bg: #e4f1e9;
+  --login-color: #296E5C;
 }
 
 .dark {
@@ -144,6 +145,7 @@ code {
   --color-text-color: var(--text-color);
   --color-heading-color: var(--heading-color);
   --color-role-bg: var(--role-bg);
+  --color-login-color: var(--login-color);
 }
 
 @layer base {

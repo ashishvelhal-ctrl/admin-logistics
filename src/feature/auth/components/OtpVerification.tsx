@@ -1,9 +1,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "@tanstack/react-router";
 import { useSetAtom } from "jotai/react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { Lock } from "lucide-react";
 
 import { useVerifyOTP } from "../hooks/useVerifyOtp";
 import { tokenAtom } from "../state/token";
@@ -13,17 +14,11 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSlot,
-} from "@/components/ui/input-otp";
-import { apiClient } from "@/lib/api";
 import { toastService } from "@/lib/toast";
+//Add global css colors after the Confirmation 
 
 const schema = z.object({
   otpCode: z.string().regex(/^\d{6}$/),
@@ -46,10 +41,7 @@ interface Props {
 
 export const OtpVerification = ({ phone }: Props) => {
   const [otp, setOtp] = useState("");
-  const [timer, setTimer] = useState(12);
   const [resendLoading, setResendLoading] = useState(false);
-
-  const canResend = timer === 0;
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -63,24 +55,10 @@ export const OtpVerification = ({ phone }: Props) => {
 
   const resetAuth = () => setToken({ access: "", refresh: "" });
 
-  useEffect(() => {
-    if (!timer) return;
-    const id = setInterval(() => setTimer((t) => t - 1), 1000);
-    return () => clearInterval(id);
-  }, [timer]);
-
-  const onOtpChange = (value: string) => {
-    const clean = value.replace(/\D/g, "").slice(0, 6);
-    setOtp(clean);
-    form.setValue("otpCode", clean);
-  };
-
   const fetchUser = async (tokens: any) => {
     try {
       setToken(tokens);
-
       // For now, skip the /auth/me call since it doesn't exist in backend
-      // Use mock user data with phone number until backend route is added
       const user = {
         name: phone,
         username: phone,
@@ -120,15 +98,11 @@ export const OtpVerification = ({ phone }: Props) => {
   };
 
   const handleResend = async () => {
-    if (!canResend) return;
     try {
       setResendLoading(true);
-      await apiClient.post("/auth/login", {
-        phoneNumber: phone,
-        hashCode: Math.random().toString(36).slice(2),
-      });
-      toastService.success("OTP resent successfully");
-      setTimer(12);
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
     } catch {
       toastService.error("Failed to resend OTP");
     } finally {
@@ -136,58 +110,88 @@ export const OtpVerification = ({ phone }: Props) => {
     }
   };
 
+  const maskedPhone = `+91 ${phone.slice(0, 2)}XXXXXX${phone.slice(-2)}`;
+
   return (
-    <Card className="w-full max-w-md shadow-md">
-      <CardHeader className="text-center space-y-2">
-        <CardTitle className="text-2xl font-semibold text-heading-color">
-          Verify OTP
+    <Card className="rounded-2xl shadow-xl p-10 max-w-md w-full">
+      <CardHeader className="text-center space-y-8">
+        <CardTitle className="text-3xl font-semibold text-heading-color">
+          Verify Your Phone
         </CardTitle>
-        <CardDescription>
-          Enter the 6-digit code sent to your mobile number
-        </CardDescription>
+
+        <p className="text-sm text-muted-foreground">
+          Enter 6-digit OTP sent to {maskedPhone}
+        </p>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="space-y-5">
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="flex justify-center">
-            <InputOTP value={otp} maxLength={6} onChange={onOtpChange}>
-              {[0, 3].map((start) => (
-                <InputOTPGroup key={start}>
-                  {[0, 1, 2].map((i) => (
-                    <InputOTPSlot
-                      key={i + start}
-                      index={i + start}
-                      className="h-12 w-12 text-lg border-gray-900 focus:border-icon-1-color focus:ring-1 focus:ring-icon-1-color"
-                    />
-                  ))}
-                </InputOTPGroup>
-              ))}
-            </InputOTP>
+          <div className="flex gap-3 justify-center">
+            {[0, 1, 2, 3, 4, 5].map((index) => (
+              <input
+                key={index}
+                type="text"
+                maxLength={1}
+                className="w-12 h-12 rounded-lg bg-gray-100 text-center text-lg font-semibold focus:ring-2 focus:ring-icon-1-color outline-none border border-gray-300"
+                value={otp[index] || ""}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (/^\d$/.test(value)) {
+                    const newOtp = otp.slice(0, index) + value + otp.slice(index + 1);
+                    setOtp(newOtp);
+                    form.setValue("otpCode", newOtp);
+                    if (value && index < 5) {
+                      const nextInput = e.currentTarget.nextElementSibling as HTMLInputElement;
+                      if (nextInput) nextInput.focus();
+                    }
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Backspace") {
+                    if (otp[index] && index > 0) {
+                      const newOtp = otp.slice(0, index) + otp.slice(index + 1);
+                      setOtp(newOtp);
+                      form.setValue("otpCode", newOtp);
+                    }
+                    if (index > 0) {
+                      const prevInput = e.currentTarget.previousElementSibling as HTMLInputElement;
+                      if (prevInput) prevInput.focus();
+                    }
+                  }
+                }}
+                onPaste={(e) => {
+                  e.preventDefault();
+                  const pastedData = e.clipboardData.getData('text');
+                  const digits = pastedData.replace(/\D/g, '').slice(0, 6);
+                  if (digits.length === 6) {
+                    setOtp(digits);
+                    form.setValue("otpCode", digits);
+                  }
+                }}
+              />
+            ))}
           </div>
-
-          <div className="text-center text-sm">
-            {!canResend ? (
-              <span>Didn't receive the code? Resend in {timer}s</span>
-            ) : (
-              <button
-                type="button"
-                onClick={handleResend}
-                disabled={resendLoading}
-                className="text-icon-text font-medium hover:underline disabled:opacity-50"
-              >
-                {resendLoading ? "Resending..." : "Resend OTP"}
-              </button>
-            )}
-          </div>
-
           <Button
             type="submit"
-            className="w-full bg-icon-1-color hover:bg-icon-1-color text-white"
+            className="w-full h-12 rounded-lg bg-icon-1-color text-white font-medium hover:opacity-90"
             disabled={verifyOTP.isPending}
           >
-            {verifyOTP.isPending ? "Verifying..." : "Verify & Continue"}
+            {verifyOTP.isPending ? "Verifying..." : "Verify OTP"}
           </Button>
         </form>
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full h-12 rounded-lg bg-green-100 text-green-900 font-medium hover:bg-green-200"
+          onClick={handleResend}
+          disabled={resendLoading}
+        >
+          {resendLoading ? "Sending..." : "Resend OTP"}
+        </Button>
+        <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+          <Lock className="w-3 h-3" />
+          <span>Secure Verification Environment</span>
+        </div>
       </CardContent>
     </Card>
   );
