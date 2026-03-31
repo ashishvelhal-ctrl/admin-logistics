@@ -12,7 +12,6 @@ interface UserTrip {
   tripId: string;
   date: string;
   route: string;
-  loadType: string;
   status: TripStatus;
   amount: number;
 }
@@ -64,7 +63,6 @@ const userProfiles: Record<string, UserProfile> = {
         tripId: "#TR-8821",
         date: "05 Oct 2023",
         route: "Pune -> Mumbai",
-        loadType: "Wheat (8T)",
         status: "completed",
         amount: 12000,
       },
@@ -72,7 +70,6 @@ const userProfiles: Record<string, UserProfile> = {
         tripId: "#TR-7712",
         date: "28 Sep 2023",
         route: "Nashik -> Pune",
-        loadType: "Onions (4T)",
         status: "completed",
         amount: 6500,
       },
@@ -80,7 +77,6 @@ const userProfiles: Record<string, UserProfile> = {
         tripId: "#TR-6654",
         date: "15 Sep 2023",
         route: "Mumbai -> Surat",
-        loadType: "Logistics",
         status: "cancelled",
         amount: 0,
       },
@@ -88,7 +84,6 @@ const userProfiles: Record<string, UserProfile> = {
         tripId: "#TR-6528",
         date: "14 Sep 2023",
         route: "Pune -> Kolhapur",
-        loadType: "Sugar (6T)",
         status: "completed",
         amount: 8200,
       },
@@ -96,7 +91,6 @@ const userProfiles: Record<string, UserProfile> = {
         tripId: "#TR-6401",
         date: "11 Sep 2023",
         route: "Satara -> Pune",
-        loadType: "Rice (5T)",
         status: "inProgress",
         amount: 0,
       },
@@ -116,7 +110,6 @@ const userProfiles: Record<string, UserProfile> = {
         tripId: "#TR-9120",
         date: "07 Oct 2023",
         route: "Nashik -> Mumbai",
-        loadType: "Grapes (3T)",
         status: "completed",
         amount: 7300,
       },
@@ -124,7 +117,6 @@ const userProfiles: Record<string, UserProfile> = {
         tripId: "#TR-8978",
         date: "04 Oct 2023",
         route: "Mumbai -> Pune",
-        loadType: "Logistics",
         status: "inProgress",
         amount: 0,
       },
@@ -172,14 +164,19 @@ export default function UserDetails() {
   const currentPage = Math.min(page, totalPages);
   const paginatedTrips = useMemo(
     () =>
-      profile.trips.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+      profile.trips.slice(
+        (currentPage - 1) * PAGE_SIZE,
+        currentPage * PAGE_SIZE,
+      ),
     [currentPage, profile.trips],
   );
   return (
     <div className="bg-common-bg pr-10 pl-4 pb-6">
       <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-heading-color">User Details</h1>
+          <h1 className="text-2xl font-bold text-heading-color">
+            User Details
+          </h1>
           <p className="text-base text-muted-foreground">
             View onboarding progress and user information
           </p>
@@ -282,7 +279,9 @@ export default function UserDetails() {
         <Card className="shadow-sm">
           <CardContent className="p-0">
             <div className="border-b bg-common-bg/70 px-5 py-4">
-              <h3 className="text-2xl font-semibold text-heading-color">User Trip History</h3>
+              <h3 className="text-2xl font-semibold text-heading-color">
+                User Trip History
+              </h3>
             </div>
 
             <div className="overflow-x-auto">
@@ -292,7 +291,6 @@ export default function UserDetails() {
                     <th className="px-5 py-3 text-left">Trip ID</th>
                     <th className="px-5 py-3 text-left">Date</th>
                     <th className="px-5 py-3 text-left">Route</th>
-                    <th className="px-5 py-3 text-left">Load Type</th>
                     <th className="px-5 py-3 text-left">Status</th>
                     <th className="px-5 py-3 text-right">Amount</th>
                   </tr>
@@ -313,11 +311,12 @@ export default function UserDetails() {
                         <td className="px-5 py-3 font-semibold text-heading-color">
                           {trip.tripId}
                         </td>
-                        <td className="px-5 py-3 text-text-color">{trip.date}</td>
+                        <td className="px-5 py-3 text-text-color">
+                          {trip.date}
+                        </td>
                         <td className="px-5 py-3 font-semibold text-heading-color">
                           {trip.route}
                         </td>
-                        <td className="px-5 py-3 text-text-color">{trip.loadType}</td>
                         <td className="px-5 py-3">
                           <span
                             className={cn(
@@ -340,7 +339,6 @@ export default function UserDetails() {
           </CardContent>
         </Card>
         <div className="flex flex-col gap-2 pt-2 md:flex-row md:items-center md:justify-between md:pt-3 lg:pt-4">
-
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}

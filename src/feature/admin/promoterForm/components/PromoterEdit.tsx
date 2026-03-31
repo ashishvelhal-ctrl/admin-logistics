@@ -109,7 +109,9 @@ export default function PromoterEdit() {
                   placeholder="Enter full name"
                   value={formData.fullName}
                   minLength={5}
-                  onChange={(e) => handleInputChange("fullName", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("fullName", e.target.value)
+                  }
                   required
                 />
               </div>

@@ -2,21 +2,21 @@ import type { ReactNode } from "react";
 import { ShieldCheck } from "lucide-react";
 
 interface LeftHeroSectionProps {
-  children: ReactNode
-  title?: string
-  subtitle?: string
-  brandLabel?: string
-  glassText?: string
-  glassSubText?: string
+  children: ReactNode;
+  title?: string;
+  subtitle?: string;
+  brandLabel?: string;
+  glassText?: string;
+  glassSubText?: string;
 }
-//Add global css colors after the Confirmation 
-export function LeftHeroSection({ 
-  children, 
+//Add global css colors after the Confirmation
+export function LeftHeroSection({
+  children,
   title = "Fast & Secure Verification",
   subtitle = "Verify your identity to continue securely and access your personalized dashboard.",
   brandLabel = "CROPNEST",
   glassText,
-  glassSubText
+  glassSubText,
 }: LeftHeroSectionProps) {
   return (
     <div className="hidden md:flex bg-login-color items-start justify-start pt-28 pl-24">
@@ -38,9 +38,7 @@ export function LeftHeroSection({
             <ShieldCheck className="text-[#AEF2DC]" />
             <h3 className="font-semibold mb-1 text-[#AEF2DC]">{glassText}</h3>
           </div>
-          <p className="text-white/70 text-sm text-[#AEF2DC]">
-            {glassSubText}
-          </p>
+          <p className="text-white/70 text-sm text-[#AEF2DC]">{glassSubText}</p>
         </div>
       </div>
     </div>

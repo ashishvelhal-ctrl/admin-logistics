@@ -2,13 +2,13 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
 
 import { Layout } from "@/components/layout/Layout";
 
-export const Route = createFileRoute("/(admin)")({
-  component: AdminLayoutRoute,
+export const Route = createFileRoute("/(promoter)")({
+  component: PromoterLayoutRoute,
 });
 
-function AdminLayoutRoute() {
+function PromoterLayoutRoute() {
   return (
-    <Layout variant="admin">
+    <Layout variant="promoter">
       <Outlet />
     </Layout>
   );

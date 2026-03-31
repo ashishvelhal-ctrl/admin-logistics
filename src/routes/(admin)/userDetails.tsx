@@ -10,7 +10,8 @@ interface UserDetailsSearch {
 export const Route = createFileRoute("/(admin)/userDetails")({
   component: RouteComponent,
   validateSearch: (search: Record<string, unknown>): UserDetailsSearch => {
-    const userId = typeof search.userId === "string" ? search.userId : undefined;
+    const userId =
+      typeof search.userId === "string" ? search.userId : undefined;
     const promoterId =
       typeof search.promoterId === "string" ? search.promoterId : undefined;
 

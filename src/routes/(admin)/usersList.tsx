@@ -1,10 +1,10 @@
-import { createFileRoute } from '@tanstack/react-router'
-import UserList from '@/feature/admin/user/components/UserList'
+import { createFileRoute } from "@tanstack/react-router";
+import UserList from "@/feature/admin/user/components/UserList";
 
-export const Route = createFileRoute('/(admin)/usersList')({
+export const Route = createFileRoute("/(admin)/usersList")({
   component: RouteComponent,
-})
+});
 
 function RouteComponent() {
-  return <UserList />
+  return <UserList />;
 }

@@ -58,7 +58,7 @@ code {
   --text-color: #4b5563;
   --heading-color: #1f2937;
   --role-bg: #e4f1e9;
-  --login-color: #296E5C;
+  --login-color: #296e5c;
 }
 
 .dark {
@@ -165,7 +165,7 @@ code {
     background-color: #256b56 !important;
   }
   .back-button-color {
-    color: #2E705F !important;
+    color: #2e705f !important;
   }
   .back-button-color:hover {
     color: #256b56 !important;

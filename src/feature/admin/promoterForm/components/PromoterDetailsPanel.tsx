@@ -157,7 +157,9 @@ export default function PromoterDetailsRightPanel({
       <Card className="shadow-sm">
         <CardContent className="p-0">
           <div className="flex flex-col gap-3 border-b p-4 md:flex-row md:items-center md:justify-between">
-            <h3 className="text-xl font-semibold text-heading-color">Promoter Network</h3>
+            <h3 className="text-xl font-semibold text-heading-color">
+              Promoter Network
+            </h3>
             <div className="flex w-full flex-col gap-3 sm:flex-row md:w-auto">
               <div className="relative w-full sm:w-[240px]">
                 <Search className="absolute top-2.5 left-3 h-4 w-4 text-muted-foreground" />
@@ -250,7 +252,6 @@ export default function PromoterDetailsRightPanel({
         </CardContent>
       </Card>
       <div className="flex flex-col gap-2 pt-2 md:flex-row md:items-center md:justify-between md:pt-3 lg:pt-4">
-        
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}

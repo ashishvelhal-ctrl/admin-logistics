@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import { promoterApi } from '../services/promoterApi';
-import type { UserObject, PaginationMeta } from '../services/promoterApi';
+import { useState, useEffect, useCallback } from "react";
+import { promoterApi } from "../services/promoterApi";
+import type { UserObject, PaginationMeta } from "../services/promoterApi";
 
 interface UsePromoterListParams {
   initialLimit?: number;
@@ -35,23 +35,27 @@ interface UsePromoterListReturn {
 
 export const usePromoterList = ({
   initialLimit = 10,
-  initialSearch = '',
+  initialSearch = "",
 }: UsePromoterListParams = {}): UsePromoterListReturn => {
   const safeLimit = Math.max(1, initialLimit);
   const [promoters, setPromoters] = useState<UserObject[]>([]);
-  const [paginationMeta, setPaginationMeta] = useState<PaginationMeta | null>(null);
+  const [paginationMeta, setPaginationMeta] = useState<PaginationMeta | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState(initialSearch);
-  const [role, setRole] = useState('');
-  const [roleOptions, setRoleOptions] = useState<Array<{
-    _id: string;
-    title: string;
-    description: string;
-    hierarchy: number;
-    isActive: boolean;
-  }>>([]);
+  const [role, setRole] = useState("");
+  const [roleOptions, setRoleOptions] = useState<
+    Array<{
+      _id: string;
+      title: string;
+      description: string;
+      hierarchy: number;
+      isActive: boolean;
+    }>
+  >([]);
 
   const calculateOffset = useCallback((page: number, limit: number) => {
     return (page - 1) * limit;
@@ -83,7 +87,7 @@ export const usePromoterList = ({
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const offset = calculateOffset(currentPage, safeLimit);
       const response = await promoterApi.getPromoters({
         limit: safeLimit,
@@ -104,19 +108,21 @@ export const usePromoterList = ({
             fullName: promoter.name,
             mobileNumber: promoter.phoneNumber,
             assignedAddress: promoter.address,
-            is_verified: promoter.profileStatus === 'dl_verified',
+            is_verified: promoter.profileStatus === "dl_verified",
             onboardingCount: 0, // Default value since API doesn't provide this
             created_at: promoter.createdAt,
           };
         });
       } catch (transformError) {
-        console.error('Error during data transformation:', transformError);
-        setError('Data transformation failed');
+        console.error("Error during data transformation:", transformError);
+        setError("Data transformation failed");
         setPromoters([]);
         return;
       }
 
-      const promotersData = Array.isArray(transformedData) ? transformedData : [];
+      const promotersData = Array.isArray(transformedData)
+        ? transformedData
+        : [];
       setPromoters(promotersData);
 
       const normalizedPaginationMeta = response.paginationMeta
@@ -135,14 +141,22 @@ export const usePromoterList = ({
         setCurrentPage(normalizedPaginationMeta.current_page);
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch promoters';
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to fetch promoters";
       setError(errorMessage);
       setPromoters([]); // Ensure it's always an array
       setPaginationMeta(null);
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, safeLimit, search, role, calculateOffset, buildFallbackPaginationMeta]);
+  }, [
+    currentPage,
+    safeLimit,
+    search,
+    role,
+    calculateOffset,
+    buildFallbackPaginationMeta,
+  ]);
 
   const fetchRoles = useCallback(async () => {
     try {
@@ -150,17 +164,48 @@ export const usePromoterList = ({
       const rolesData = response.roles || [];
       // Add "All Roles" option at the beginning
       setRoleOptions([
-        { _id: '', title: 'All Roles', description: 'Show all users', hierarchy: 0, isActive: true },
-        ...rolesData
+        {
+          _id: "",
+          title: "All Roles",
+          description: "Show all users",
+          hierarchy: 0,
+          isActive: true,
+        },
+        ...rolesData,
       ]);
     } catch (err) {
-      console.error('Failed to fetch roles:', err);
+      console.error("Failed to fetch roles:", err);
       // Set fallback options if API fails
       setRoleOptions([
-        { _id: '', title: 'All Roles', description: 'Show all users', hierarchy: 0, isActive: true },
-        { _id: 'admin', title: 'Admin', description: 'Administrative work. Highest level of authority can do almost anything.', hierarchy: 100, isActive: true },
-        { _id: 'promoter', title: 'Promoter', description: 'Manage promotional activities.', hierarchy: 20, isActive: true },
-        { _id: 'user', title: 'User', description: 'Default role assigned to every person.', hierarchy: 1, isActive: true },
+        {
+          _id: "",
+          title: "All Roles",
+          description: "Show all users",
+          hierarchy: 0,
+          isActive: true,
+        },
+        {
+          _id: "admin",
+          title: "Admin",
+          description:
+            "Administrative work. Highest level of authority can do almost anything.",
+          hierarchy: 100,
+          isActive: true,
+        },
+        {
+          _id: "promoter",
+          title: "Promoter",
+          description: "Manage promotional activities.",
+          hierarchy: 20,
+          isActive: true,
+        },
+        {
+          _id: "user",
+          title: "User",
+          description: "Default role assigned to every person.",
+          hierarchy: 1,
+          isActive: true,
+        },
       ]);
     }
   }, []);
@@ -175,32 +220,39 @@ export const usePromoterList = ({
     setCurrentPage(1); // Reset to first page when changing role
   }, []);
 
-  const handlePageChange = useCallback((page: number) => {
-    if (page < 1) return;
-    if (paginationMeta && page > paginationMeta.total_pages) return;
-    setCurrentPage(page);
-  }, [paginationMeta]);
+  const handlePageChange = useCallback(
+    (page: number) => {
+      if (page < 1) return;
+      if (paginationMeta && page > paginationMeta.total_pages) return;
+      setCurrentPage(page);
+    },
+    [paginationMeta],
+  );
 
-  const handleDeletePromoter = useCallback(async (promoterId: string): Promise<boolean> => {
-    try {
-      setIsLoading(true);
-      await promoterApi.deletePromoter(promoterId);
-      
-      // Refresh the list after successful deletion
-      await fetchPromoters();
-      return true;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to delete promoter';
-      setError(errorMessage);
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [fetchPromoters]);
+  const handleDeletePromoter = useCallback(
+    async (promoterId: string): Promise<boolean> => {
+      try {
+        setIsLoading(true);
+        await promoterApi.deletePromoter(promoterId);
+
+        // Refresh the list after successful deletion
+        await fetchPromoters();
+        return true;
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to delete promoter";
+        setError(errorMessage);
+        return false;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [fetchPromoters],
+  );
 
   const resetFilters = useCallback(() => {
-    setSearch('');
-    setRole('');
+    setSearch("");
+    setRole("");
     setCurrentPage(1);
   }, []);
 

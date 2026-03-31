@@ -86,11 +86,11 @@ export default function PromoterList() {
         <span
           className={`px-2 py-1 rounded-full text-xs font-medium ${
             value
-              ? 'bg-green-100 text-green-800'
-              : 'bg-yellow-100 text-yellow-800'
+              ? "bg-green-100 text-green-800"
+              : "bg-yellow-100 text-yellow-800"
           }`}
         >
-          {value ? 'Verified' : 'Unverified'}
+          {value ? "Verified" : "Unverified"}
         </span>
       ),
     },
@@ -116,8 +116,7 @@ export default function PromoterList() {
                   promoterId: user.id,
                   fullName: user.fullName ?? user.name ?? "",
                   mobileNumber: user.phoneNumber ?? user.mobileNumber ?? "",
-                  assignedAddress:
-                    user.assignedAddress ?? user.address ?? "",
+                  assignedAddress: user.assignedAddress ?? user.address ?? "",
                 },
               })
             }
@@ -155,7 +154,10 @@ export default function PromoterList() {
           selectPlaceholder="All Roles"
           selectValue={role}
           onSelectChange={handleRoleChange}
-          selectOptions={roleOptions.map(role => ({ value: role._id, label: role.title }))}
+          selectOptions={roleOptions.map((role) => ({
+            value: role._id,
+            label: role.title,
+          }))}
         />
         <AdminTable
           data={promoters}

@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowRight } from "lucide-react";
-//Add global css colors after the Confirmation 
+//Add global css colors after the Confirmation
 
 export const LoginComponent = () => {
   const sendOTP = useSendOTP();

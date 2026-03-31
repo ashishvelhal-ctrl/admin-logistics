@@ -1,9 +1,4 @@
-import {
-  UserCheck,
-  UserPlus,
-  UserRound,
-  Users
-} from "lucide-react";
+import { UserCheck, UserPlus, UserRound, Users } from "lucide-react";
 
 import type { FC } from "react";
 
@@ -140,6 +135,15 @@ const RecentActivity: FC = () => (
 
 const Dashboard: FC = () => (
   <main className="pt-1 pr-10 pl-4 space-y-6">
+    <section className="px-8">
+      <h1 className="text-2xl font-semibold text-heading-color">
+        Admin Dashboard
+      </h1>
+      <p className="text-sm text-inactive-text mt-1">
+        Manage users, promoters, and platform-level activity.
+      </p>
+    </section>
+
     <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-8">
       {dashboardStats.slice(0, 3).map((stat) => (
         <StatCard key={stat.id} {...stat} />

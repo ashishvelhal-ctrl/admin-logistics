@@ -9,10 +9,19 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as promoterRouteRouteImport } from './routes/(promoter)/route'
 import { Route as adminRouteRouteImport } from './routes/(admin)/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
-import { Route as promoterHomeRouteImport } from './routes/(promoter)/home'
+import { Route as promoterVerifyDrivingLicenceRouteImport } from './routes/(promoter)/verifyDrivingLicence'
+import { Route as promoterVerificationVehicalRouteImport } from './routes/(promoter)/verificationVehical'
+import { Route as promoterMyProfileRouteImport } from './routes/(promoter)/myProfile'
+import { Route as promoterMyPerformanceRouteImport } from './routes/(promoter)/myPerformance'
+import { Route as promoterMyNetworkRouteImport } from './routes/(promoter)/myNetwork'
+import { Route as promoterDrivingLicenceRouteImport } from './routes/(promoter)/drivingLicence'
+import { Route as promoterDashboardpRouteImport } from './routes/(promoter)/dashboardp'
+import { Route as promoterAddvehicalRouteImport } from './routes/(promoter)/addvehical'
+import { Route as promoterAddUserRouteImport } from './routes/(promoter)/addUser'
 import { Route as adminUsersListRouteImport } from './routes/(admin)/usersList'
 import { Route as adminUserDetailsRouteImport } from './routes/(admin)/userDetails'
 import { Route as adminPromoterListRouteImport } from './routes/(admin)/promoterList'
@@ -21,6 +30,10 @@ import { Route as adminPromoterEditRouteImport } from './routes/(admin)/promoter
 import { Route as adminPromoterDetailsRouteImport } from './routes/(admin)/promoterDetails'
 import { Route as adminDashboardRouteImport } from './routes/(admin)/dashboard'
 
+const promoterRouteRoute = promoterRouteRouteImport.update({
+  id: '/(promoter)',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const adminRouteRoute = adminRouteRouteImport.update({
   id: '/(admin)',
   getParentRoute: () => rootRouteImport,
@@ -35,10 +48,52 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   path: '/auth/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const promoterHomeRoute = promoterHomeRouteImport.update({
-  id: '/(promoter)/home',
-  path: '/home',
-  getParentRoute: () => rootRouteImport,
+const promoterVerifyDrivingLicenceRoute =
+  promoterVerifyDrivingLicenceRouteImport.update({
+    id: '/verifyDrivingLicence',
+    path: '/verifyDrivingLicence',
+    getParentRoute: () => promoterRouteRoute,
+  } as any)
+const promoterVerificationVehicalRoute =
+  promoterVerificationVehicalRouteImport.update({
+    id: '/verificationVehical',
+    path: '/verificationVehical',
+    getParentRoute: () => promoterRouteRoute,
+  } as any)
+const promoterMyProfileRoute = promoterMyProfileRouteImport.update({
+  id: '/myProfile',
+  path: '/myProfile',
+  getParentRoute: () => promoterRouteRoute,
+} as any)
+const promoterMyPerformanceRoute = promoterMyPerformanceRouteImport.update({
+  id: '/myPerformance',
+  path: '/myPerformance',
+  getParentRoute: () => promoterRouteRoute,
+} as any)
+const promoterMyNetworkRoute = promoterMyNetworkRouteImport.update({
+  id: '/myNetwork',
+  path: '/myNetwork',
+  getParentRoute: () => promoterRouteRoute,
+} as any)
+const promoterDrivingLicenceRoute = promoterDrivingLicenceRouteImport.update({
+  id: '/drivingLicence',
+  path: '/drivingLicence',
+  getParentRoute: () => promoterRouteRoute,
+} as any)
+const promoterDashboardpRoute = promoterDashboardpRouteImport.update({
+  id: '/dashboardp',
+  path: '/dashboardp',
+  getParentRoute: () => promoterRouteRoute,
+} as any)
+const promoterAddvehicalRoute = promoterAddvehicalRouteImport.update({
+  id: '/addvehical',
+  path: '/addvehical',
+  getParentRoute: () => promoterRouteRoute,
+} as any)
+const promoterAddUserRoute = promoterAddUserRouteImport.update({
+  id: '/addUser',
+  path: '/addUser',
+  getParentRoute: () => promoterRouteRoute,
 } as any)
 const adminUsersListRoute = adminUsersListRouteImport.update({
   id: '/usersList',
@@ -85,7 +140,15 @@ export interface FileRoutesByFullPath {
   '/promoterList': typeof adminPromoterListRoute
   '/userDetails': typeof adminUserDetailsRoute
   '/usersList': typeof adminUsersListRoute
-  '/home': typeof promoterHomeRoute
+  '/addUser': typeof promoterAddUserRoute
+  '/addvehical': typeof promoterAddvehicalRoute
+  '/dashboardp': typeof promoterDashboardpRoute
+  '/drivingLicence': typeof promoterDrivingLicenceRoute
+  '/myNetwork': typeof promoterMyNetworkRoute
+  '/myPerformance': typeof promoterMyPerformanceRoute
+  '/myProfile': typeof promoterMyProfileRoute
+  '/verificationVehical': typeof promoterVerificationVehicalRoute
+  '/verifyDrivingLicence': typeof promoterVerifyDrivingLicenceRoute
   '/auth/login': typeof AuthLoginRoute
 }
 export interface FileRoutesByTo {
@@ -97,13 +160,22 @@ export interface FileRoutesByTo {
   '/promoterList': typeof adminPromoterListRoute
   '/userDetails': typeof adminUserDetailsRoute
   '/usersList': typeof adminUsersListRoute
-  '/home': typeof promoterHomeRoute
+  '/addUser': typeof promoterAddUserRoute
+  '/addvehical': typeof promoterAddvehicalRoute
+  '/dashboardp': typeof promoterDashboardpRoute
+  '/drivingLicence': typeof promoterDrivingLicenceRoute
+  '/myNetwork': typeof promoterMyNetworkRoute
+  '/myPerformance': typeof promoterMyPerformanceRoute
+  '/myProfile': typeof promoterMyProfileRoute
+  '/verificationVehical': typeof promoterVerificationVehicalRoute
+  '/verifyDrivingLicence': typeof promoterVerifyDrivingLicenceRoute
   '/auth/login': typeof AuthLoginRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/(admin)': typeof adminRouteRouteWithChildren
+  '/(promoter)': typeof promoterRouteRouteWithChildren
   '/(admin)/dashboard': typeof adminDashboardRoute
   '/(admin)/promoterDetails': typeof adminPromoterDetailsRoute
   '/(admin)/promoterEdit': typeof adminPromoterEditRoute
@@ -111,7 +183,15 @@ export interface FileRoutesById {
   '/(admin)/promoterList': typeof adminPromoterListRoute
   '/(admin)/userDetails': typeof adminUserDetailsRoute
   '/(admin)/usersList': typeof adminUsersListRoute
-  '/(promoter)/home': typeof promoterHomeRoute
+  '/(promoter)/addUser': typeof promoterAddUserRoute
+  '/(promoter)/addvehical': typeof promoterAddvehicalRoute
+  '/(promoter)/dashboardp': typeof promoterDashboardpRoute
+  '/(promoter)/drivingLicence': typeof promoterDrivingLicenceRoute
+  '/(promoter)/myNetwork': typeof promoterMyNetworkRoute
+  '/(promoter)/myPerformance': typeof promoterMyPerformanceRoute
+  '/(promoter)/myProfile': typeof promoterMyProfileRoute
+  '/(promoter)/verificationVehical': typeof promoterVerificationVehicalRoute
+  '/(promoter)/verifyDrivingLicence': typeof promoterVerifyDrivingLicenceRoute
   '/auth/login': typeof AuthLoginRoute
 }
 export interface FileRouteTypes {
@@ -125,7 +205,15 @@ export interface FileRouteTypes {
     | '/promoterList'
     | '/userDetails'
     | '/usersList'
-    | '/home'
+    | '/addUser'
+    | '/addvehical'
+    | '/dashboardp'
+    | '/drivingLicence'
+    | '/myNetwork'
+    | '/myPerformance'
+    | '/myProfile'
+    | '/verificationVehical'
+    | '/verifyDrivingLicence'
     | '/auth/login'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -137,12 +225,21 @@ export interface FileRouteTypes {
     | '/promoterList'
     | '/userDetails'
     | '/usersList'
-    | '/home'
+    | '/addUser'
+    | '/addvehical'
+    | '/dashboardp'
+    | '/drivingLicence'
+    | '/myNetwork'
+    | '/myPerformance'
+    | '/myProfile'
+    | '/verificationVehical'
+    | '/verifyDrivingLicence'
     | '/auth/login'
   id:
     | '__root__'
     | '/'
     | '/(admin)'
+    | '/(promoter)'
     | '/(admin)/dashboard'
     | '/(admin)/promoterDetails'
     | '/(admin)/promoterEdit'
@@ -150,19 +247,34 @@ export interface FileRouteTypes {
     | '/(admin)/promoterList'
     | '/(admin)/userDetails'
     | '/(admin)/usersList'
-    | '/(promoter)/home'
+    | '/(promoter)/addUser'
+    | '/(promoter)/addvehical'
+    | '/(promoter)/dashboardp'
+    | '/(promoter)/drivingLicence'
+    | '/(promoter)/myNetwork'
+    | '/(promoter)/myPerformance'
+    | '/(promoter)/myProfile'
+    | '/(promoter)/verificationVehical'
+    | '/(promoter)/verifyDrivingLicence'
     | '/auth/login'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   adminRouteRoute: typeof adminRouteRouteWithChildren
-  promoterHomeRoute: typeof promoterHomeRoute
+  promoterRouteRoute: typeof promoterRouteRouteWithChildren
   AuthLoginRoute: typeof AuthLoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/(promoter)': {
+      id: '/(promoter)'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof promoterRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/(admin)': {
       id: '/(admin)'
       path: ''
@@ -184,12 +296,68 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/(promoter)/home': {
-      id: '/(promoter)/home'
-      path: '/home'
-      fullPath: '/home'
-      preLoaderRoute: typeof promoterHomeRouteImport
-      parentRoute: typeof rootRouteImport
+    '/(promoter)/verifyDrivingLicence': {
+      id: '/(promoter)/verifyDrivingLicence'
+      path: '/verifyDrivingLicence'
+      fullPath: '/verifyDrivingLicence'
+      preLoaderRoute: typeof promoterVerifyDrivingLicenceRouteImport
+      parentRoute: typeof promoterRouteRoute
+    }
+    '/(promoter)/verificationVehical': {
+      id: '/(promoter)/verificationVehical'
+      path: '/verificationVehical'
+      fullPath: '/verificationVehical'
+      preLoaderRoute: typeof promoterVerificationVehicalRouteImport
+      parentRoute: typeof promoterRouteRoute
+    }
+    '/(promoter)/myProfile': {
+      id: '/(promoter)/myProfile'
+      path: '/myProfile'
+      fullPath: '/myProfile'
+      preLoaderRoute: typeof promoterMyProfileRouteImport
+      parentRoute: typeof promoterRouteRoute
+    }
+    '/(promoter)/myPerformance': {
+      id: '/(promoter)/myPerformance'
+      path: '/myPerformance'
+      fullPath: '/myPerformance'
+      preLoaderRoute: typeof promoterMyPerformanceRouteImport
+      parentRoute: typeof promoterRouteRoute
+    }
+    '/(promoter)/myNetwork': {
+      id: '/(promoter)/myNetwork'
+      path: '/myNetwork'
+      fullPath: '/myNetwork'
+      preLoaderRoute: typeof promoterMyNetworkRouteImport
+      parentRoute: typeof promoterRouteRoute
+    }
+    '/(promoter)/drivingLicence': {
+      id: '/(promoter)/drivingLicence'
+      path: '/drivingLicence'
+      fullPath: '/drivingLicence'
+      preLoaderRoute: typeof promoterDrivingLicenceRouteImport
+      parentRoute: typeof promoterRouteRoute
+    }
+    '/(promoter)/dashboardp': {
+      id: '/(promoter)/dashboardp'
+      path: '/dashboardp'
+      fullPath: '/dashboardp'
+      preLoaderRoute: typeof promoterDashboardpRouteImport
+      parentRoute: typeof promoterRouteRoute
+    }
+    '/(promoter)/addvehical': {
+      id: '/(promoter)/addvehical'
+      path: '/addvehical'
+      fullPath: '/addvehical'
+      preLoaderRoute: typeof promoterAddvehicalRouteImport
+      parentRoute: typeof promoterRouteRoute
+    }
+    '/(promoter)/addUser': {
+      id: '/(promoter)/addUser'
+      path: '/addUser'
+      fullPath: '/addUser'
+      preLoaderRoute: typeof promoterAddUserRouteImport
+      parentRoute: typeof promoterRouteRoute
     }
     '/(admin)/usersList': {
       id: '/(admin)/usersList'
@@ -267,10 +435,38 @@ const adminRouteRouteWithChildren = adminRouteRoute._addFileChildren(
   adminRouteRouteChildren,
 )
 
+interface promoterRouteRouteChildren {
+  promoterAddUserRoute: typeof promoterAddUserRoute
+  promoterAddvehicalRoute: typeof promoterAddvehicalRoute
+  promoterDashboardpRoute: typeof promoterDashboardpRoute
+  promoterDrivingLicenceRoute: typeof promoterDrivingLicenceRoute
+  promoterMyNetworkRoute: typeof promoterMyNetworkRoute
+  promoterMyPerformanceRoute: typeof promoterMyPerformanceRoute
+  promoterMyProfileRoute: typeof promoterMyProfileRoute
+  promoterVerificationVehicalRoute: typeof promoterVerificationVehicalRoute
+  promoterVerifyDrivingLicenceRoute: typeof promoterVerifyDrivingLicenceRoute
+}
+
+const promoterRouteRouteChildren: promoterRouteRouteChildren = {
+  promoterAddUserRoute: promoterAddUserRoute,
+  promoterAddvehicalRoute: promoterAddvehicalRoute,
+  promoterDashboardpRoute: promoterDashboardpRoute,
+  promoterDrivingLicenceRoute: promoterDrivingLicenceRoute,
+  promoterMyNetworkRoute: promoterMyNetworkRoute,
+  promoterMyPerformanceRoute: promoterMyPerformanceRoute,
+  promoterMyProfileRoute: promoterMyProfileRoute,
+  promoterVerificationVehicalRoute: promoterVerificationVehicalRoute,
+  promoterVerifyDrivingLicenceRoute: promoterVerifyDrivingLicenceRoute,
+}
+
+const promoterRouteRouteWithChildren = promoterRouteRoute._addFileChildren(
+  promoterRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   adminRouteRoute: adminRouteRouteWithChildren,
-  promoterHomeRoute: promoterHomeRoute,
+  promoterRouteRoute: promoterRouteRouteWithChildren,
   AuthLoginRoute: AuthLoginRoute,
 }
 export const routeTree = rootRouteImport

@@ -1,15 +1,34 @@
 import { Bell } from "lucide-react";
+import { useAtomValue } from "jotai";
 
 import Logo from "@/assets/Cropnest_logo.png";
+import { authAtom } from "@/atoms/authAtom";
 
-export function Navbar() {
+interface NavbarProps {
+  variant: "admin" | "promoter";
+}
+
+export function Navbar({ variant }: NavbarProps) {
+  const auth = useAtomValue(authAtom);
+  const userName =
+    auth?.user || (variant === "admin" ? "Super Admin" : "Promoter");
+  const initials =
+    userName
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() || "")
+      .join("") || (variant === "admin" ? "SA" : "PR");
+
   return (
     <header className="h-16 bg-commonbg border-b flex items-center justify-between px-6">
       <div className="flex items-center  pl-5 pr-2 py-2 gap-3">
         <img src={Logo} alt="logo" className="w-8 h-8 rounded-full" />
         <div>
           <h1 className="font-semibold text-heading">CropNest</h1>
-          <p className="text-xs text-inactive-text">Admin Panel</p>
+          <p className="text-xs text-inactive-text">
+            {variant === "admin" ? "Admin Panel" : "Promoter Panel"}
+          </p>
         </div>
       </div>
       <div className="flex items-center gap-6">
@@ -21,10 +40,10 @@ export function Navbar() {
         </div>
         <div className="flex items-center gap-3 pr-5">
           <div className="w-9 h-9 bg-icon-text text-white rounded-full flex items-center justify-center font-semibold">
-            SA
+            {initials}
           </div>
           <div>
-            <p className="text-sm font-medium">Super Admin</p>
+            <p className="text-sm font-medium">{userName}</p>
           </div>
         </div>
       </div>

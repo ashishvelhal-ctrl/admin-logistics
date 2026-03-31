@@ -1,4 +1,3 @@
-
 interface StatusPieChartProps {
   completedCount: number;
   inProgressCount: number;
@@ -15,7 +14,10 @@ export default function StatusPieChart({
   return (
     <div className="flex flex-col items-center">
       <div className="relative h-32 w-32">
-        <svg viewBox="0 0 100 100" className="h-full w-full transform -rotate-90">
+        <svg
+          viewBox="0 0 100 100"
+          className="h-full w-full transform -rotate-90"
+        >
           <circle
             cx="50"
             cy="50"
@@ -72,26 +74,36 @@ export default function StatusPieChart({
           </div>
         </div>
       </div>
-      
+
       <div className="mt-4 grid grid-cols-3 gap-2 text-center">
         {completedCount > 0 && (
           <div className="flex flex-col items-center">
             <div className="h-3 w-3 rounded-full bg-green-500"></div>
-            <div className="mt-1 text-xs font-medium text-heading-color">Completed</div>
-            <div className="text-xs text-muted-foreground">{completedCount}</div>
+            <div className="mt-1 text-xs font-medium text-heading-color">
+              Completed
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {completedCount}
+            </div>
           </div>
         )}
         {inProgressCount > 0 && (
           <div className="flex flex-col items-center">
             <div className="h-3 w-3 rounded-full bg-amber-500"></div>
-            <div className="mt-1 text-xs font-medium text-heading-color">In Progress</div>
-            <div className="text-xs text-muted-foreground">{inProgressCount}</div>
+            <div className="mt-1 text-xs font-medium text-heading-color">
+              In Progress
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {inProgressCount}
+            </div>
           </div>
         )}
         {pendingCount > 0 && (
           <div className="flex flex-col items-center">
             <div className="h-3 w-3 rounded-full bg-slate-500"></div>
-            <div className="mt-1 text-xs font-medium text-heading-color">Pending</div>
+            <div className="mt-1 text-xs font-medium text-heading-color">
+              Pending
+            </div>
             <div className="text-xs text-muted-foreground">{pendingCount}</div>
           </div>
         )}

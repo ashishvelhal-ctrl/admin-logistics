@@ -1,14 +1,8 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-import AdminDashboard from "@/feature/admin/dashboard/Dashboard";
+import PromoterDetails from "@/feature/admin/promoterForm/components/PromoterDetails";
 
-const adminRoles = [
-  "admin",
-  "banner-manager",
-  "crop-catalogue-manager",
-  "asset-catalogue-manager",
-  "area-catalogue-manager",
-];
+const promoterRoles = ["promoter"];
 
 const getRolesFromStorage = () => {
   if (typeof window === "undefined" || typeof sessionStorage === "undefined") {
@@ -26,14 +20,13 @@ const getRolesFromStorage = () => {
   }
 };
 
-export const Route = createFileRoute("/(admin)/dashboard")({
+export const Route = createFileRoute("/(promoter)/myProfile")({
   beforeLoad: () => {
-    // Check if we're on the client side
     if (
       typeof window === "undefined" ||
       typeof sessionStorage === "undefined"
     ) {
-      return; // Skip auth check on server side
+      return;
     }
 
     const roles = getRolesFromStorage();
@@ -42,12 +35,12 @@ export const Route = createFileRoute("/(admin)/dashboard")({
     }
 
     const hasAllowedRole = roles.some((role: string) =>
-      adminRoles.includes(role),
+      promoterRoles.includes(role),
     );
 
     if (!hasAllowedRole) {
       throw redirect({ to: "/auth/login" });
     }
   },
-  component: AdminDashboard,
+  component: PromoterDetails,
 });

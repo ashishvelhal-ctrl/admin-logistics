@@ -1,4 +1,4 @@
-import { apiClient } from '@/lib/api';
+import { apiClient } from "@/lib/api";
 
 // Define types based on backend structure
 export interface UserObject {
@@ -81,21 +81,23 @@ export const userApi = {
   // Fetch user list with pagination and search
   getUsers: async (params: UserListParams = {}): Promise<UserListResponse> => {
     const queryParams = new URLSearchParams();
-    
-    if (params.limit !== undefined) queryParams.append('limit', params.limit.toString());
-    if (params.offset !== undefined) queryParams.append('offset', params.offset.toString());
-    if (params.search) queryParams.append('search', params.search);
-    if (params.role) queryParams.append('role', params.role);
-    
-    const url = queryParams.toString() 
+
+    if (params.limit !== undefined)
+      queryParams.append("limit", params.limit.toString());
+    if (params.offset !== undefined)
+      queryParams.append("offset", params.offset.toString());
+    if (params.search) queryParams.append("search", params.search);
+    if (params.role) queryParams.append("role", params.role);
+
+    const url = queryParams.toString()
       ? `/admin/users?${queryParams.toString()}`
-      : '/admin/users';
-      
-    const rawResponse = await apiClient.get(url) as any;
+      : "/admin/users";
+
+    const rawResponse = (await apiClient.get(url)) as any;
 
     const normalizedResponse =
       rawResponse &&
-      typeof rawResponse === 'object' &&
+      typeof rawResponse === "object" &&
       rawResponse.data &&
       !Array.isArray(rawResponse.data) &&
       Array.isArray(rawResponse.data.data)
@@ -127,7 +129,10 @@ export const userApi = {
     const safeCurrentPage = Math.min(currentPage, totalPages);
 
     return {
-      message: normalizedResponse?.message ?? rawResponse?.message ?? 'Users fetched successfully',
+      message:
+        normalizedResponse?.message ??
+        rawResponse?.message ??
+        "Users fetched successfully",
       data: users,
       paginationMeta: {
         total,
@@ -136,11 +141,11 @@ export const userApi = {
         current_page: safeCurrentPage,
         total_pages: totalPages,
         has_next_page:
-          typeof rawPaginationMeta.has_next_page === 'boolean'
+          typeof rawPaginationMeta.has_next_page === "boolean"
             ? rawPaginationMeta.has_next_page
             : safeCurrentPage < totalPages,
         has_prev_page:
-          typeof rawPaginationMeta.has_prev_page === 'boolean'
+          typeof rawPaginationMeta.has_prev_page === "boolean"
             ? rawPaginationMeta.has_prev_page
             : safeCurrentPage > 1,
       },
@@ -150,25 +155,52 @@ export const userApi = {
   // Get available roles
   getRoles: async (): Promise<RolesResponse> => {
     try {
-      const response = await apiClient.get('/admin/roles') as any;
+      const response = (await apiClient.get("/admin/roles")) as any;
       const rolesData = response.data?.roles || response.data?.data || [];
       return { roles: rolesData };
     } catch (err) {
-      console.error('Failed to fetch roles:', err);
+      console.error("Failed to fetch roles:", err);
       // Set fallback options if API fails
       return {
         roles: [
-          { _id: '', title: 'All Roles', description: 'Show all users', hierarchy: 0, isActive: true },
-          { _id: 'admin', title: 'Admin', description: 'Administrative work. Highest level of authority can do almost anything.', hierarchy: 100, isActive: true },
-          { _id: 'promoter', title: 'Promoter', description: 'Manage promotional activities.', hierarchy: 20, isActive: true },
-          { _id: 'user', title: 'User', description: 'Default role assigned to every person.', hierarchy: 1, isActive: true },
+          {
+            _id: "",
+            title: "All Roles",
+            description: "Show all users",
+            hierarchy: 0,
+            isActive: true,
+          },
+          {
+            _id: "admin",
+            title: "Admin",
+            description:
+              "Administrative work. Highest level of authority can do almost anything.",
+            hierarchy: 100,
+            isActive: true,
+          },
+          {
+            _id: "promoter",
+            title: "Promoter",
+            description: "Manage promotional activities.",
+            hierarchy: 20,
+            isActive: true,
+          },
+          {
+            _id: "user",
+            title: "User",
+            description: "Default role assigned to every person.",
+            hierarchy: 1,
+            isActive: true,
+          },
         ],
       };
     }
   },
 
   // Delete a user by ID (if needed)
-  deleteUser: async (userId: string): Promise<{ success: boolean; message: string }> => {
+  deleteUser: async (
+    userId: string,
+  ): Promise<{ success: boolean; message: string }> => {
     const response = await apiClient.delete(`/admin/users/${userId}`);
     return response.data as { success: boolean; message: string };
   },

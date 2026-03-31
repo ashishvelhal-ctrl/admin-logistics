@@ -16,9 +16,14 @@ export function FormHeader({ title, description, onBack }: FormHeaderProps) {
         <p className="text-muted-foreground text-sm">{description}</p>
       </div>
       {onBack && (
-        <div className="pt-3 flex items-center gap-2 cursor-pointer" onClick={onBack}>
+        <div
+          className="pt-3 flex items-center gap-2 cursor-pointer"
+          onClick={onBack}
+        >
           <MoveLeft className="h-5 w-5 back-button-color" />
-          <span className="text-sm back-button-color">Back to Promoter List</span>
+          <span className="text-sm back-button-color">
+            Back to Promoter List
+          </span>
         </div>
       )}
     </div>

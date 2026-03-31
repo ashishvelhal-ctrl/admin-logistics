@@ -9,8 +9,9 @@ import type { ReactNode } from "react";
 
 import { tokenAtom } from "@/feature/auth/state/token";
 
-interface AdminLayoutProps {
+interface LayoutProps {
   children: ReactNode;
+  variant: "admin" | "promoter";
 }
 
 const Spinner = () => {
@@ -21,13 +22,27 @@ const Spinner = () => {
   );
 };
 
-export function AdminLayout({ children }: AdminLayoutProps) {
+export function Layout({ children, variant }: LayoutProps) {
   const navigate = useNavigate();
   const token = useAtomValue(tokenAtom);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!token?.access) {
+    // Check both token atom and auth storage
+    const authStorage = sessionStorage.getItem("auth");
+    let storageToken: string | null = null;
+
+    if (authStorage) {
+      try {
+        storageToken = JSON.parse(authStorage).token || null;
+      } catch {
+        storageToken = null;
+      }
+    }
+
+    const hasToken = token?.access || storageToken;
+
+    if (!hasToken) {
       navigate({ to: "/auth/login" });
       return;
     }
@@ -42,12 +57,12 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   return (
     <div className="h-screen flex flex-col">
       <header className="h-16 bg-common-bg border-b border-border-stroke flex-shrink-0">
-        <Navbar />
+        <Navbar variant={variant} />
       </header>
 
       <div className="flex flex-1 overflow-hidden">
         <aside className="w-75 border-r border-border-stroke flex-shrink-0 overflow-y-auto">
-          <Sidebar />
+          <Sidebar variant={variant} />
         </aside>
 
         <main className="flex-1 overflow-y-auto">

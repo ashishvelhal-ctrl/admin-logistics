@@ -1,28 +1,33 @@
 import { useLocation, useNavigate } from "@tanstack/react-router";
-import { useAtom } from "jotai";
-import { LayoutDashboard, LogOut, Users } from "lucide-react";
+import { useAtomValue } from "jotai";
+import {
+  ChartNoAxesCombined,
+  LayoutDashboard,
+  LogOut,
+  User,
+  Users,
+  Users2,
+} from "lucide-react";
 
 import { authAtom } from "@/atoms/authAtom";
 import { logout } from "@/lib/auth";
 
-export function Sidebar() {
+interface SidebarProps {
+  variant: "admin" | "promoter";
+}
+
+export function Sidebar({ variant }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const [auth] = useAtom(authAtom);
+  const auth = useAtomValue(authAtom);
 
-  const menu = [
+  const adminMenu = [
     {
       title: "Dashboard",
       icon: LayoutDashboard,
       url: "/dashboard",
       activePaths: ["/dashboard"],
-      roles: [
-        "admin",
-        "banner-manager",
-        "crop-catalogue-manager",
-        "asset-catalogue-manager",
-        "area-catalogue-manager",
-      ],
+      roles: ["admin"],
     },
     {
       title: "Promoter Management",
@@ -44,6 +49,46 @@ export function Sidebar() {
       roles: ["admin"],
     },
   ];
+
+  const promoterMenu = [
+    {
+      title: "Dashboard",
+      icon: LayoutDashboard,
+      url: "/dashboardp",
+      activePaths: [
+        "/dashboardp",
+        "/addUser",
+        "/drivingLicence",
+        "/verifyDrivingLicence",
+        "/addvehical",
+        "/verificationVehical",
+      ],
+      roles: ["promoter"],
+    },
+    {
+      title: "My Network",
+      icon: Users2,
+      url: "/myNetwork",
+      activePaths: ["/myNetwork"],
+      roles: ["promoter"],
+    },
+    {
+      title: "My Performance",
+      icon: ChartNoAxesCombined,
+      url: "/myPerformance",
+      activePaths: ["/myPerformance"],
+      roles: ["promoter"],
+    },
+    {
+      title: "My Profile",
+      icon: User,
+      url: "/myProfile",
+      activePaths: ["/myProfile"],
+      roles: ["promoter"],
+    },
+  ];
+
+  const menu = variant === "admin" ? adminMenu : promoterMenu;
 
   const filteredMenu = menu.filter((item) =>
     item.roles.some((role) => auth?.roles?.includes(role)),

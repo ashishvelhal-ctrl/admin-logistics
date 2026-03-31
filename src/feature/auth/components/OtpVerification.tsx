@@ -11,14 +11,10 @@ import { tokenAtom } from "../state/token";
 
 import { authAtom } from "@/atoms/authAtom";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { authApi } from "@/lib/api";
 import { toastService } from "@/lib/toast";
-//Add global css colors after the Confirmation 
+//Add global css colors after the Confirmation
 
 const schema = z.object({
   otpCode: z.string().regex(/^\d{6}$/),
@@ -28,6 +24,14 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 const allowedRoles = [
+  "admin",
+  "promoter",
+  "banner-manager",
+  "crop-catalogue-manager",
+  "asset-catalogue-manager",
+  "area-catalogue-manager",
+];
+const adminRoles = [
   "admin",
   "banner-manager",
   "crop-catalogue-manager",
@@ -53,20 +57,23 @@ export const OtpVerification = ({ phone }: Props) => {
   const setAuth = useSetAtom(authAtom);
   const navigate = useNavigate();
 
-  const resetAuth = () => setToken({ access: "", refresh: "" });
+  const resetAuth = () => {
+    setToken({ access: "", refresh: "" });
+    setAuth({ token: null, user: null, roles: [] });
+  };
 
   const fetchUser = async (tokens: any) => {
     try {
       setToken(tokens);
-      // For now, skip the /auth/me call since it doesn't exist in backend
-      const user = {
-        name: phone,
-        username: phone,
-        phone_number: phone,
-        roles: ["admin"], // Default role for testing
-      };
+      const meResponse = await authApi.getMe();
+      const user = meResponse?.data || {};
+      const roles = Array.isArray(user?.roles)
+        ? user.roles
+        : user?.role
+          ? [user.role]
+          : [];
 
-      if (!user?.roles?.some((r: string) => allowedRoles.includes(r))) {
+      if (!roles.some((r: string) => allowedRoles.includes(r))) {
         toastService.error("Unauthorized access");
         resetAuth();
         return;
@@ -74,12 +81,27 @@ export const OtpVerification = ({ phone }: Props) => {
 
       setAuth({
         token: tokens.access,
-        user: user.name || user.username || user.phone_number || phone,
-        roles: user.roles || [],
+        user: user.name || user.username || user.phoneNumber || phone,
+        roles,
       });
 
       toastService.success("Login successful");
-      navigate({ to: "/dashboard" });
+      const hasPromoterRole = roles.includes("promoter");
+      const hasAdminRole = roles.some((role: string) =>
+        adminRoles.includes(role),
+      );
+      if (hasPromoterRole) {
+        navigate({ to: "/dashboardp" });
+        return;
+      }
+
+      if (hasAdminRole) {
+        navigate({ to: "/dashboard" });
+        return;
+      }
+
+      toastService.error("Unauthorized access");
+      resetAuth();
     } catch {
       toastService.error("Login failed");
       resetAuth();
@@ -137,11 +159,13 @@ export const OtpVerification = ({ phone }: Props) => {
                 onChange={(e) => {
                   const value = e.target.value;
                   if (/^\d$/.test(value)) {
-                    const newOtp = otp.slice(0, index) + value + otp.slice(index + 1);
+                    const newOtp =
+                      otp.slice(0, index) + value + otp.slice(index + 1);
                     setOtp(newOtp);
                     form.setValue("otpCode", newOtp);
                     if (value && index < 5) {
-                      const nextInput = e.currentTarget.nextElementSibling as HTMLInputElement;
+                      const nextInput = e.currentTarget
+                        .nextElementSibling as HTMLInputElement;
                       if (nextInput) nextInput.focus();
                     }
                   }
@@ -154,15 +178,16 @@ export const OtpVerification = ({ phone }: Props) => {
                       form.setValue("otpCode", newOtp);
                     }
                     if (index > 0) {
-                      const prevInput = e.currentTarget.previousElementSibling as HTMLInputElement;
+                      const prevInput = e.currentTarget
+                        .previousElementSibling as HTMLInputElement;
                       if (prevInput) prevInput.focus();
                     }
                   }
                 }}
                 onPaste={(e) => {
                   e.preventDefault();
-                  const pastedData = e.clipboardData.getData('text');
-                  const digits = pastedData.replace(/\D/g, '').slice(0, 6);
+                  const pastedData = e.clipboardData.getData("text");
+                  const digits = pastedData.replace(/\D/g, "").slice(0, 6);
                   if (digits.length === 6) {
                     setOtp(digits);
                     form.setValue("otpCode", digits);

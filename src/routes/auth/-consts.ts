@@ -2,6 +2,7 @@ export const ROUTE_TITLES: Record<string, string> = {
   "/auth/login": "Login | Cropnest",
   "/home": "Home | Cropnest",
   "/dashboard": "Dashboard | Cropnest",
+  "/dashboardp": "Promoter Dashboard | Cropnest",
   "/usersList": "User Management | Cropnest",
   "/userDetails": "User Details | Cropnest",
   "/bannerList": "Banner Management | Cropnest",

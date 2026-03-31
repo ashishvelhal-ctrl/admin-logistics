@@ -225,7 +225,20 @@ export const authApi = {
 
   logoutAll: () => apiClient.post("/auth/logout-all"),
 
-  getMe: () => apiClient.get("/auth/me"),
+  getMe: async () => {
+    const meEndpoints = ["/user/me", "/users/me", "/me", "/auth/me"];
+    let lastError: unknown;
+
+    for (const endpoint of meEndpoints) {
+      try {
+        return await apiClient.get(endpoint);
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    throw lastError || new Error("Unable to fetch user profile");
+  },
 };
 
 // Utility function for authenticated fetch to eliminate duplication
