@@ -164,6 +164,12 @@ code {
   [class*="hover:bg-[var(--icon-1-color)]"]:hover {
     background-color: #256b56 !important;
   }
+  .back-button-color {
+    color: #2E705F !important;
+  }
+  .back-button-color:hover {
+    color: #256b56 !important;
+  }
 }
 
 /* This is for the hidden scroll*/

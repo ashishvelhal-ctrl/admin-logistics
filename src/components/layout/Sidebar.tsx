@@ -28,7 +28,12 @@ export function Sidebar() {
       title: "Promoter Management",
       icon: Users,
       url: "/promoterList",
-      activePaths: ["/promoterList", "/promoterForm", "/promoterEdit"],
+      activePaths: [
+        "/promoterList",
+        "/promoterForm",
+        "/promoterEdit",
+        "/promoterDetails",
+      ],
       roles: ["admin"],
     },
     {

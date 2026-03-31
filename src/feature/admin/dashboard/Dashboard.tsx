@@ -1,10 +1,8 @@
 import {
-  Image,
-  ImageMinus,
-  MapPin,
+  UserCheck,
   UserPlus,
-  Users,
-  Wheat,
+  UserRound,
+  Users
 } from "lucide-react";
 
 import type { FC } from "react";
@@ -22,73 +20,61 @@ interface ActivityItem {
   title: string;
   description: string;
   time: string;
-  type: string;
   icon: FC<{ className?: string }>;
 }
 
 const activities: ActivityItem[] = [
   {
     id: "1",
-    title: "New user registered",
-    description: "Ramesh Kumar joined as a farmer",
+    title: "Login from Unkonw IP",
+    description: "Promoter Pune Maharashtra",
     time: "5 min ago",
-    type: "Farmer",
     icon: UserPlus,
   },
   {
     id: "2",
-    title: "New crop added",
-    description: "Wheat (Durum) added to catalog",
+    title: "New Promoter Verified",
+    description: "Promoter Pune Maharashtra",
     time: "5 min ago",
-    type: "Crop",
-    icon: Wheat,
+    icon: UserCheck,
   },
   {
     id: "3",
-    title: "Banner published",
-    description: "New Season Sale is now active",
+    title: "Login from Unkonw IP",
+    description: "Promoter Pune Maharashtra",
     time: "5 min ago",
-    type: "Banner",
-    icon: Image,
+    icon: UserRound,
   },
   {
     id: "4",
-    title: "New crop added",
-    description: "Wheat (Durum) added to catalog",
+    title: "Login from Unkonw IP",
+    description: "Promoter Pune Maharashtra",
     time: "5 min ago",
-    type: "Crop",
-    icon: Wheat,
+    icon: UserRound,
   },
 ];
 
 const dashboardStats: StatCardProps[] = [
   {
     id: "users",
-    label: "Total Users",
+    label: "Total Promoters",
     value: "2,450",
     change: "+12% this month",
     icon: Users,
   },
   {
     id: "crops",
-    label: "Crops Listed",
+    label: "Active Promoters",
     value: "186",
     change: "+5% this month",
-    icon: Wheat,
+    icon: UserCheck,
   },
   {
     id: "banners",
-    label: "Active Banners",
+    label: "Total Users",
     value: "324",
     change: "+8% this month",
-    icon: ImageMinus,
-  },
-  {
-    id: "locations",
-    label: "Locations",
-    value: "1,248",
-    change: "+3% this month",
-    icon: MapPin,
+    icon: UserRound,
   },
 ];
 
@@ -127,7 +113,7 @@ const RecentActivity: FC = () => (
     </header>
 
     <ul className="space-y-4">
-      {activities.map(({ id, title, description, time, type, icon: Icon }) => (
+      {activities.map(({ id, title, description, time, icon: Icon }) => (
         <li
           key={id}
           className="flex justify-between border-b border-border-stroke pb-3 last:border-none"
@@ -145,7 +131,6 @@ const RecentActivity: FC = () => (
 
           <div className="text-right text-xs text-inactive-text">
             <p>{time}</p>
-            <p>{type}</p>
           </div>
         </li>
       ))}
@@ -155,8 +140,8 @@ const RecentActivity: FC = () => (
 
 const Dashboard: FC = () => (
   <main className="pt-1 pr-10 pl-4 space-y-6">
-    <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {dashboardStats.map((stat) => (
+    <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-8">
+      {dashboardStats.slice(0, 3).map((stat) => (
         <StatCard key={stat.id} {...stat} />
       ))}
     </section>

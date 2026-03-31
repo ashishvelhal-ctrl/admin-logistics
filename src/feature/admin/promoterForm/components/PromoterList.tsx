@@ -2,66 +2,53 @@ import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { PencilLine, Trash2 } from "lucide-react";
 
-// import { useUserManagement } from '../hook'
-// import type { UserDetails } from '../types/admin.types'
 import type { Column } from "@/components/common/AdminTable";
-
 import { AdminTable } from "@/components/common/AdminTable";
 import DeleteModal from "@/components/common/DeleteModal";
 import { ListHeader } from "@/components/common/ListHeader";
 import { PaginationWrapper as Pagination } from "@/components/common/Pagination";
 import { SearchAndFilter } from "@/components/common/SearchAndFilter";
 import { Button } from "@/components/ui/button";
+import { usePromoterList } from "../hooks/usePromoterList";
 
 export default function PromoterList() {
   const navigate = useNavigate();
-  // Mock data for frontend development
-  const [search, setSearch] = useState("");
-  const [role, setRole] = useState("");
-  const [page, setPage] = useState(1);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [promoterToDelete, setPromoterToDelete] = useState<any>(null);
 
-  // Mock data
-  const totalPages = 1;
-  const paginatedUsers = [
-    {
-      id: 1,
-      fullName: "A",
-      mobileNumber: "+91 1234567890",
-      assignedAddress: "Mumbai",
-      onboardingCount: 5,
-      is_verified: true,
-      created_at: "2024-01-15T10:30:00Z",
-    },
-    {
-      id: 2,
-      fullName: "B",
-      mobileNumber: "+91 1234567899",
-      assignedAddress: "Delhi",
-      onboardingCount: 0,
-      is_verified: false,
-      created_at: "2024-01-16T11:30:00Z",
-    },
-  ];
-  const isLoading = false;
-  const error = null;
-  const roleOptions = [
-    { value: "", label: "All Status" },
-    { value: "verified", label: "Verified" },
-    { value: "unverified", label: "Unverified" },
-  ];
+  const {
+    promoters,
+    isLoading,
+    error,
+    currentPage,
+    search,
+    role,
+    totalPages,
+    roleOptions,
+    handleSearch,
+    handleRoleChange,
+    handlePageChange,
+    handleDeletePromoter,
+  } = usePromoterList();
 
-  const handleDeleteUser = (_user: any) => {
+  const handleDeleteUser = (user: any) => {
+    setPromoterToDelete(user);
     setIsDeleteDialogOpen(true);
   };
 
-  const handleDeleteConfirm = () => {
-    setIsDeleteDialogOpen(false);
-    console.log("Delete confirmed");
+  const handleDeleteConfirm = async () => {
+    if (promoterToDelete) {
+      const success = await handleDeletePromoter(promoterToDelete.id);
+      if (success) {
+        setIsDeleteDialogOpen(false);
+        setPromoterToDelete(null);
+      }
+    }
   };
 
   const handleDeleteCancel = () => {
     setIsDeleteDialogOpen(false);
+    setPromoterToDelete(null);
   };
 
   const columns: Array<Column<any>> = [
@@ -93,6 +80,28 @@ export default function PromoterList() {
       render: (value: number) => value || 0,
     },
     {
+      key: "is_verified",
+      title: "Status",
+      render: (value: boolean) => (
+        <span
+          className={`px-2 py-1 rounded-full text-xs font-medium ${
+            value
+              ? 'bg-green-100 text-green-800'
+              : 'bg-yellow-100 text-yellow-800'
+          }`}
+        >
+          {value ? 'Verified' : 'Unverified'}
+        </span>
+      ),
+    },
+    {
+      key: "created_at",
+      title: "Created At",
+      render: (value: string) => {
+        return new Date(value).toLocaleDateString();
+      },
+    },
+    {
       key: "actions",
       title: "Actions",
       render: (_: any, user: any) => (
@@ -103,7 +112,13 @@ export default function PromoterList() {
             onClick={() =>
               navigate({
                 to: "/promoterEdit",
-                search: { promoterId: user.id },
+                search: {
+                  promoterId: user.id,
+                  fullName: user.fullName ?? user.name ?? "",
+                  mobileNumber: user.phoneNumber ?? user.mobileNumber ?? "",
+                  assignedAddress:
+                    user.assignedAddress ?? user.address ?? "",
+                },
               })
             }
           >
@@ -135,28 +150,34 @@ export default function PromoterList() {
           searchLabel="Search Promoters"
           searchPlaceholder="Search promoters..."
           searchValue={search}
-          onSearchChange={setSearch}
-          selectLabel="Status"
-          selectPlaceholder="All Status"
+          onSearchChange={handleSearch}
+          selectLabel="Role"
+          selectPlaceholder="All Roles"
           selectValue={role}
-          onSelectChange={(value) => setRole(value)}
-          selectOptions={roleOptions}
+          onSelectChange={handleRoleChange}
+          selectOptions={roleOptions.map(role => ({ value: role._id, label: role.title }))}
         />
         <AdminTable
-          data={paginatedUsers}
+          data={promoters}
           columns={columns}
           isLoading={isLoading}
           error={error}
           keyField="id"
-          key={page}
+          key={currentPage}
+          onRowClick={(user) =>
+            navigate({
+              to: "/promoterDetails",
+              search: { promoterId: String(user.id) },
+            })
+          }
           emptyMessage="No promoters found. Add your first promoter to get started."
         />
       </div>
       <div className="pt-2 md:pt-3 lg:pt-12 xl:pt-4">
         <Pagination
-          currentPage={page}
+          currentPage={currentPage}
           totalPages={totalPages}
-          onPageChange={setPage}
+          onPageChange={handlePageChange}
         />
       </div>
       <DeleteModal

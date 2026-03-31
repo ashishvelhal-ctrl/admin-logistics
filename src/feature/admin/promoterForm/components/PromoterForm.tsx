@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
+
+import { promoterApi } from "../services/promoterApi";
 
 import { FormHeader } from "@/components/common/FormHeader";
 import { Button } from "@/components/ui/button";
@@ -16,6 +18,12 @@ export default function PromoterForm() {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const normalizePhoneNumber = (phoneNumber: string) => {
+    const digitsOnly = phoneNumber.replace(/\D/g, "");
+    return digitsOnly.length >= 10 ? digitsOnly.slice(-10) : digitsOnly;
+  };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({
@@ -24,19 +32,42 @@ export default function PromoterForm() {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setSubmitError(null);
 
-    // TODO: Add your API call here to create promoter
-    console.log("Creating promoter:", formData);
+    try {
+      const name = formData.fullName.trim();
+      const phoneNumber = normalizePhoneNumber(formData.mobileNumber);
+      const address = formData.assignedAddress.trim();
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
-      // Redirect to promoter list after successful creation
+      if (name.length < 5) {
+        throw new Error("Name must be at least 5 characters.");
+      }
+
+      if (address.length < 5) {
+        throw new Error("Address must be at least 5 characters.");
+      }
+
+      if (phoneNumber.length !== 10) {
+        throw new Error("Phone number must be exactly 10 digits.");
+      }
+
+      await promoterApi.createPromoter({
+        name,
+        phoneNumber,
+        address,
+      });
+
       navigate({ to: "/promoterList" });
-    }, 1000);
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error ? error.message : "Failed to create promoter",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -53,6 +84,11 @@ export default function PromoterForm() {
             <CardTitle>Promoter Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {submitError && (
+              <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                {submitError}
+              </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="fullName">Full Name</Label>
@@ -61,6 +97,7 @@ export default function PromoterForm() {
                   type="text"
                   placeholder="Enter full name"
                   value={formData.fullName}
+                  minLength={5}
                   onChange={(e) =>
                     handleInputChange("fullName", e.target.value)
                   }
@@ -75,6 +112,7 @@ export default function PromoterForm() {
                   type="tel"
                   placeholder="Enter mobile number"
                   value={formData.mobileNumber}
+                  pattern="[0-9+ ]{10,15}"
                   onChange={(e) =>
                     handleInputChange("mobileNumber", e.target.value)
                   }
@@ -89,6 +127,7 @@ export default function PromoterForm() {
                   type="text"
                   placeholder="Enter assigned address"
                   value={formData.assignedAddress}
+                  minLength={5}
                   onChange={(e) =>
                     handleInputChange("assignedAddress", e.target.value)
                   }

@@ -1,5 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
+
+import { promoterApi } from "../services/promoterApi";
 
 import { FormHeader } from "@/components/common/FormHeader";
 import { Button } from "@/components/ui/button";
@@ -9,49 +11,26 @@ import { Label } from "@/components/ui/label";
 
 export default function PromoterEdit() {
   const navigate = useNavigate();
-  const { promoterId } = useSearch({ from: "/(admin)/promoterEdit" });
+  const { promoterId, fullName, mobileNumber, assignedAddress } = useSearch({
+    from: "/(admin)/promoterEdit",
+  });
 
   const [formData, setFormData] = useState({
-    fullName: "",
-    mobileNumber: "",
-    assignedAddress: "",
+    fullName: fullName ?? "",
+    mobileNumber: mobileNumber ?? "",
+    assignedAddress: assignedAddress ?? "",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // Mock data fetch - replace with actual API call
   useEffect(() => {
-    const fetchPromoter = async () => {
-      setIsLoading(true);
-      try {
-        // TODO: Replace with actual API call
-        // const promoter = await getPromoterById(promoterId)
-
-        // Mock data for now
-        const mockPromoter = {
-          id: promoterId,
-          fullName: "A",
-          mobileNumber: "+91 1234567890",
-          assignedAddress: "State",
-        };
-
-        setFormData({
-          fullName: mockPromoter.fullName,
-          mobileNumber: mockPromoter.mobileNumber,
-          assignedAddress: mockPromoter.assignedAddress,
-        });
-      } catch (error) {
-        console.error("Failed to fetch promoter:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (promoterId) {
-      fetchPromoter();
-    }
-  }, [promoterId]);
+    setFormData({
+      fullName: fullName ?? "",
+      mobileNumber: mobileNumber ?? "",
+      assignedAddress: assignedAddress ?? "",
+    });
+  }, [fullName, mobileNumber, assignedAddress]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({
@@ -60,29 +39,42 @@ export default function PromoterEdit() {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!promoterId) {
+      setSubmitError("Promoter ID is missing.");
+      return;
+    }
+
     setIsSubmitting(true);
-
+    setSubmitError(null);
     try {
-      // TODO: Add your API call here to update promoter
-      console.log("Updating promoter:", { id: promoterId, ...formData });
+      const name = formData.fullName.trim();
+      const address = formData.assignedAddress.trim();
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (name.length < 5) {
+        throw new Error("Name must be at least 5 characters.");
+      }
 
-      // Redirect to promoter list after successful update
+      if (address.length < 5) {
+        throw new Error("Address must be at least 5 characters.");
+      }
+
+      await promoterApi.updatePromoter(promoterId, {
+        name,
+        phoneNumber: formData.mobileNumber, // This won't be sent to API due to schema
+        address,
+      });
+
       navigate({ to: "/promoterList" });
     } catch (error) {
-      console.error("Failed to update promoter:", error);
+      setSubmitError(
+        error instanceof Error ? error.message : "Failed to update promoter",
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
 
   return (
     <div className="bg-common-bg pr-10 pl-4">
@@ -98,46 +90,61 @@ export default function PromoterEdit() {
             <CardTitle>Promoter Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name</Label>
-              <Input
-                id="fullName"
-                type="text"
-                placeholder="Enter full name"
-                value={formData.fullName}
-                onChange={(e) => handleInputChange("fullName", e.target.value)}
-                required
-              />
-            </div>
+            {!promoterId && (
+              <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                Promoter ID is missing.
+              </div>
+            )}
+            {submitError && (
+              <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                {submitError}
+              </div>
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="fullName">Full Name</Label>
+                <Input
+                  id="fullName"
+                  type="text"
+                  placeholder="Enter full name"
+                  value={formData.fullName}
+                  minLength={5}
+                  onChange={(e) => handleInputChange("fullName", e.target.value)}
+                  required
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="mobileNumber">Mobile Number</Label>
-              <Input
-                id="mobileNumber"
-                type="tel"
-                placeholder="Enter mobile number"
-                value={formData.mobileNumber}
-                onChange={(e) =>
-                  handleInputChange("mobileNumber", e.target.value)
-                }
-                required
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="mobileNumber">Mobile Number</Label>
+                <Input
+                  id="mobileNumber"
+                  type="tel"
+                  placeholder="Enter mobile number"
+                  value={formData.mobileNumber}
+                  pattern="[0-9+ ]{10,15}"
+                  onChange={(e) =>
+                    handleInputChange("mobileNumber", e.target.value)
+                  }
+                  required
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="assignedAddress">Assigned Address</Label>
-              <Input
-                id="assignedAddress"
-                type="text"
-                placeholder="Enter assigned address"
-                value={formData.assignedAddress}
-                onChange={(e) =>
-                  handleInputChange("assignedAddress", e.target.value)
-                }
-                required
-              />
+              <div className="space-y-2">
+                <Label htmlFor="assignedAddress">Assigned Address</Label>
+                <Input
+                  id="assignedAddress"
+                  type="text"
+                  placeholder="Enter assigned address"
+                  value={formData.assignedAddress}
+                  minLength={5}
+                  onChange={(e) =>
+                    handleInputChange("assignedAddress", e.target.value)
+                  }
+                  required
+                />
+              </div>
             </div>
-            <div className="flex justify-end space-x-2 mt-4">
+            <div className="flex justify-end space-x-2 mt-8 pt-4">
               <Button
                 type="button"
                 variant="outline"
@@ -148,7 +155,7 @@ export default function PromoterEdit() {
               <Button
                 type="submit"
                 variant="outline"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !promoterId}
                 className="hover:bg-icon-1-color hover:text-white hover:border-icon-1-color transition-colors"
               >
                 {isSubmitting ? "Updating..." : "Update Promoter"}

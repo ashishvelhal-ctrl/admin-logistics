@@ -49,7 +49,7 @@ export function AdminTable<T>({
     });
   });
 
-  const rows = Array.isArray(data) ? data : data.rows;
+  const rows = Array.isArray(data) ? data : (data && typeof data === 'object' && 'rows' in data) ? data.rows : [];
 
   const table = useReactTable({
     data: rows,
