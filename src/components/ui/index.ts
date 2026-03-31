@@ -6,3 +6,4 @@ export * from "./card";
 export * from "./popover";
 export * from "./toast";
 export * from "./pagination";
+export * from "./table";

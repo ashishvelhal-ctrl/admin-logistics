@@ -4,6 +4,7 @@ import { ArrowLeft, MapPin, Phone } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { PaginationWrapper as Pagination } from "@/components/common/Pagination";
+import RecentOnboardTable from "@/components/common/RecentOnboardTable";
 import { cn } from "@/lib/utils";
 
 type TripStatus = "completed" | "cancelled" | "inProgress";
@@ -30,23 +31,11 @@ interface UserProfile {
 
 const PAGE_SIZE = 4;
 
-const statusStyles: Record<TripStatus, string> = {
-  completed: "bg-[#E4F7EC] text-[#2E715F]",
-  cancelled: "bg-[#EEF2F6] text-[#64748B]",
-  inProgress: "bg-[#FEF3C7] text-[#92400E]",
-};
-
 const statusLabel: Record<TripStatus, string> = {
   completed: "COMPLETED",
   cancelled: "CANCELLED",
   inProgress: "IN PROGRESS",
 };
-
-const currencyFormatter = new Intl.NumberFormat("en-IN", {
-  style: "currency",
-  currency: "INR",
-  maximumFractionDigits: 0,
-});
 
 const userProfiles: Record<string, UserProfile> = {
   "1": {
@@ -145,6 +134,37 @@ function getInitials(name: string) {
     .map((part) => part[0]?.toUpperCase() ?? "")
     .slice(0, 2)
     .join("");
+}
+
+// Transform vehicle details to table format
+function getVehicleDetailsData(profile: UserProfile) {
+  return [
+    {
+      id: "vehicle-type",
+      userName: "Vehicle Type",
+      mobileNumber: profile.vehicleType,
+      date: "",
+      location: "",
+    },
+    {
+      id: "vehicle-number",
+      userName: "Vehicle Number",
+      mobileNumber: profile.vehicleNumber,
+      date: "",
+      location: "",
+    },
+  ];
+}
+
+// Transform trip history to table format
+function getTripHistoryData(trips: UserTrip[]) {
+  return trips.map((trip) => ({
+    id: trip.tripId,
+    userName: trip.tripId,
+    mobileNumber: trip.route,
+    date: trip.date,
+    location: statusLabel[trip.status],
+  }));
 }
 
 export default function UserDetails() {
@@ -249,93 +269,25 @@ export default function UserDetails() {
           </Card>
 
           <Card className="shadow-sm">
-            <CardContent className="p-5">
-              <h3 className="mb-8 text-2xl font-semibold text-heading-color">
-                Vehicle Details
-              </h3>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                    Vehicle Type
-                  </p>
-                  <div className="rounded-md border border-dashed border-[#CBD5E1] bg-common-bg px-4 py-3 text-base text-heading-color">
-                    {profile.vehicleType}
-                  </div>
-                </div>
-
-                <div>
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                    Vehicle Number
-                  </p>
-                  <div className="rounded-md border border-dashed border-[#CBD5E1] bg-common-bg px-4 py-3 text-base text-heading-color">
-                    {profile.vehicleNumber}
-                  </div>
-                </div>
+            <CardContent className="p-0">
+              <div className="border-b bg-[#F8FAF9] px-5 py-4">
+                <h3 className="text-2xl font-semibold text-heading-color">
+                  Vehicle Details
+                </h3>
               </div>
+              <RecentOnboardTable data={getVehicleDetailsData(profile)} />
             </CardContent>
           </Card>
         </div>
 
         <Card className="shadow-sm">
           <CardContent className="p-0">
-            <div className="border-b bg-common-bg/70 px-5 py-4">
+            <div className="border-b bg-[#F8FAF9] px-5 py-4">
               <h3 className="text-2xl font-semibold text-heading-color">
                 User Trip History
               </h3>
             </div>
-
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
-                <thead className="bg-common-bg text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  <tr>
-                    <th className="px-5 py-3 text-left">Trip ID</th>
-                    <th className="px-5 py-3 text-left">Date</th>
-                    <th className="px-5 py-3 text-left">Route</th>
-                    <th className="px-5 py-3 text-left">Status</th>
-                    <th className="px-5 py-3 text-right">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedTrips.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={6}
-                        className="px-5 py-5 text-center text-muted-foreground"
-                      >
-                        No trip history found.
-                      </td>
-                    </tr>
-                  ) : (
-                    paginatedTrips.map((trip) => (
-                      <tr key={trip.tripId} className="border-t">
-                        <td className="px-5 py-3 font-semibold text-heading-color">
-                          {trip.tripId}
-                        </td>
-                        <td className="px-5 py-3 text-text-color">
-                          {trip.date}
-                        </td>
-                        <td className="px-5 py-3 font-semibold text-heading-color">
-                          {trip.route}
-                        </td>
-                        <td className="px-5 py-3">
-                          <span
-                            className={cn(
-                              "inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide",
-                              statusStyles[trip.status],
-                            )}
-                          >
-                            {statusLabel[trip.status]}
-                          </span>
-                        </td>
-                        <td className="px-5 py-3 text-right font-semibold text-heading-color">
-                          {currencyFormatter.format(trip.amount)}
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+            <RecentOnboardTable data={getTripHistoryData(paginatedTrips)} />
           </CardContent>
         </Card>
         <div className="flex flex-col gap-2 pt-2 md:flex-row md:items-center md:justify-between md:pt-3 lg:pt-4">

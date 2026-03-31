@@ -26,6 +26,7 @@ export function Layout({ children, variant }: LayoutProps) {
   const navigate = useNavigate();
   const token = useAtomValue(tokenAtom);
   const [isLoading, setIsLoading] = useState(true);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
     // Check both token atom and auth storage
@@ -55,13 +56,16 @@ export function Layout({ children, variant }: LayoutProps) {
   }, [token, navigate]);
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-screen flex flex-col relative">
       <header className="h-16 bg-common-bg border-b border-border-stroke flex-shrink-0">
-        <Navbar variant={variant} />
+        <Navbar
+          variant={variant}
+          onMenuToggle={() => setIsMobileSidebarOpen((prev) => !prev)}
+        />
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <aside className="w-75 border-r border-border-stroke flex-shrink-0 overflow-y-auto">
+        <aside className="hidden md:block w-75 border-r border-border-stroke flex-shrink-0 overflow-y-auto">
           <Sidebar variant={variant} />
         </aside>
 
@@ -71,6 +75,23 @@ export function Layout({ children, variant }: LayoutProps) {
           </div>
         </main>
       </div>
+
+      {isMobileSidebarOpen ? (
+        <div className="md:hidden absolute inset-0 z-50">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/35"
+            onClick={() => setIsMobileSidebarOpen(false)}
+            aria-label="Close sidebar overlay"
+          />
+          <aside className="absolute left-0 top-16 h-[calc(100%-4rem)] w-72 bg-common-bg border-r border-border-stroke overflow-y-auto">
+            <Sidebar
+              variant={variant}
+              onNavigate={() => setIsMobileSidebarOpen(false)}
+            />
+          </aside>
+        </div>
+      ) : null}
     </div>
   );
 }

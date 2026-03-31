@@ -1,4 +1,4 @@
-import { Bell } from "lucide-react";
+import { Bell, Menu } from "lucide-react";
 import { useAtomValue } from "jotai";
 
 import Logo from "@/assets/Cropnest_logo.png";
@@ -6,9 +6,10 @@ import { authAtom } from "@/atoms/authAtom";
 
 interface NavbarProps {
   variant: "admin" | "promoter";
+  onMenuToggle?: () => void;
 }
 
-export function Navbar({ variant }: NavbarProps) {
+export function Navbar({ variant, onMenuToggle }: NavbarProps) {
   const auth = useAtomValue(authAtom);
   const userName =
     auth?.user || (variant === "admin" ? "Super Admin" : "Promoter");
@@ -31,7 +32,7 @@ export function Navbar({ variant }: NavbarProps) {
           </p>
         </div>
       </div>
-      <div className="flex items-center gap-6">
+      <div className="hidden md:flex items-center gap-6">
         <div className="relative cursor-pointer">
           <Bell className="w-5 h-5 text-inactive-text" />
           <span className="absolute -top-2 -right-2 bg-icon-text text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
@@ -47,6 +48,15 @@ export function Navbar({ variant }: NavbarProps) {
           </div>
         </div>
       </div>
+
+      <button
+        type="button"
+        onClick={onMenuToggle}
+        className="md:hidden inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-border-stroke text-sm font-medium text-heading-color"
+      >
+        <Menu className="w-4 h-4" />
+        Menu
+      </button>
     </header>
   );
 }

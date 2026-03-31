@@ -78,23 +78,6 @@ export default function UserManagement() {
       render: (value: string) => value || "N/A",
     },
     {
-      key: "roles",
-      title: "Role",
-      className: "max-w-[250px] truncate whitespace-nowrap overflow-hidden",
-      render: (value?: string[]) =>
-        value?.length ? value.join(", ") : "No roles",
-    },
-    {
-      key: "is_verified",
-      title: "Verified",
-      render: (value: boolean) => (value ? "Yes" : "No"),
-    },
-    {
-      key: "created_at",
-      title: "Joined",
-      render: (value: string) => new Date(value).toLocaleDateString(),
-    },
-    {
       key: "actions",
       title: "Action",
       render: (_: any, user: UserObject) => (

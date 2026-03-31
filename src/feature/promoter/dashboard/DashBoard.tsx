@@ -1,9 +1,11 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useAtomValue } from "jotai/react";
 import { Plus, UserRound } from "lucide-react";
+import { useState, useMemo } from "react";
 
 import { authAtom } from "@/atoms/authAtom";
 import RecentOnboardTable from "@/components/common/RecentOnboardTable";
+import { PaginationWrapper as Pagination } from "@/components/common/Pagination";
 
 interface StatItem {
   id: string;
@@ -36,7 +38,7 @@ const stats: StatItem[] = [
   { id: "month", label: "This Month", value: "324", growth: "+8% this month" },
 ];
 
-const recentOnboards: OnboardItem[] = Array.from({ length: 7 }, (_, index) => ({
+const recentOnboards: OnboardItem[] = Array.from({ length: 20 }, (_, index) => ({
   id: `onboard-${index + 1}`,
   userName: "Rahul Sharma",
   mobileNumber: "9307141518",
@@ -44,10 +46,23 @@ const recentOnboards: OnboardItem[] = Array.from({ length: 7 }, (_, index) => ({
   location: "Pune",
 }));
 
+const PAGE_SIZE = 10;
+
 export default function DashBoard() {
   const navigate = useNavigate();
   const auth = useAtomValue(authAtom);
   const userName = auth?.user || "Raj Sharma";
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalPages = Math.max(1, Math.ceil(recentOnboards.length / PAGE_SIZE));
+  const currentPageData = useMemo(
+    () =>
+      recentOnboards.slice(
+        (currentPage - 1) * PAGE_SIZE,
+        currentPage * PAGE_SIZE,
+      ),
+    [currentPage],
+  );
 
   return (
     <main className="pt-1 pr-4 pl-3 pb-3 space-y-4 bg-common-bg min-h-full">
@@ -95,7 +110,14 @@ export default function DashBoard() {
       </section>
 
       <section className="px-2">
-        <RecentOnboardTable data={recentOnboards} />
+        <RecentOnboardTable data={currentPageData} />
+        <div className="flex flex-col gap-2 pt-2 md:flex-row md:items-center md:justify-between md:pt-3 lg:pt-4">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        </div>
       </section>
     </main>
   );

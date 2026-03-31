@@ -103,7 +103,7 @@ const promoterProfiles: Record<string, PromoterProfile> = {
       { id: 23, name: "Sonal Gupta", phone: "90033 44556", status: "pending" },
       {
         id: 24,
-        name: "Harish Yadav",
+        name: "Narish Yadav",
         phone: "90044 55667",
         status: "completed",
       },

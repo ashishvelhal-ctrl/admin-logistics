@@ -14,9 +14,10 @@ import { logout } from "@/lib/auth";
 
 interface SidebarProps {
   variant: "admin" | "promoter";
+  onNavigate?: () => void;
 }
 
-export function Sidebar({ variant }: SidebarProps) {
+export function Sidebar({ variant, onNavigate }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const auth = useAtomValue(authAtom);
@@ -96,11 +97,12 @@ export function Sidebar({ variant }: SidebarProps) {
 
   const handleLogout = () => {
     logout();
+    onNavigate?.();
     navigate({ to: "/auth/login" });
   };
 
   return (
-    <div className="flex flex-col justify-between h-full hidden md:flex">
+    <div className="flex flex-col justify-between h-full">
       <div className="p-3 overflow-hidden flex-1 bg-common-bg">
         {filteredMenu.map((item, index) => {
           const Icon = item.icon;
@@ -109,7 +111,10 @@ export function Sidebar({ variant }: SidebarProps) {
           return (
             <button
               key={index}
-              onClick={() => navigate({ to: item.url })}
+              onClick={() => {
+                navigate({ to: item.url });
+                onNavigate?.();
+              }}
               className={`w-full flex items-center gap-3 pl-9 pr-2 py-2 rounded-lg mb-1 cursor-pointer transition-colors ${
                 isActive
                   ? "bg-icon-bg text-icon-text font-medium"

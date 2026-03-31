@@ -80,28 +80,6 @@ export default function PromoterList() {
       render: (value: number) => value || 0,
     },
     {
-      key: "is_verified",
-      title: "Status",
-      render: (value: boolean) => (
-        <span
-          className={`px-2 py-1 rounded-full text-xs font-medium ${
-            value
-              ? "bg-green-100 text-green-800"
-              : "bg-yellow-100 text-yellow-800"
-          }`}
-        >
-          {value ? "Verified" : "Unverified"}
-        </span>
-      ),
-    },
-    {
-      key: "created_at",
-      title: "Created At",
-      render: (value: string) => {
-        return new Date(value).toLocaleDateString();
-      },
-    },
-    {
       key: "actions",
       title: "Actions",
       render: (_: any, user: any) => (
