@@ -14,7 +14,7 @@ interface OnboardItem {
   date: string;
   location: string;
 }
-  
+
 interface RecentOnboardTableProps {
   data: OnboardItem[];
 }

@@ -2,7 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { networkApi } from "../services/networkApi";
 
-import type { NetworkPaginationMeta, NetworkUser } from "../services/networkApi";
+import type {
+  NetworkPaginationMeta,
+  NetworkUser,
+} from "../services/networkApi";
 
 interface UseMyNetworkListReturn {
   users: NetworkUser[];
@@ -89,4 +92,3 @@ export function useMyNetworkList(): UseMyNetworkListReturn {
     refreshList,
   };
 }
-

@@ -11,8 +11,16 @@ import { PaginationWrapper as Pagination } from "@/components/common/Pagination"
 
 export default function MyNetworkList() {
   const navigate = useNavigate();
-  const { users, isLoading, error, currentPage, totalPages, search, handleSearch, handlePageChange } =
-    useMyNetworkList();
+  const {
+    users,
+    isLoading,
+    error,
+    currentPage,
+    totalPages,
+    search,
+    handleSearch,
+    handlePageChange,
+  } = useMyNetworkList();
 
   const columns: Array<Column<NetworkUser>> = [
     {
@@ -82,4 +90,3 @@ export default function MyNetworkList() {
     </div>
   );
 }
-

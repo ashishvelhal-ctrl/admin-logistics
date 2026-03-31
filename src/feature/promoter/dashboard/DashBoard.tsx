@@ -38,13 +38,16 @@ const stats: StatItem[] = [
   { id: "month", label: "This Month", value: "324", growth: "+8% this month" },
 ];
 
-const recentOnboards: OnboardItem[] = Array.from({ length: 20 }, (_, index) => ({
-  id: `onboard-${index + 1}`,
-  userName: "Rahul Sharma",
-  mobileNumber: "9307141518",
-  date: "28-03-2026",
-  location: "Pune",
-}));
+const recentOnboards: OnboardItem[] = Array.from(
+  { length: 20 },
+  (_, index) => ({
+    id: `onboard-${index + 1}`,
+    userName: "Rahul Sharma",
+    mobileNumber: "9307141518",
+    date: "28-03-2026",
+    location: "Pune",
+  }),
+);
 
 const PAGE_SIZE = 10;
 
