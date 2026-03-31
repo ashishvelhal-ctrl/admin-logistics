@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-import UserList from "@/feature/admin/user/components/UserList";
+import MyNetworkList from "@/feature/promoter/network/components/MyNetworkList";
 
 const promoterRoles = ["promoter"];
 
@@ -46,5 +46,5 @@ export const Route = createFileRoute("/(promoter)/myNetwork")({
 });
 
 function RouteComponent() {
-  return <UserList />;
+  return <MyNetworkList />;
 }
