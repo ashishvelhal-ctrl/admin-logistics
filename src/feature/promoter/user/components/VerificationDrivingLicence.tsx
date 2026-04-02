@@ -6,10 +6,6 @@ import { Button } from "@/components/ui/button";
 export default function VerificationDrivingLicence() {
   const navigate = useNavigate();
 
-  const handleContinue = () => {
-    navigate({ to: "/addvehical" });
-  };
-
   return (
     <main className="bg-common-bg px-2 sm:pr-4 sm:pl-3 pt-1 pb-4 min-h-full space-y-4">
       <section className="px-2">

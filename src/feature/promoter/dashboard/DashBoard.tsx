@@ -1,6 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useAtomValue } from "jotai/react";
-import { Plus, UserRound } from "lucide-react";
+import { Clock3, Plus, RefreshCcw, UserRound } from "lucide-react";
 import { useState, useMemo } from "react";
 
 import { authAtom } from "@/atoms/authAtom";
@@ -68,8 +68,8 @@ export default function DashBoard() {
   );
 
   return (
-    <main className="pt-1 pr-4 pl-3 pb-3 space-y-4 bg-common-bg min-h-full">
-      <section className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 px-2">
+    <main className="pt-2 pr-3 pl-3 pb-3 space-y-4 bg-common-bg min-h-full">
+      <section className="hidden md:flex flex-col md:flex-row md:items-center md:justify-between gap-2 px-2">
         <div>
           <h1 className="text-2xl font-bold text-heading-color">
             Hello, {userName} 👋
@@ -88,31 +88,82 @@ export default function DashBoard() {
         </button>
       </section>
 
-      <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 px-2">
+      <section className="grid grid-cols-3 md:grid-cols-2 xl:grid-cols-3 gap-2 md:gap-3 px-1 md:px-2">
         {stats.map((item) => (
           <article
             key={item.id}
-            className="bg-white border border-border-stroke rounded-xl px-4 py-3 flex items-start justify-between"
+            className="bg-white border border-border-stroke rounded-xl px-2.5 md:px-3 py-2 md:py-2.5 flex items-start justify-between"
           >
             <div>
-              <p className="text-sm text-inactive-text font-medium">
+              <p className="text-[11px] md:text-xs text-inactive-text font-medium leading-tight">
                 {item.label}
               </p>
-              <p className="text-2xl leading-tight font-semibold text-heading-color mt-1">
+              <p className="text-lg md:text-xl leading-tight font-semibold text-heading-color mt-0.5 md:mt-1">
                 {item.value}
               </p>
-              <p className="text-icon-text text-sm font-medium mt-1">
+              <p className="text-icon-text text-[10px] md:text-xs font-medium mt-0.5 md:mt-1">
                 {item.growth}
               </p>
             </div>
-            <span className="w-8 h-8 rounded-lg bg-icon-bg flex items-center justify-center">
-              <UserRound className="w-4 h-4 text-icon-text" />
+            <span className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-icon-bg flex items-center justify-center">
+              <UserRound className="w-3.5 h-3.5 text-icon-text" />
             </span>
           </article>
         ))}
       </section>
 
-      <section className="px-2">
+      <section className="px-1 md:hidden">
+        <button
+          type="button"
+          onClick={() => navigate({ to: "/addUser" })}
+          className="w-full inline-flex items-center justify-center gap-2 h-11 px-3 rounded-lg text-white bg-[#2e7d68] hover:bg-[#286d5b] transition-colors text-xl font-semibold"
+        >
+          <Plus className="w-5 h-5" />
+          Add New User
+        </button>
+      </section>
+
+      <section className="hidden md:block px-2">
+        <article className="rounded-xl border border-border-stroke bg-white overflow-hidden">
+          <div className="px-5 py-4 border-b border-border-stroke">
+            <h2 className="text-[31px] leading-none font-semibold text-heading-color">
+              Recent Activity
+            </h2>
+          </div>
+
+          <div className="px-4 py-14 sm:py-16 flex flex-col items-center text-center">
+            <div className="relative">
+              <span className="w-16 h-16 rounded-full bg-[#eef3f1] flex items-center justify-center">
+                <Clock3 className="w-8 h-8 text-[#95b3a8]" />
+              </span>
+              <span className="absolute -right-2 -bottom-1 w-6 h-6 rounded-full border border-[#d4e0db] bg-white flex items-center justify-center text-[#b4c5be] text-xs">
+                0
+              </span>
+            </div>
+
+            <h3 className="text-2xl font-semibold text-heading-color mt-5">
+              No recent activity yet.
+            </h3>
+            <p className="text-sm text-inactive-text mt-2 max-w-xl">
+              When users join your network or complete tasks, their activity
+              will appear here in real-time.
+            </p>
+
+            <button
+              type="button"
+              className="mt-6 inline-flex items-center gap-2 h-10 px-5 rounded-full border border-[#2e7d68] text-[#2e7d68] text-sm font-semibold hover:bg-[#f3faf7] transition-colors"
+            >
+              <RefreshCcw className="w-4 h-4" />
+              Refresh Dashboard
+            </button>
+          </div>
+        </article>
+      </section>
+
+      <section className="px-1 md:px-2">
+        <h2 className="text-3xl md:hidden font-semibold text-heading-color mb-2">
+          Recent Onboarded
+        </h2>
         <RecentOnboardTable data={currentPageData} />
         <div className="flex flex-col gap-2 pt-2 md:flex-row md:items-center md:justify-between md:pt-3 lg:pt-4">
           <Pagination

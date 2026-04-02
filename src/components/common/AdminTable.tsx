@@ -8,6 +8,13 @@ import React from "react";
 
 import type { ColumnDef } from "@tanstack/react-table";
 
+// Extend ColumnMeta type to include className
+declare module "@tanstack/react-table" {
+  interface ColumnMeta<TData, TValue> {
+    className?: string;
+  }
+}
+
 export interface Column<T = any> {
   key: keyof T | string;
   title: string;

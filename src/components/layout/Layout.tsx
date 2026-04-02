@@ -84,7 +84,7 @@ export function Layout({ children, variant }: LayoutProps) {
             onClick={() => setIsMobileSidebarOpen(false)}
             aria-label="Close sidebar overlay"
           />
-          <aside className="absolute left-0 top-16 h-[calc(100%-4rem)] w-72 bg-common-bg border-r border-border-stroke overflow-y-auto">
+          <aside className="absolute left-0 top-2 bottom-2 w-[78%] max-w-[300px] bg-common-bg border-r border-border-stroke overflow-y-auto rounded-r-2xl shadow-xl">
             <Sidebar
               variant={variant}
               onNavigate={() => setIsMobileSidebarOpen(false)}

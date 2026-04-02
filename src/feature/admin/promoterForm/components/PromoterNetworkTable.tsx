@@ -107,9 +107,6 @@ export default function PromoterDetailsRightPanel({
 
   const progressValue =
     targetTotal > 0 ? Math.min((targetCurrent / targetTotal) * 100, 100) : 0;
-  const startCount =
-    filteredNetwork.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
-  const endCount = Math.min(currentPage * PAGE_SIZE, filteredNetwork.length);
 
   return (
     <div className="space-y-6">
@@ -256,10 +253,7 @@ export default function PromoterDetailsRightPanel({
         </CardContent>
       </Card>
 
-      <div className="flex flex-col gap-2 pt-2 md:flex-row md:items-center md:justify-between md:pt-3 lg:pt-4">
-        <p className="text-sm text-muted-foreground">
-          {startCount}-{endCount} of {filteredNetwork.length}
-        </p>
+      <div className="flex justify-end pt-2 md:pt-3 lg:pt-4">
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}

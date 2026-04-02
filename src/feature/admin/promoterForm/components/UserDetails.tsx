@@ -4,7 +4,7 @@ import { ArrowLeft, MapPin, Phone } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { PaginationWrapper as Pagination } from "@/components/common/Pagination";
-import RecentOnboardTable from "@/components/common/RecentOnboardTable";
+import { AdminTable, type Column } from "@/components/common/AdminTable";
 import { cn } from "@/lib/utils";
 
 type TripStatus = "completed" | "cancelled" | "inProgress";
@@ -137,35 +137,84 @@ function getInitials(name: string) {
 }
 
 // Transform vehicle details to table format
-function getVehicleDetailsData(profile: UserProfile) {
+interface VehicleDetail {
+  id: string;
+  label: string;
+  value: string;
+}
+
+function getVehicleDetailsData(profile: UserProfile): VehicleDetail[] {
   return [
     {
       id: "vehicle-type",
-      userName: "Vehicle Type",
-      mobileNumber: profile.vehicleType,
-      date: "",
-      location: "",
+      label: "Vehicle Type",
+      value: profile.vehicleType,
     },
     {
       id: "vehicle-number",
-      userName: "Vehicle Number",
-      mobileNumber: profile.vehicleNumber,
-      date: "",
-      location: "",
+      label: "Vehicle Number",
+      value: profile.vehicleNumber,
     },
   ];
 }
 
+const vehicleColumns: Array<Column<VehicleDetail>> = [
+  {
+    key: "label",
+    title: "Vehical Type",
+    className: "w-1/3",
+  },
+  {
+    key: "value",
+    title: "Vehical Number",
+    className: "w-2/3",
+  },
+];
+
 // Transform trip history to table format
-function getTripHistoryData(trips: UserTrip[]) {
+interface TripHistoryItem {
+  id: string;
+  tripId: string;
+  date: string;
+  route: string;
+  status: string;
+  amount: number;
+}
+
+function getTripHistoryData(trips: UserTrip[]): TripHistoryItem[] {
   return trips.map((trip) => ({
     id: trip.tripId,
-    userName: trip.tripId,
-    mobileNumber: trip.route,
+    tripId: trip.tripId,
     date: trip.date,
-    location: statusLabel[trip.status],
+    route: trip.route,
+    status: statusLabel[trip.status],
+    amount: trip.amount,
   }));
 }
+
+const tripColumns: Array<Column<TripHistoryItem>> = [
+  {
+    key: "tripId",
+    title: "Trip ID",
+  },
+  {
+    key: "date",
+    title: "Date",
+  },
+  {
+    key: "route",
+    title: "Route",
+  },
+  {
+    key: "status",
+    title: "Status",
+  },
+  {
+    key: "amount",
+    title: "Amount",
+    render: (value: number) => `₹${value.toLocaleString()}`,
+  },
+];
 
 export default function UserDetails() {
   const navigate = useNavigate();
@@ -275,7 +324,12 @@ export default function UserDetails() {
                   Vehicle Details
                 </h3>
               </div>
-              <RecentOnboardTable data={getVehicleDetailsData(profile)} />
+              <AdminTable
+                data={getVehicleDetailsData(profile)}
+                columns={vehicleColumns}
+                keyField="id"
+                emptyMessage="No vehicle details available."
+              />
             </CardContent>
           </Card>
         </div>
@@ -287,7 +341,12 @@ export default function UserDetails() {
                 User Trip History
               </h3>
             </div>
-            <RecentOnboardTable data={getTripHistoryData(paginatedTrips)} />
+            <AdminTable
+              data={getTripHistoryData(paginatedTrips)}
+              columns={tripColumns}
+              keyField="id"
+              emptyMessage="No trip history available."
+            />
           </CardContent>
         </Card>
         <div className="flex flex-col gap-2 pt-2 md:flex-row md:items-center md:justify-between md:pt-3 lg:pt-4">

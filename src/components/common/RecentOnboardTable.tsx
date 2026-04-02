@@ -6,6 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ChevronRight } from "lucide-react";
 
 interface OnboardItem {
   id: string;
@@ -21,43 +22,63 @@ interface RecentOnboardTableProps {
 
 export default function RecentOnboardTable({ data }: RecentOnboardTableProps) {
   return (
-    <article className="bg-white border border-border-stroke rounded-xl overflow-hidden">
-      <Table>
-        <TableHeader>
-          <TableRow className="bg-[#F8FAFC]">
-            <TableHead className="text-sm text-inactive-text font-semibold px-5 py-4">
-              User Name
-            </TableHead>
-            <TableHead className="text-sm text-inactive-text font-semibold px-5 py-4">
-              Mobile Number
-            </TableHead>
-            <TableHead className="text-sm text-inactive-text font-semibold px-5 py-4">
-              Date
-            </TableHead>
-            <TableHead className="text-sm text-inactive-text font-semibold px-5 py-4">
-              Location
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {data.map((row) => (
-            <TableRow key={row.id} className="border-t border-border-stroke">
-              <TableCell className="text-sm font-medium text-heading-color px-5 py-4">
-                {row.userName}
-              </TableCell>
-              <TableCell className="text-sm font-medium text-heading-color px-5 py-4">
-                {row.mobileNumber}
-              </TableCell>
-              <TableCell className="text-sm font-medium text-heading-color px-5 py-4">
-                {row.date}
-              </TableCell>
-              <TableCell className="text-sm font-medium text-heading-color px-5 py-4">
-                {row.location}
-              </TableCell>
+    <>
+      <article className="md:hidden space-y-2">
+        {data.map((row) => (
+          <div
+            key={row.id}
+            className="bg-white border border-border-stroke rounded-xl px-4 py-3 flex items-center justify-between"
+          >
+            <div>
+              <p className="text-base font-semibold text-heading-color">{row.userName}</p>
+              <p className="text-sm text-inactive-text mt-0.5">+91 {row.mobileNumber}</p>
+              <p className="text-xs text-inactive-text mt-1">
+                {row.date} • {row.location}
+              </p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-inactive-text" />
+          </div>
+        ))}
+      </article>
+
+      <article className="hidden md:block bg-white border border-border-stroke rounded-xl overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-[#F8FAFC]">
+              <TableHead className="text-sm text-inactive-text font-semibold px-5 py-4">
+                User Name
+              </TableHead>
+              <TableHead className="text-sm text-inactive-text font-semibold px-5 py-4">
+                Mobile Number
+              </TableHead>
+              <TableHead className="text-sm text-inactive-text font-semibold px-5 py-4">
+                Date
+              </TableHead>
+              <TableHead className="text-sm text-inactive-text font-semibold px-5 py-4">
+                Location
+              </TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </article>
+          </TableHeader>
+          <TableBody>
+            {data.map((row) => (
+              <TableRow key={row.id} className="border-t border-border-stroke">
+                <TableCell className="text-sm font-medium text-heading-color px-5 py-4">
+                  {row.userName}
+                </TableCell>
+                <TableCell className="text-sm font-medium text-heading-color px-5 py-4">
+                  {row.mobileNumber}
+                </TableCell>
+                <TableCell className="text-sm font-medium text-heading-color px-5 py-4">
+                  {row.date}
+                </TableCell>
+                <TableCell className="text-sm font-medium text-heading-color px-5 py-4">
+                  {row.location}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </article>
+    </>
   );
 }

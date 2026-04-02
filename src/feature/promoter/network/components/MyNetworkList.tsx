@@ -1,4 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
+import { PencilLine } from "lucide-react";
 
 import { useMyNetworkList } from "../hooks/useMyNetworkList";
 
@@ -8,6 +9,7 @@ import type { NetworkUser } from "../services/networkApi";
 import { AdminTable } from "@/components/common/AdminTable";
 import { ListHeader } from "@/components/common/ListHeader";
 import { PaginationWrapper as Pagination } from "@/components/common/Pagination";
+import { Button } from "@/components/ui/button";
 
 export default function MyNetworkList() {
   const navigate = useNavigate();
@@ -47,6 +49,31 @@ export default function MyNetworkList() {
       title: "Status",
       render: (value: string) => value || "pending",
     },
+    {
+      key: "actions",
+      title: "Action",
+      render: (_: any, row: NetworkUser) => (
+        <div className="flex gap-2 justify-center">
+          <Button
+            size="sm"
+            className="bg-button-1-bg hover:bg-button-1-bg/90 text-icon-1-color"
+            onClick={() =>
+              navigate({
+                to: "/editUser",
+                search: {
+                  userId: String(row.id),
+                  name: row.name,
+                  address: row.address,
+                  mobileNumber: row.phoneNumber,
+                },
+              })
+            }
+          >
+            <PencilLine size={14} />
+          </Button>
+        </div>
+      ),
+    },
   ];
 
   return (
@@ -77,6 +104,15 @@ export default function MyNetworkList() {
           keyField="id"
           key={currentPage}
           emptyMessage="No users found in your network."
+          onRowClick={(row) =>
+            navigate({
+              to: "/userDetails",
+              search: {
+                userId: String(row.id),
+                promoterId: "1",
+              },
+            })
+          }
         />
       </div>
 

@@ -266,11 +266,94 @@ export const promoterApi = {
     }
   },
 
-  // Delete a promoter by ID (if needed)
+  // Get a specific promoter by ID
+  getPromoterById: async (promoterId: string): Promise<UserObject | null> => {
+    try {
+      // Fetch all promoters and find by ID (since search might not work with MongoID)
+      const response = (await apiClient.get(
+        `/admin/promoters?limit=100`,
+      )) as any;
+
+      // Check all possible data locations
+      let promoters = [];
+      if (Array.isArray(response.data?.data)) {
+        promoters = response.data.data;
+      } else if (Array.isArray(response.data)) {
+        promoters = response.data;
+      } else if (
+        response.data?.data?.data &&
+        Array.isArray(response.data.data.data)
+      ) {
+        promoters = response.data.data.data;
+      }
+
+      if (promoters.length > 0) {
+        // Find the promoter with matching ID
+        const promoter = promoters.find((p: any) => {
+          const id = p.id || p._id;
+          return id === promoterId;
+        });
+
+        if (promoter) {
+          return promoter;
+        }
+      }
+
+      return null;
+    } catch (err) {
+      return null;
+    }
+  },
+
+  // Get promoter's network users (admin view)
+  getPromoterNetwork: async (
+    _promoterId: string,
+    params: { limit?: number; offset?: number } = {},
+  ): Promise<{ data: any[]; total: number }> => {
+    try {
+      // Try using the promoter users endpoint
+      const queryParams = new URLSearchParams();
+      if (params.limit) queryParams.append("limit", String(params.limit));
+      if (params.offset) queryParams.append("offset", String(params.offset));
+
+      const url = queryParams.toString()
+        ? `/promoter/users?${queryParams.toString()}`
+        : "/promoter/users";
+
+      const response = (await apiClient.get(url)) as any;
+
+      return {
+        data: response.data?.data || [],
+        total: response.data?.paginationMeta?.total || 0,
+      };
+    } catch (err: any) {
+      // Handle 403 Forbidden - admin can't access promoter endpoint
+      if (
+        err?.response?.status === 403 ||
+        err?.message?.includes("Access denied")
+      ) {
+        return { data: [], total: 0 };
+      }
+
+      return { data: [], total: 0 };
+    }
+  },
+
+  // Delete a promoter by ID (soft delete / deactivate)
   deletePromoter: async (
     promoterId: string,
   ): Promise<{ success: boolean; message: string }> => {
     const response = await apiClient.delete(`/admin/users/${promoterId}`);
     return response.data as { success: boolean; message: string };
+  },
+
+  // Restore a soft-deleted promoter (activate)
+  restorePromoter: async (
+    promoterId: string,
+  ): Promise<{ success: boolean; message: string; data?: any }> => {
+    const response = await apiClient.patch(
+      `/admin/users/${promoterId}/restore`,
+    );
+    return response.data as { success: boolean; message: string; data?: any };
   },
 };

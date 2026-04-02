@@ -1,8 +1,10 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-import PromoterProfile from "@/feature/promoter/profile/components/PromoterProfile";
+import EditProfile from "@/feature/promoter/profile/components/EditProfile";
 
-export const Route = createFileRoute("/(promoter)/myProfile")({
+const promoterRoles = ["promoter"];
+
+export const Route = createFileRoute("/(promoter)/editProfile")({
   beforeLoad: () => {
     if (
       typeof window === "undefined" ||
@@ -22,7 +24,6 @@ export const Route = createFileRoute("/(promoter)/myProfile")({
         throw redirect({ to: "/auth/login" });
       }
 
-      const promoterRoles = ["promoter"];
       const hasAllowedRole = roles.some((role: string) =>
         promoterRoles.includes(role),
       );
@@ -34,5 +35,5 @@ export const Route = createFileRoute("/(promoter)/myProfile")({
       throw redirect({ to: "/auth/login" });
     }
   },
-  component: PromoterProfile,
+  component: EditProfile,
 });

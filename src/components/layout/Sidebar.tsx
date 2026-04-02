@@ -21,6 +21,14 @@ export function Sidebar({ variant, onNavigate }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const auth = useAtomValue(authAtom);
+  const userName = auth?.user || "Raj Sharma";
+  const initials =
+    userName
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() || "")
+      .join("") || "RS";
 
   const adminMenu = [
     {
@@ -59,6 +67,7 @@ export function Sidebar({ variant, onNavigate }: SidebarProps) {
       activePaths: [
         "/dashboardp",
         "/addUser",
+        "/verifyUserOtp",
         "/drivingLicence",
         "/verifyDrivingLicence",
         "/addvehical",
@@ -104,6 +113,22 @@ export function Sidebar({ variant, onNavigate }: SidebarProps) {
   return (
     <div className="flex flex-col justify-between h-full">
       <div className="p-3 overflow-hidden flex-1 bg-common-bg">
+        {variant === "promoter" ? (
+          <div className="mb-3 px-2 py-3 border-b border-border-stroke md:hidden">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-icon-text text-white flex items-center justify-center font-semibold text-sm">
+                {initials}
+              </div>
+              <div>
+                <p className="text-xl font-semibold text-heading-color leading-none">
+                  {userName}
+                </p>
+                <p className="text-sm text-inactive-text mt-1">+91 9307154814</p>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
         {filteredMenu.map((item, index) => {
           const Icon = item.icon;
           const isActive = item.activePaths.includes(location.pathname);
@@ -115,7 +140,7 @@ export function Sidebar({ variant, onNavigate }: SidebarProps) {
                 navigate({ to: item.url });
                 onNavigate?.();
               }}
-              className={`w-full flex items-center gap-3 pl-9 pr-2 py-2 rounded-lg mb-1 cursor-pointer transition-colors ${
+              className={`w-full flex items-center gap-3 pl-4 pr-2 py-2.5 rounded-lg mb-1 cursor-pointer transition-colors ${
                 isActive
                   ? "bg-icon-bg text-icon-text font-medium"
                   : "text-inactive-text hover:bg-icon-bg hover:text-green-700"
@@ -128,10 +153,10 @@ export function Sidebar({ variant, onNavigate }: SidebarProps) {
         })}
       </div>
 
-      <div className="p-3 pl-6 border-t bg-common-bg">
+      <div className="p-3 border-t bg-common-bg">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 pl-9 pr-2 py-2 text-inactive-text hover:text-icon-2-color cursor-pointer transition-colors"
+          className="flex items-center gap-3 pl-4 pr-2 py-2 text-inactive-text hover:text-icon-2-color cursor-pointer transition-colors"
         >
           <LogOut size={16} />
           Logout

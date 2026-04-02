@@ -116,8 +116,6 @@ export default function UserManagement() {
       <ListHeader
         title="User Management"
         description="Manage and view user accounts"
-        addButtonText="Add User"
-        onAdd={() => navigate({ to: "/promoterForm" })}
       />
 
       <div className="bg-card rounded-xl shadow-sm border p-6 h-[calc(104vh-250px)] flex flex-col">

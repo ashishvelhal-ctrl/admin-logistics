@@ -23,14 +23,7 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-const allowedRoles = [
-  "admin",
-  "promoter",
-  "banner-manager",
-  "crop-catalogue-manager",
-  "asset-catalogue-manager",
-  "area-catalogue-manager",
-];
+const allowedRoles = ["admin", "promoter", "banner-manager"];
 const adminRoles = [
   "admin",
   "banner-manager",
@@ -66,7 +59,13 @@ export const OtpVerification = ({ phone }: Props) => {
     try {
       setToken(tokens);
       const meResponse = await authApi.getMe();
-      const user = meResponse?.data || {};
+      const user = (meResponse?.data || {}) as {
+        roles?: string[];
+        role?: string;
+        name?: string;
+        username?: string;
+        phoneNumber?: string;
+      };
       const roles = Array.isArray(user?.roles)
         ? user.roles
         : user?.role
@@ -135,26 +134,26 @@ export const OtpVerification = ({ phone }: Props) => {
   const maskedPhone = `+91 ${phone.slice(0, 2)}XXXXXX${phone.slice(-2)}`;
 
   return (
-    <Card className="rounded-2xl shadow-xl p-10 max-w-md w-full">
-      <CardHeader className="text-center space-y-8">
-        <CardTitle className="text-3xl font-semibold text-heading-color">
+    <Card className="rounded-lg shadow-xl p-5 md:p-10 max-w-md w-full border-none">
+      <CardHeader className="text-left space-y-3 md:space-y-8 px-0">
+        <CardTitle className="text-3xl md:text-3xl font-semibold text-heading-color">
           Verify Your Phone
         </CardTitle>
 
-        <p className="text-sm text-muted-foreground">
+        <p className="text-xs md:text-sm text-muted-foreground">
           Enter 6-digit OTP sent to {maskedPhone}
         </p>
       </CardHeader>
 
-      <CardContent className="space-y-5">
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="flex gap-3 justify-center">
+      <CardContent className="space-y-4 md:space-y-5 px-0">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 md:space-y-6">
+          <div className="flex gap-2 md:gap-3 justify-center">
             {[0, 1, 2, 3, 4, 5].map((index) => (
               <input
                 key={index}
                 type="text"
                 maxLength={1}
-                className="w-12 h-12 rounded-lg bg-gray-100 text-center text-lg font-semibold focus:ring-2 focus:ring-icon-1-color outline-none border border-gray-300"
+                className="w-10 h-10 md:w-12 md:h-12 rounded-md md:rounded-lg bg-gray-100 text-center text-base md:text-lg font-semibold focus:ring-2 focus:ring-icon-1-color outline-none border border-gray-300"
                 value={otp[index] || ""}
                 onChange={(e) => {
                   const value = e.target.value;
@@ -198,7 +197,7 @@ export const OtpVerification = ({ phone }: Props) => {
           </div>
           <Button
             type="submit"
-            className="w-full h-12 rounded-lg bg-icon-1-color text-white font-medium hover:opacity-90"
+            className="w-full h-11 md:h-12 rounded-md md:rounded-lg bg-icon-1-color text-white font-semibold hover:opacity-90"
             disabled={verifyOTP.isPending}
           >
             {verifyOTP.isPending ? "Verifying..." : "Verify OTP"}

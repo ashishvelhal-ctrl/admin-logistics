@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowRight } from "lucide-react";
 //Add global css colors after the Confirmation
 
 export const LoginComponent = () => {
@@ -43,20 +42,20 @@ export const LoginComponent = () => {
   };
 
   const LoginCardContent = () => (
-    <Card className="rounded-2xl shadow-xl p-10 w-full max-w-md">
-      <CardHeader className="text-center space-y-8">
-        <CardTitle className="text-3xl font-semibold text-heading-color">
+    <Card className="rounded-lg shadow-xl p-5 md:p-10 w-full max-w-md border-none">
+      <CardHeader className="text-left space-y-4 md:space-y-8 px-0">
+        <CardTitle className="text-3xl md:text-3xl font-semibold text-heading-color">
           Welcome 👋
         </CardTitle>
 
-        <CardDescription className="text-muted-foreground">
+        <CardDescription className="text-muted-foreground text-sm md:text-base">
           Find transport services or offer your vehicle for logistics. Join
           network of industrial vitality.{" "}
         </CardDescription>
       </CardHeader>
 
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-8">
+      <CardContent className="px-0">
+        <form onSubmit={handleSubmit} className="space-y-5 md:space-y-8">
           {error && (
             <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 text-center">
               {error}
@@ -64,21 +63,21 @@ export const LoginComponent = () => {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="phone" className="text-text-color">
+            <Label htmlFor="phone" className="text-text-color text-xs md:text-sm">
               Mobile Number
             </Label>
 
             <div className="flex">
-              <div className="flex items-center px-3 bg-common-bg border border-gray-300 rounded-l-lg">
-                <span className="text-gray-700 font-medium">+91</span>
+              <div className="flex items-center px-3 bg-common-bg border border-gray-300 rounded-l-md">
+                <span className="text-gray-700 font-medium text-sm">+91</span>
               </div>
               <Input
                 id="phone"
                 type="tel"
-                placeholder="Enter phone number"
+                placeholder="000-000-0000"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="h-12 rounded-l-none rounded-r-lg border-l-0 bg-common-bg"
+                className="h-11 rounded-l-none rounded-r-md border-l-0 bg-common-bg text-sm"
                 required
               />
             </div>
@@ -86,11 +85,10 @@ export const LoginComponent = () => {
 
           <Button
             type="submit"
-            className="w-full h-12 rounded-lg bg-icon-1-color hover:opacity-90 text-white font-medium gap-2"
+            className="w-full h-11 rounded-md bg-icon-1-color hover:opacity-90 text-white font-semibold"
             disabled={sendOTP.isPending}
           >
             {sendOTP.isPending ? "Requesting..." : "Request OTP"}
-            <ArrowRight />
           </Button>
         </form>
       </CardContent>
@@ -99,17 +97,15 @@ export const LoginComponent = () => {
 
   if (!otpSent) {
     return (
-      <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
+      <div className="min-h-screen bg-login-color md:bg-transparent md:grid md:grid-cols-2">
         <LeftHeroSection
           title="Secure Access to Your Account"
           subtitle="Sign in to your account to manage onboarding, track activities, and access your dashboard seamlessly."
           brandLabel="CROPNEST"
           glassText="Security Protocol"
           glassSubText="Your data is encrypted and managed under strict industrial-grade fleet safety standards."
-        >
-          <LoginCardContent />
-        </LeftHeroSection>
-        <div className="flex items-center justify-center bg-gray-50 px-6">
+        />
+        <div className="px-4 pb-8 md:flex md:items-center md:justify-center md:bg-gray-50 md:px-6">
           <LoginCardContent />
         </div>
       </div>
@@ -117,17 +113,15 @@ export const LoginComponent = () => {
   }
 
   return (
-    <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
+    <div className="min-h-screen bg-login-color md:bg-transparent md:grid md:grid-cols-2">
       <LeftHeroSection
         title="Fast & Secure Verification"
         subtitle="Verify your identity to continue securely and access your personalized dashboard."
         brandLabel="CROPNEST"
         glassText="VERIFICATION PROTECTED"
         glassSubText="We ensure safe and authorized access with multi-layer authentication systems."
-      >
-        <LoginCardContent />
-      </LeftHeroSection>
-      <div className="flex items-center justify-center bg-gray-50 px-6">
+      />
+      <div className="px-4 pb-8 md:flex md:items-center md:justify-center md:bg-gray-50 md:px-6">
         <OtpVerification phone={phone} />
       </div>
     </div>

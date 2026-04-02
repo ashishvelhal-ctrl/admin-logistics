@@ -1,6 +1,8 @@
-import { useNavigate } from "@tanstack/react-router";
-import { Ban } from "lucide-react";
+import { useNavigate, useSearch } from "@tanstack/react-router";
+import { Ban, Loader2, RefreshCw } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
+import { promoterApi } from "../services/promoterApi";
 import PromoterNetworkTable, {
   type PromoterNetworkMember,
 } from "./PromoterNetworkTable";
@@ -25,92 +27,6 @@ interface PromoterProfile {
   targetTotal: number;
   networkMembers: PromoterNetworkMember[];
 }
-
-const promoterProfiles: Record<string, PromoterProfile> = {
-  "1": {
-    id: "1",
-    fullName: "Raj Sharma",
-    mobileNumber: "9876543210",
-    assignedAddress: "Pune",
-    isActive: true,
-    totalOnboard: 50,
-    totalEarnings: 120,
-    targetCurrent: 1200,
-    targetTotal: 2000,
-    networkMembers: [
-      {
-        id: 1,
-        name: "Ramesh Patil",
-        phone: "91234 56789",
-        status: "completed",
-      },
-      {
-        id: 2,
-        name: "Suresh Yadav",
-        phone: "92345 67890",
-        status: "completed",
-      },
-      { id: 3, name: "Aman Singh", phone: "93456 78901", status: "pending" },
-      { id: 4, name: "Vikas Pawar", phone: "94567 89012", status: "completed" },
-      {
-        id: 5,
-        name: "Nitin Jadhav",
-        phone: "95678 90123",
-        status: "completed",
-      },
-      { id: 6, name: "Sanjay More", phone: "96789 01234", status: "completed" },
-      { id: 7, name: "Vivek Nair", phone: "97890 12345", status: "inProgress" },
-      { id: 8, name: "Ankit Sharma", phone: "98901 23456", status: "pending" },
-      { id: 9, name: "Rohit Kumar", phone: "99012 34567", status: "completed" },
-      {
-        id: 10,
-        name: "Amit Patel",
-        phone: "99123 45678",
-        status: "inProgress",
-      },
-      {
-        id: 11,
-        name: "Prajakta Deshmukh",
-        phone: "99234 56789",
-        status: "completed",
-      },
-      { id: 12, name: "Sachin Rane", phone: "99345 67890", status: "pending" },
-    ],
-  },
-  "2": {
-    id: "2",
-    fullName: "Anita Verma",
-    mobileNumber: "9988776655",
-    assignedAddress: "Delhi",
-    isActive: true,
-    totalOnboard: 980,
-    totalEarnings: 6500,
-    targetCurrent: 8000,
-    targetTotal: 12000,
-    networkMembers: [
-      {
-        id: 21,
-        name: "Priya Chauhan",
-        phone: "90011 22334",
-        status: "completed",
-      },
-      {
-        id: 22,
-        name: "Deepak Kumar",
-        phone: "90022 33445",
-        status: "inProgress",
-      },
-      { id: 23, name: "Sonal Gupta", phone: "90033 44556", status: "pending" },
-      {
-        id: 24,
-        name: "Narish Yadav",
-        phone: "90044 55667",
-        status: "completed",
-      },
-    ],
-  },
-};
-
 function getInitials(name: string) {
   return name
     .split(" ")
@@ -129,14 +45,141 @@ function getStatusCount(
 
 export default function PromoterDetails() {
   const navigate = useNavigate();
-  // Use default promoter data - this makes the component work in any context
-  const promoterId = "1"; // Default to first promoter (Raj Sharma)
-  const promoter = promoterProfiles[promoterId];
+  const search = useSearch({ from: "/(admin)/promoterDetails" });
+  const { promoterId } = search as { promoterId?: string };
+  const queryClient = useQueryClient();
+
+  // Fetch promoter data
+  const {
+    data: promoterData,
+    isLoading: isLoadingPromoter,
+    error: promoterError,
+  } = useQuery({
+    queryKey: ["promoterDetails", promoterId],
+    queryFn: async () => {
+      if (!promoterId) return null;
+      return promoterApi.getPromoterById(promoterId);
+    },
+    enabled: !!promoterId,
+  });
+
+  // Delete/Deactivate promoter mutation
+  const deletePromoterMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return promoterApi.deletePromoter(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["promoterDetails", promoterId],
+      });
+      queryClient.invalidateQueries({ queryKey: ["promoters"] });
+    },
+  });
+
+  // Restore/Activate promoter mutation
+  const restorePromoterMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return promoterApi.restorePromoter(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["promoterDetails", promoterId],
+      });
+      queryClient.invalidateQueries({ queryKey: ["promoters"] });
+    },
+  });
+  const {
+    data: networkData,
+    isLoading: isLoadingNetwork,
+    error: networkError,
+  } = useQuery({
+    queryKey: ["promoterNetwork", promoterId],
+    queryFn: async () => {
+      if (!promoterId) return { data: [], total: 0 };
+      return promoterApi.getPromoterNetwork(promoterId, { limit: 100 });
+    },
+    enabled: !!promoterId,
+  });
+
+  // Transform API data to component format
+  const promoter: PromoterProfile | null = promoterData
+    ? {
+        id: promoterData.id || promoterId || "1",
+        fullName: promoterData.fullName || promoterData.name || "Promoter",
+        mobileNumber:
+          promoterData.mobileNumber || promoterData.phoneNumber || "9876543210",
+        assignedAddress:
+          promoterData.assignedAddress || promoterData.address || "Pune",
+        isActive:
+          promoterData.isActive !== false && promoterData.isDeleted !== true,
+        totalOnboard: networkData?.total || 0,
+        totalEarnings:
+          networkData?.data?.reduce(
+            (sum: number, user: any) =>
+              sum + (user.profileStatus === "verified" ? 10 : 0),
+            0,
+          ) || 0,
+        targetCurrent:
+          networkData?.data?.reduce(
+            (sum: number, user: any) =>
+              sum + (user.profileStatus === "verified" ? 10 : 0),
+            0,
+          ) || 0,
+        targetTotal: (networkData?.total || 0) * 20 || 2000,
+        networkMembers:
+          networkData?.data?.map((user: any) => ({
+            id: parseInt(user.id) || Math.random(),
+            name: user.name || "Unknown",
+            phone: user.phoneNumber || "N/A",
+            status:
+              user.profileStatus === "verified"
+                ? "completed"
+                : user.profileStatus === "pending"
+                  ? "pending"
+                  : "inProgress",
+          })) || [],
+      }
+    : null;
+
+  if (promoterError || networkError) {
+    console.error("Promoter API Error:", promoterError);
+    console.error("Network API Error:", networkError);
+  }
+
+  if (!promoterId) {
+    return (
+      <div className="flex h-64 flex-col items-center justify-center gap-4">
+        <div className="text-lg">No promoter selected</div>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => navigate({ to: "/promoterList" })}
+        >
+          Back to Promoter List
+        </Button>
+      </div>
+    );
+  }
+
+  if (isLoadingPromoter || isLoadingNetwork) {
+    return (
+      <div className="flex h-64 flex-col items-center justify-center gap-4">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <div className="text-lg">Loading promoter details...</div>
+      </div>
+    );
+  }
 
   if (!promoter) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-4">
         <div className="text-lg">Promoter not found</div>
+        <div className="text-sm text-gray-500">ID: {promoterId}</div>
+        {promoterError && (
+          <div className="text-sm text-red-500">
+            {(promoterError as Error).message}
+          </div>
+        )}
         <Button
           type="button"
           variant="outline"
@@ -156,7 +199,7 @@ export default function PromoterDetails() {
     <div className="bg-common-bg pr-10 pl-4 pb-6">
       <FormHeader
         title="Promoter Details"
-        description="Onboard a new promoter to the secure vault network."
+        description="View promoter information and network details."
         onBack={() => navigate({ to: "/promoterList" })}
       />
 
@@ -192,13 +235,40 @@ export default function PromoterDetails() {
                 <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Account Actions
                 </p>
-                <Button
-                  type="button"
-                  className="w-full bg-icon-2-color text-white hover:bg-icon-2-color/90"
-                >
-                  <Ban className="h-4 w-4" />
-                  Deactivate Promoter
-                </Button>
+                {promoter.isActive ? (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    className="w-full"
+                    onClick={() =>
+                      promoterId && deletePromoterMutation.mutate(promoterId)
+                    }
+                    disabled={deletePromoterMutation.isPending}
+                  >
+                    {deletePromoterMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Ban className="h-4 w-4" />
+                    )}
+                    Deactivate Promoter
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    className="w-full bg-green-600 text-white hover:bg-green-700"
+                    onClick={() =>
+                      promoterId && restorePromoterMutation.mutate(promoterId)
+                    }
+                    disabled={restorePromoterMutation.isPending}
+                  >
+                    {restorePromoterMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4" />
+                    )}
+                    Activate Promoter
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
