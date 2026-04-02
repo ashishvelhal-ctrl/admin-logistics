@@ -72,6 +72,7 @@ export function Sidebar({ variant, onNavigate }: SidebarProps) {
         "/verifyDrivingLicence",
         "/addvehical",
         "/verificationVehical",
+        "/createTrip",
       ],
       roles: ["promoter"],
     },
@@ -123,7 +124,9 @@ export function Sidebar({ variant, onNavigate }: SidebarProps) {
                 <p className="text-xl font-semibold text-heading-color leading-none">
                   {userName}
                 </p>
-                <p className="text-sm text-inactive-text mt-1">+91 9307154814</p>
+                <p className="text-sm text-inactive-text mt-1">
+                  +91 9307154814
+                </p>
               </div>
             </div>
           </div>

@@ -23,6 +23,7 @@ import { Route as promoterEditUserRouteImport } from './routes/(promoter)/editUs
 import { Route as promoterEditProfileRouteImport } from './routes/(promoter)/editProfile'
 import { Route as promoterDrivingLicenceRouteImport } from './routes/(promoter)/drivingLicence'
 import { Route as promoterDashboardpRouteImport } from './routes/(promoter)/dashboardp'
+import { Route as promoterCreateTripRouteImport } from './routes/(promoter)/createTrip'
 import { Route as promoterAddvehicalRouteImport } from './routes/(promoter)/addvehical'
 import { Route as promoterAddUserRouteImport } from './routes/(promoter)/addUser'
 import { Route as adminUsersListRouteImport } from './routes/(admin)/usersList'
@@ -103,6 +104,11 @@ const promoterDashboardpRoute = promoterDashboardpRouteImport.update({
   path: '/dashboardp',
   getParentRoute: () => promoterRouteRoute,
 } as any)
+const promoterCreateTripRoute = promoterCreateTripRouteImport.update({
+  id: '/createTrip',
+  path: '/createTrip',
+  getParentRoute: () => promoterRouteRoute,
+} as any)
 const promoterAddvehicalRoute = promoterAddvehicalRouteImport.update({
   id: '/addvehical',
   path: '/addvehical',
@@ -160,6 +166,7 @@ export interface FileRoutesByFullPath {
   '/usersList': typeof adminUsersListRoute
   '/addUser': typeof promoterAddUserRoute
   '/addvehical': typeof promoterAddvehicalRoute
+  '/createTrip': typeof promoterCreateTripRoute
   '/dashboardp': typeof promoterDashboardpRoute
   '/drivingLicence': typeof promoterDrivingLicenceRoute
   '/editProfile': typeof promoterEditProfileRoute
@@ -183,6 +190,7 @@ export interface FileRoutesByTo {
   '/usersList': typeof adminUsersListRoute
   '/addUser': typeof promoterAddUserRoute
   '/addvehical': typeof promoterAddvehicalRoute
+  '/createTrip': typeof promoterCreateTripRoute
   '/dashboardp': typeof promoterDashboardpRoute
   '/drivingLicence': typeof promoterDrivingLicenceRoute
   '/editProfile': typeof promoterEditProfileRoute
@@ -209,6 +217,7 @@ export interface FileRoutesById {
   '/(admin)/usersList': typeof adminUsersListRoute
   '/(promoter)/addUser': typeof promoterAddUserRoute
   '/(promoter)/addvehical': typeof promoterAddvehicalRoute
+  '/(promoter)/createTrip': typeof promoterCreateTripRoute
   '/(promoter)/dashboardp': typeof promoterDashboardpRoute
   '/(promoter)/drivingLicence': typeof promoterDrivingLicenceRoute
   '/(promoter)/editProfile': typeof promoterEditProfileRoute
@@ -234,6 +243,7 @@ export interface FileRouteTypes {
     | '/usersList'
     | '/addUser'
     | '/addvehical'
+    | '/createTrip'
     | '/dashboardp'
     | '/drivingLicence'
     | '/editProfile'
@@ -257,6 +267,7 @@ export interface FileRouteTypes {
     | '/usersList'
     | '/addUser'
     | '/addvehical'
+    | '/createTrip'
     | '/dashboardp'
     | '/drivingLicence'
     | '/editProfile'
@@ -282,6 +293,7 @@ export interface FileRouteTypes {
     | '/(admin)/usersList'
     | '/(promoter)/addUser'
     | '/(promoter)/addvehical'
+    | '/(promoter)/createTrip'
     | '/(promoter)/dashboardp'
     | '/(promoter)/drivingLicence'
     | '/(promoter)/editProfile'
@@ -402,6 +414,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof promoterDashboardpRouteImport
       parentRoute: typeof promoterRouteRoute
     }
+    '/(promoter)/createTrip': {
+      id: '/(promoter)/createTrip'
+      path: '/createTrip'
+      fullPath: '/createTrip'
+      preLoaderRoute: typeof promoterCreateTripRouteImport
+      parentRoute: typeof promoterRouteRoute
+    }
     '/(promoter)/addvehical': {
       id: '/(promoter)/addvehical'
       path: '/addvehical'
@@ -495,6 +514,7 @@ const adminRouteRouteWithChildren = adminRouteRoute._addFileChildren(
 interface promoterRouteRouteChildren {
   promoterAddUserRoute: typeof promoterAddUserRoute
   promoterAddvehicalRoute: typeof promoterAddvehicalRoute
+  promoterCreateTripRoute: typeof promoterCreateTripRoute
   promoterDashboardpRoute: typeof promoterDashboardpRoute
   promoterDrivingLicenceRoute: typeof promoterDrivingLicenceRoute
   promoterEditProfileRoute: typeof promoterEditProfileRoute
@@ -510,6 +530,7 @@ interface promoterRouteRouteChildren {
 const promoterRouteRouteChildren: promoterRouteRouteChildren = {
   promoterAddUserRoute: promoterAddUserRoute,
   promoterAddvehicalRoute: promoterAddvehicalRoute,
+  promoterCreateTripRoute: promoterCreateTripRoute,
   promoterDashboardpRoute: promoterDashboardpRoute,
   promoterDrivingLicenceRoute: promoterDrivingLicenceRoute,
   promoterEditProfileRoute: promoterEditProfileRoute,

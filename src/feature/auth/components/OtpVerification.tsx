@@ -10,6 +10,7 @@ import { useVerifyOTP } from "../hooks/useVerifyOtp";
 import { tokenAtom } from "../state/token";
 
 import { authAtom } from "@/atoms/authAtom";
+import { SixDigitOtpInput } from "@/components/common/SixDigitOtpInput";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { authApi } from "@/lib/api";
@@ -146,55 +147,17 @@ export const OtpVerification = ({ phone }: Props) => {
       </CardHeader>
 
       <CardContent className="space-y-4 md:space-y-5 px-0">
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 md:space-y-6">
-          <div className="flex gap-2 md:gap-3 justify-center">
-            {[0, 1, 2, 3, 4, 5].map((index) => (
-              <input
-                key={index}
-                type="text"
-                maxLength={1}
-                className="w-10 h-10 md:w-12 md:h-12 rounded-md md:rounded-lg bg-gray-100 text-center text-base md:text-lg font-semibold focus:ring-2 focus:ring-icon-1-color outline-none border border-gray-300"
-                value={otp[index] || ""}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (/^\d$/.test(value)) {
-                    const newOtp =
-                      otp.slice(0, index) + value + otp.slice(index + 1);
-                    setOtp(newOtp);
-                    form.setValue("otpCode", newOtp);
-                    if (value && index < 5) {
-                      const nextInput = e.currentTarget
-                        .nextElementSibling as HTMLInputElement;
-                      if (nextInput) nextInput.focus();
-                    }
-                  }
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Backspace") {
-                    if (otp[index] && index > 0) {
-                      const newOtp = otp.slice(0, index) + otp.slice(index + 1);
-                      setOtp(newOtp);
-                      form.setValue("otpCode", newOtp);
-                    }
-                    if (index > 0) {
-                      const prevInput = e.currentTarget
-                        .previousElementSibling as HTMLInputElement;
-                      if (prevInput) prevInput.focus();
-                    }
-                  }
-                }}
-                onPaste={(e) => {
-                  e.preventDefault();
-                  const pastedData = e.clipboardData.getData("text");
-                  const digits = pastedData.replace(/\D/g, "").slice(0, 6);
-                  if (digits.length === 6) {
-                    setOtp(digits);
-                    form.setValue("otpCode", digits);
-                  }
-                }}
-              />
-            ))}
-          </div>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-5 md:space-y-6"
+        >
+          <SixDigitOtpInput
+            value={otp}
+            onChange={(nextOtp) => {
+              setOtp(nextOtp);
+              form.setValue("otpCode", nextOtp);
+            }}
+          />
           <Button
             type="submit"
             className="w-full h-11 md:h-12 rounded-md md:rounded-lg bg-icon-1-color text-white font-semibold hover:opacity-90"

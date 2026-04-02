@@ -1,53 +1,9 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 
 import AdminDashboard from "@/feature/admin/dashboard/Dashboard";
-
-const adminRoles = [
-  "admin",
-  "banner-manager",
-  "crop-catalogue-manager",
-  "asset-catalogue-manager",
-  "area-catalogue-manager",
-];
-
-const getRolesFromStorage = () => {
-  if (typeof window === "undefined" || typeof sessionStorage === "undefined") {
-    return [] as string[];
-  }
-
-  const authStorage = sessionStorage.getItem("auth");
-  if (!authStorage) return [];
-
-  try {
-    const authState = JSON.parse(authStorage);
-    return authState.roles || (authState.role ? [authState.role] : []);
-  } catch {
-    return [];
-  }
-};
+import { ADMIN_ROLES, requireRoles } from "../guards/requireRoles";
 
 export const Route = createFileRoute("/(admin)/dashboard")({
-  beforeLoad: () => {
-    // Check if we're on the client side
-    if (
-      typeof window === "undefined" ||
-      typeof sessionStorage === "undefined"
-    ) {
-      return; // Skip auth check on server side
-    }
-
-    const roles = getRolesFromStorage();
-    if (!roles.length) {
-      throw redirect({ to: "/auth/login" });
-    }
-
-    const hasAllowedRole = roles.some((role: string) =>
-      adminRoles.includes(role),
-    );
-
-    if (!hasAllowedRole) {
-      throw redirect({ to: "/auth/login" });
-    }
-  },
+  beforeLoad: requireRoles(ADMIN_ROLES),
   component: AdminDashboard,
 });

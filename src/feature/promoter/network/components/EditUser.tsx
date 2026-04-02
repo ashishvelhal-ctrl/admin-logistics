@@ -4,7 +4,7 @@ import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useUpdatePromoterUser } from "@/feature/promoter/user/hooks/usePromoterUsers";
 
 import { FormHeader } from "@/components/common/FormHeader";
-import { Button } from "@/components/ui/button";
+import { FormActionRow } from "@/components/common/FormActionRow";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -93,32 +93,37 @@ export default function EditUser() {
   };
 
   return (
-    <div className="bg-common-bg pr-10 pl-4">
+    <div className="bg-common-bg pr-4 pl-3 md:pr-10 md:pl-4">
       <FormHeader
         title="Edit User"
         description="Update user information"
         onBack={() => navigate({ to: "/myNetwork" })}
+        backText="Back to Network"
       />
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <Card className="mb-6 shadow-sm">
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+        <Card className="mb-4 sm:mb-6 shadow-sm rounded-xl">
           <CardHeader>
-            <CardTitle>User Information</CardTitle>
+            <CardTitle className="text-base sm:text-lg">
+              User Information
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 px-4 sm:px-6">
             {submitError && (
-              <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              <div className="rounded-md border border-red-200 bg-red-50 p-3 text-xs sm:text-sm text-red-700">
                 {submitError}
               </div>
             )}
             {!userId && (
-              <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              <div className="rounded-md border border-red-200 bg-red-50 p-3 text-xs sm:text-sm text-red-700">
                 User ID is missing.
               </div>
             )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name" className="text-sm">
+                  Name
+                </Label>
                 <Input
                   id="name"
                   type="text"
@@ -126,11 +131,14 @@ export default function EditUser() {
                   value={formData.name}
                   minLength={5}
                   onChange={(e) => handleInputChange("name", e.target.value)}
+                  className="h-10 md:h-11"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
+                <Label htmlFor="address" className="text-sm">
+                  Address
+                </Label>
                 <Input
                   id="address"
                   type="text"
@@ -138,26 +146,20 @@ export default function EditUser() {
                   value={formData.address}
                   minLength={5}
                   onChange={(e) => handleInputChange("address", e.target.value)}
+                  className="h-10 md:h-11"
                   required
                 />
               </div>
             </div>
-            <div className="flex justify-end space-x-2 mt-8 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate({ to: "/myNetwork" })}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting || !userId}
-                className="bg-icon-1-color text-white hover:bg-icon-1-color/90 transition-colors px-8"
-              >
-                {isSubmitting ? "Updating..." : "Update User"}
-              </Button>
-            </div>
+
+            <FormActionRow
+              primaryType="submit"
+              primaryLabel="Update User"
+              loadingLabel="Updating..."
+              isLoading={isSubmitting}
+              disabled={!userId}
+              onCancel={() => navigate({ to: "/myNetwork" })}
+            />
           </CardContent>
         </Card>
       </form>

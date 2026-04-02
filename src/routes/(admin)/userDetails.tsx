@@ -8,7 +8,7 @@ interface UserDetailsSearch {
 }
 
 export const Route = createFileRoute("/(admin)/userDetails")({
-  component: RouteComponent,
+  component: UserDetails,
   validateSearch: (search: Record<string, unknown>): UserDetailsSearch => {
     const userId =
       typeof search.userId === "string" ? search.userId : undefined;
@@ -18,7 +18,3 @@ export const Route = createFileRoute("/(admin)/userDetails")({
     return { userId, promoterId };
   },
 });
-
-function RouteComponent() {
-  return <UserDetails />;
-}

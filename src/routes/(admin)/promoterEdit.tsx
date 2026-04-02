@@ -9,7 +9,7 @@ type PromoterEditSearch = {
 };
 
 export const Route = createFileRoute("/(admin)/promoterEdit")({
-  component: RouteComponent,
+  component: PromoterEdit,
   validateSearch: (search: Record<string, unknown>): PromoterEditSearch => {
     const promoterId =
       typeof search.promoterId === "string" ? search.promoterId : undefined;
@@ -25,7 +25,3 @@ export const Route = createFileRoute("/(admin)/promoterEdit")({
     return { promoterId, fullName, mobileNumber, assignedAddress };
   },
 });
-
-function RouteComponent() {
-  return <PromoterEdit />;
-}

@@ -1,6 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useAtomValue } from "jotai/react";
-import { Clock3, Plus, RefreshCcw, UserRound } from "lucide-react";
+import { Clock3, Plus, RefreshCcw, Truck, UserRound } from "lucide-react";
 import { useState, useMemo } from "react";
 
 import { authAtom } from "@/atoms/authAtom";
@@ -78,14 +78,23 @@ export default function DashBoard() {
             Here&apos;s your activity overview
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => navigate({ to: "/addUser" })}
-          className="inline-flex items-center gap-2 h-9 px-3 rounded-lg border border-border-stroke text-text-color bg-white hover:bg-gray-50 transition-colors text-sm font-medium"
-        >
-          <Plus className="w-4 h-4" />
-          Add New User
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => navigate({ to: "/addUser" })}
+            className="inline-flex items-center gap-2 h-9 px-3 rounded-lg border border-border-stroke text-text-color bg-white hover:bg-gray-50 transition-colors text-sm font-medium"
+          >
+            <Plus className="w-4 h-4" />
+            Add New User
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate({ to: "/createTrip" })}
+            className="inline-flex items-center gap-2 h-9 px-7 rounded-lg border border-border-stroke text-text-color bg-white hover:bg-gray-50 transition-colors text-sm font-medium"
+          >
+            Create Trip
+          </button>
+        </div>
       </section>
 
       <section className="grid grid-cols-3 md:grid-cols-2 xl:grid-cols-3 gap-2 md:gap-3 px-1 md:px-2">
@@ -95,24 +104,41 @@ export default function DashBoard() {
             className="bg-white border border-border-stroke rounded-xl px-2.5 md:px-3 py-2 md:py-2.5 flex items-start justify-between"
           >
             <div>
-              <p className="text-[11px] md:text-xs text-inactive-text font-medium leading-tight">
+              <p
+                className="text-[11px] md:text-xs font-medium leading-tight"
+                style={{ color: "#2E705F" }}
+              >
                 {item.label}
               </p>
-              <p className="text-lg md:text-xl leading-tight font-semibold text-heading-color mt-0.5 md:mt-1">
+              <p
+                className="text-lg md:text-xl leading-tight font-semibold mt-0.5 md:mt-1"
+                style={{ color: "#2E705F" }}
+              >
                 {item.value}
               </p>
-              <p className="text-icon-text text-[10px] md:text-xs font-medium mt-0.5 md:mt-1">
+              <p
+                className="text-[10px] md:text-xs font-medium mt-0.5 md:mt-1"
+                style={{ color: "#7ADB93" }}
+              >
                 {item.growth}
               </p>
             </div>
-            <span className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-icon-bg flex items-center justify-center">
+            <span className="hidden md:block w-6 h-6 md:w-7 md:h-7 rounded-lg bg-icon-bg flex items-center justify-center">
               <UserRound className="w-3.5 h-3.5 text-icon-text" />
             </span>
           </article>
         ))}
       </section>
 
-      <section className="px-1 md:hidden">
+      <section className="px-1 md:hidden space-y-2">
+        <button
+          type="button"
+          onClick={() => navigate({ to: "/createTrip" })}
+          className="w-full inline-flex items-center justify-center gap-2 h-11 px-3 rounded-lg text-white bg-[#2e7d68] hover:bg-[#286d5b] transition-colors text-xl font-semibold"
+        >
+          <Truck className="w-5 h-5" />
+          Create Trip
+        </button>
         <button
           type="button"
           onClick={() => navigate({ to: "/addUser" })}

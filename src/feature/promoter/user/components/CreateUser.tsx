@@ -1,10 +1,11 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 import type { ChangeEvent } from "react";
 import { ZodError } from "zod";
 
-import { Button } from "@/components/ui/button";
+import { FormActionRow } from "@/components/common/FormActionRow";
+import PageHeader from "@/components/common/PageHeader";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createPromoterUserSchema } from "../schema/promoter.schema";
@@ -77,24 +78,10 @@ export default function CreateUser() {
 
   return (
     <main className="bg-common-bg pr-4 pl-3 pt-1 pb-3 min-h-full">
-      <section className="px-2 flex flex-col md:flex-row md:items-start md:justify-between gap-2">
-        <div>
-          <h1 className="text-3xl font-semibold text-heading-color">
-            Add New User
-          </h1>
-          <p className="text-sm text-inactive-text mt-1">
-            Enter user details to onboard them into the Verdant Harvest network.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => navigate({ to: "/dashboardp" })}
-          className="inline-flex items-center gap-2 text-sm text-icon-text hover:opacity-80 pt-3"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Dashboard
-        </button>
-      </section>
+      <PageHeader
+        title="Add New User"
+        description="Enter user details to onboard them into the Verdant Harvest network."
+      />
 
       <section className="mt-4 mx-2 rounded-xl border border-border-stroke bg-white px-8 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -176,49 +163,42 @@ export default function CreateUser() {
           </div>
         </div>
 
-        <div className="mt-8 rounded-xl border border-border-stroke bg-[#F8FAF9] p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-heading-color">
+        <div className="mt-8 rounded-xl border border-border-stroke bg-[#F8FAF9] p-4 sm:p-5">
+          <div className="flex flex-row items-center justify-between gap-4 sm:gap-3">
+            <div className="flex-1 min-w-0">
+              <h3 className="text-sm sm:text-base font-semibold text-heading-color">
                 Provide Logistics Services?
               </h3>
-              <p className="text-sm text-inactive-text mt-1">
+              <p className="text-xs sm:text-sm text-inactive-text mt-1">
                 I want to register as a courier or Delivery Partner
               </p>
             </div>
             <button
               type="button"
               onClick={handleLogisticsToggle}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              className={`relative inline-flex flex-shrink-0 h-5 w-9 items-center rounded-full transition-colors ${
                 formData.provideLogistics ? "bg-icon-1-color" : "bg-gray-300"
               }`}
+              aria-label="Toggle logistics services"
             >
               <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  formData.provideLogistics ? "translate-x-6" : "translate-x-1"
+                className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                  formData.provideLogistics
+                    ? "translate-x-4"
+                    : "translate-x-0.5"
                 }`}
+                aria-hidden="true"
               />
             </button>
           </div>
         </div>
 
-        <div className="mt-10 flex justify-end gap-3">
-          <Button
-            type="button"
-            onClick={handleContinue}
-            className="h-11 min-w-44 bg-icon-1-color hover:bg-icon-1-color/90 text-white"
-          >
-            Send OTP
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleCancel}
-            className="h-11 min-w-24 border-border-stroke text-icon-text hover:bg-gray-50"
-          >
-            Cancel
-          </Button>
-        </div>
+        <FormActionRow
+          primaryType="button"
+          primaryLabel="Send OTP"
+          onPrimaryClick={handleContinue}
+          onCancel={handleCancel}
+        />
       </section>
     </main>
   );

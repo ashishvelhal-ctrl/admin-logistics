@@ -48,16 +48,16 @@ export default function CreateVehical() {
   return (
     <main className="bg-common-bg pr-4 pl-3 pt-1 pb-3 min-h-full">
       <section className="px-2">
-        <h1 className="text-3xl font-semibold text-heading-color">
+        <h1 className="text-2xl md:text-3xl font-semibold text-heading-color">
           Add Vehicles
         </h1>
-        <p className="text-sm text-inactive-text mt-1">
+        <p className="text-xs md:text-sm text-inactive-text mt-1">
           Add your vehicle details to offer transport services across the
           industrial agricultural network.
         </p>
       </section>
 
-      <section className="mt-4 mx-2 rounded-xl border border-border-stroke bg-white px-8 py-7">
+      <section className="mt-4 mx-2 md:rounded-xl border border-border-stroke bg-white px-8 py-7">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-6">
             <div className="space-y-2">
@@ -72,7 +72,7 @@ export default function CreateVehical() {
                 value={rcNumber}
                 onChange={(e) => setRcNumber(e.target.value)}
                 placeholder="Enter RC Number"
-                className="h-11 bg-[#F8FAF9] border-border-stroke placeholder:text-gray-400"
+                className="h-10 md:h-11 bg-[#F8FAF9] border-border-stroke placeholder:text-gray-400"
               />
             </div>
 
@@ -116,7 +116,7 @@ export default function CreateVehical() {
                     key={option}
                     type="button"
                     onClick={() => setLoadCapacity(option)}
-                    className={`h-9 px-5 rounded-full text-sm font-medium transition-colors ${
+                    className={`h-8 md:h-9 px-3 md:px-5 rounded-full text-xs md:text-sm font-medium transition-colors ${
                       loadCapacity === option
                         ? "bg-icon-1-color text-white"
                         : "bg-gray-100 text-inactive-text hover:bg-gray-200"
@@ -128,25 +128,27 @@ export default function CreateVehical() {
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label className="text-sm font-semibold text-heading-color">
                 Vehicle Photo
               </Label>
               <button
                 type="button"
                 onClick={handlePickPhoto}
-                className="w-full h-44 border-2 border-dashed border-border-stroke rounded-lg bg-[#F8FAF9] flex flex-col items-center justify-center text-center px-4 hover:bg-gray-100 transition-colors"
+                className="w-full h-36 md:h-44 border-2 border-dashed border-border-stroke rounded-lg bg-[#F8FAF9] flex flex-col items-center justify-center text-center px-4 hover:bg-gray-100 transition-colors"
               >
-                <UploadCloud className="w-8 h-8 text-icon-text mb-3 bg-[#F8FAF9]" />
-                <p className="text-sm font-medium text-heading-color">
+                <UploadCloud className="w-6 h-6 md:w-8 md:h-8 text-icon-text mb-2 md:mb-3 bg-[#F8FAF9]" />
+                <p className="text-xs md:text-sm font-medium text-heading-color">
                   Click or drag to upload
                 </p>
-                <p className="text-xs text-inactive-text mt-1">
-                  High-resolution JPG or PNG. Ensure all text and the photo are
+                <p className="text-xs md:text-sm text-inactive-text mt-1">
+                  High-resolution JPG or PNG. Ensure all text and photo are
                   clearly visible.
                 </p>
                 {photoName ? (
-                  <p className="text-xs text-icon-text mt-2">{photoName}</p>
+                  <p className="text-xs md:text-sm text-icon-text mt-2 md:mt-3">
+                    {photoName}
+                  </p>
                 ) : null}
               </button>
               <input
@@ -160,21 +162,21 @@ export default function CreateVehical() {
           </div>
         </div>
 
-        <div className="mt-6 flex justify-start gap-3">
-          <Button
-            type="button"
-            onClick={() => navigate({ to: "/verificationVehical" })}
-            className="h-11 min-w-72 bg-icon-1-color hover:bg-icon-1-color/90 text-white"
-          >
-            Continue
-          </Button>
+        <div className="mt-6 flex justify-end gap-3 flex-col-reverse md:flex-row">
           <Button
             type="button"
             variant="outline"
             onClick={() => navigate({ to: "/addUser" })}
-            className="h-11 min-w-28 border-border-stroke text-icon-text hover:bg-gray-50"
+            className="h-10 md:h-11 w-full md:w-auto sm:min-w-28 border-border-stroke text-icon-text hover:bg-gray-50"
           >
             Cancel
+          </Button>
+          <Button
+            type="button"
+            onClick={() => navigate({ to: "/verificationVehical" })}
+            className="h-10 md:h-11 w-full md:w-auto sm:min-w-52 bg-icon-1-color hover:bg-icon-1-color/90 text-white"
+          >
+            Continue
           </Button>
         </div>
       </section>

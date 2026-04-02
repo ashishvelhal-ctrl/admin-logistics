@@ -63,7 +63,10 @@ export const LoginComponent = () => {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="phone" className="text-text-color text-xs md:text-sm">
+            <Label
+              htmlFor="phone"
+              className="text-text-color text-xs md:text-sm"
+            >
               Mobile Number
             </Label>
 

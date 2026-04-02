@@ -30,8 +30,12 @@ export default function RecentOnboardTable({ data }: RecentOnboardTableProps) {
             className="bg-white border border-border-stroke rounded-xl px-4 py-3 flex items-center justify-between"
           >
             <div>
-              <p className="text-base font-semibold text-heading-color">{row.userName}</p>
-              <p className="text-sm text-inactive-text mt-0.5">+91 {row.mobileNumber}</p>
+              <p className="text-base font-semibold text-heading-color">
+                {row.userName}
+              </p>
+              <p className="text-sm text-inactive-text mt-0.5">
+                +91 {row.mobileNumber}
+              </p>
               <p className="text-xs text-inactive-text mt-1">
                 {row.date} • {row.location}
               </p>

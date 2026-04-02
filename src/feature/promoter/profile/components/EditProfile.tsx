@@ -1,8 +1,8 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 
+import { FormActionRow } from "@/components/common/FormActionRow";
 import { FormHeader } from "@/components/common/FormHeader";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -92,27 +92,32 @@ export default function EditProfile() {
   };
 
   return (
-    <div className="bg-common-bg pr-10 pl-4">
+    <div className="bg-common-bg pr-4 pl-3 md:pr-10 md:pl-4">
       <FormHeader
         title="Edit Profile"
         description="Update your profile information"
         onBack={() => navigate({ to: "/myProfile" })}
+        backText="Back to Profile"
       />
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <Card className="mb-6 shadow-sm">
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+        <Card className="mb-4 sm:mb-6 shadow-sm rounded-xl">
           <CardHeader>
-            <CardTitle>Profile Information</CardTitle>
+            <CardTitle className="text-base sm:text-lg">
+              Profile Information
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 px-4 sm:px-6">
             {submitError && (
-              <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              <div className="rounded-md border border-red-200 bg-red-50 p-3 text-xs sm:text-sm text-red-700">
                 {submitError}
               </div>
             )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
+                <Label htmlFor="fullName" className="text-sm">
+                  Full Name
+                </Label>
                 <Input
                   id="fullName"
                   type="text"
@@ -122,12 +127,15 @@ export default function EditProfile() {
                   onChange={(e) =>
                     handleInputChange("fullName", e.target.value)
                   }
+                  className="h-10 md:h-11"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="assignedAddress">Assigned Address</Label>
+                <Label htmlFor="assignedAddress" className="text-sm">
+                  Assigned Address
+                </Label>
                 <Input
                   id="assignedAddress"
                   type="text"
@@ -137,12 +145,15 @@ export default function EditProfile() {
                   onChange={(e) =>
                     handleInputChange("assignedAddress", e.target.value)
                   }
+                  className="h-10 md:h-11"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="mobileNumber">Mobile Number</Label>
+                <Label htmlFor="mobileNumber" className="text-sm">
+                  Mobile Number
+                </Label>
                 <Input
                   id="mobileNumber"
                   type="tel"
@@ -152,26 +163,19 @@ export default function EditProfile() {
                   onChange={(e) =>
                     handleInputChange("mobileNumber", e.target.value)
                   }
+                  className="h-10 md:h-11"
                   required
                 />
               </div>
             </div>
-            <div className="flex justify-end space-x-2 mt-8 pt-4">
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="bg-icon-1-color text-white hover:bg-icon-1-color/90 transition-colors px-8"
-              >
-                {isSubmitting ? "Saving..." : "Save Changes"}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate({ to: "/myProfile" })}
-              >
-                Cancel
-              </Button>
-            </div>
+
+            <FormActionRow
+              primaryType="submit"
+              primaryLabel="Save Changes"
+              loadingLabel="Saving..."
+              isLoading={isSubmitting}
+              onCancel={() => navigate({ to: "/myProfile" })}
+            />
           </CardContent>
         </Card>
       </form>
