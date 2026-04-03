@@ -6,18 +6,30 @@ import drivingLicenceImage from "@/assets/Driving_lic.jpg";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { usePromoterServices } from "../hooks/usePromoterServices";
 
 export default function DrivingLicence() {
   const navigate = useNavigate();
   const [licenceNumber, setLicenceNumber] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
+  const { isLoading, verifyDrivingLicense } = usePromoterServices();
 
   const handleCancel = () => {
     navigate({ to: "/addvehical" });
   };
 
-  const handleContinue = () => {
-    navigate({ to: "/verifyDrivingLicence" });
+  const handleContinue = async () => {
+    if (!licenceNumber || !dateOfBirth) {
+      alert("Please fill in all fields");
+      return;
+    }
+
+    try {
+      await verifyDrivingLicense(licenceNumber, dateOfBirth);
+      navigate({ to: "/verifyDrivingLicence" });
+    } catch (error) {
+      alert("Verification failed. Please check your details and try again.");
+    }
   };
 
   return (
@@ -77,14 +89,16 @@ export default function DrivingLicence() {
             <Button
               type="button"
               onClick={handleContinue}
+              disabled={isLoading}
               className="h-10 md:h-11 w-full sm:w-auto sm:min-w-52 bg-icon-1-color hover:bg-icon-1-color/90 text-white"
             >
-              Continue
+              {isLoading ? "Verifying..." : "Continue"}
             </Button>
             <Button
               type="button"
               variant="outline"
               onClick={handleCancel}
+              disabled={isLoading}
               className="h-10 md:h-11 w-full sm:w-auto sm:min-w-28 border-border-stroke text-icon-text hover:bg-gray-50"
             >
               Cancel

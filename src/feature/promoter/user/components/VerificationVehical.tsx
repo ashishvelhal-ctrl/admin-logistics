@@ -1,8 +1,84 @@
-import { BadgeCheck, CheckCircle2, MapPin } from "lucide-react";
+import { BadgeCheck, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
+
+import ButtonActions from "@/components/common/ButtonActions";
+import DetailSection from "@/components/common/DetailSection";
+import FormGrid from "@/components/common/FormGrid";
+import PrimaryButton from "@/components/common/PrimaryButton";
+
+interface VehicleVerificationData {
+  message: string;
+  data: {
+    vehicleNumber: string;
+    registrationDate: string;
+    registerDate: string;
+    owner: string;
+    model: string;
+    vehicleType: string;
+    fuelType: string;
+    manufacturer: string;
+    bodyType: string;
+    engineNumber: string;
+    chassisNumber: string;
+    fitnessValidTill: string;
+    insuranceValidTill: string;
+    registrationCertificateNumber: string;
+    registrationUpto: string;
+    taxValidUpto: string;
+    pollutionValidUpto: string;
+    manufacturerModel: string;
+    manufacturerSlNo: string;
+    blackListStatus: string;
+    insuranceCompany: string;
+    insurancePolicyNumber: string;
+    pucNumber: string;
+    pucValidUpto: string;
+    pucIssuedDate: string;
+    status: string;
+    verificationSource: string;
+  };
+}
 
 export default function VerificationVehical() {
   const navigate = useNavigate();
+  const [verificationData, setVerificationData] =
+    useState<VehicleVerificationData | null>(null);
+
+  useEffect(() => {
+    // Retrieve verification data from session storage
+    const storedData = sessionStorage.getItem("vehicleVerificationData");
+    if (storedData) {
+      setVerificationData(JSON.parse(storedData));
+    }
+  }, []);
+
+  const formatDate = (dateString: string) => {
+    if (!dateString || dateString === "1800-01-01T00:00:00.000Z") return "N/A";
+    return new Date(dateString).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  if (!verificationData) {
+    return (
+      <main className="bg-common-bg pr-4 pl-3 pt-1 pb-4 min-h-full space-y-4 sm:space-y-5">
+        <section className="px-2">
+          <div className="text-center py-10">
+            <p className="text-inactive-text">
+              No verification data found. Please complete the verification
+              process.
+            </p>
+            <PrimaryButton onClick={() => navigate({ to: "/addvehical" })}>
+              Go to Vehicle Verification
+            </PrimaryButton>
+          </div>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main className="bg-common-bg pr-4 pl-3 pt-1 pb-4 min-h-full space-y-4 sm:space-y-5">
@@ -34,22 +110,22 @@ export default function VerificationVehical() {
                 Vehicle Number
               </p>
               <p className="text-lg md:text-2xl font-semibold text-heading-color mt-1">
-                MH12DJ1718
+                {verificationData.data.vehicleNumber}
               </p>
             </div>
             <p className="text-sm md:text-base font-semibold text-icon-1-color inline-flex items-center gap-2">
               <BadgeCheck className="w-4 h-4 md:w-5 md:h-5" />
-              Verified
+              {verificationData.data.status}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mt-4 sm:mt-6">
+          <FormGrid gap="gap-4 sm:gap-6" className="mt-4 sm:mt-6">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-[#97a7bb]">
                 Model
               </p>
               <p className="text-base md:text-lg font-semibold text-heading-color mt-1">
-                Activa 4G
+                {verificationData.data.model}
               </p>
             </div>
             <div>
@@ -57,10 +133,10 @@ export default function VerificationVehical() {
                 Owner
               </p>
               <p className="text-base md:text-lg font-semibold text-heading-color mt-1">
-                Rajesh Santosh Kumar
+                {verificationData.data.owner}
               </p>
             </div>
-          </div>
+          </FormGrid>
         </article>
       </section>
 
@@ -69,13 +145,13 @@ export default function VerificationVehical() {
           <h2 className="text-base md:text-lg font-semibold text-heading-color">
             Vehicle Details
           </h2>
-          <div className="border-t border-border-stroke mt-3 pt-4 grid grid-cols-2 gap-4 sm:gap-5">
+          <DetailSection className="grid grid-cols-2 gap-4 sm:gap-5">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-[#97a7bb]">
                 Vehicle Type
               </p>
               <p className="text-sm md:text-lg font-medium text-heading-color mt-1">
-                M-Cycle/Scooter (2WN)
+                {verificationData.data.vehicleType}
               </p>
             </div>
             <div>
@@ -83,7 +159,7 @@ export default function VerificationVehical() {
                 Model
               </p>
               <p className="text-sm md:text-lg font-medium text-heading-color mt-1">
-                Tata LPT 1613
+                {verificationData.data.manufacturerModel}
               </p>
             </div>
             <div>
@@ -91,7 +167,7 @@ export default function VerificationVehical() {
                 Fuel Type
               </p>
               <p className="text-sm md:text-lg font-medium text-heading-color mt-1">
-                Petrol
+                {verificationData.data.fuelType}
               </p>
             </div>
             <div>
@@ -99,70 +175,71 @@ export default function VerificationVehical() {
                 Manufacturer
               </p>
               <p className="text-sm md:text-lg font-medium text-heading-color mt-1">
-                Tata Motors
+                {verificationData.data.manufacturer}
               </p>
             </div>
-          </div>
+          </DetailSection>
         </article>
 
         <article className="rounded-xl border border-border-stroke bg-white px-4 sm:px-6 py-4 sm:py-5">
           <h2 className="text-base md:text-lg font-semibold text-heading-color">
             Owner Details
           </h2>
-          <div className="border-t border-border-stroke mt-3 pt-4 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+          <DetailSection className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-[#97a7bb]">
                 Owner Name
               </p>
               <p className="text-sm md:text-lg font-medium text-heading-color mt-1">
-                Rajesh Santosh Kumar
+                {verificationData.data.owner}
               </p>
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-[#97a7bb]">
-                Address
+                Registration Date
               </p>
-              <p className="text-sm md:text-lg font-medium text-heading-color mt-1 inline-flex items-center gap-1">
-                <MapPin className="w-3 h-3 md:w-4 md:h-4 text-inactive-text" />
-                Pune, 411014
+              <p className="text-sm md:text-lg font-medium text-heading-color mt-1">
+                {formatDate(verificationData.data.registrationDate)}
               </p>
             </div>
-          </div>
+          </DetailSection>
         </article>
+
         <article className="rounded-xl border border-border-stroke bg-white px-4 sm:px-6 py-4 sm:py-5">
           <h2 className="text-base md:text-lg font-semibold text-heading-color">
             Registration Details
           </h2>
-          <div className="border-t border-border-stroke mt-3 pt-4 grid grid-cols-2 gap-4 sm:gap-5">
+          <DetailSection className="grid grid-cols-2 gap-4 sm:gap-5">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-[#97a7bb]">
                 Registration Number
               </p>
               <p className="text-sm md:text-lg font-medium text-heading-color mt-1">
-                MH12DJ1718
+                {verificationData.data.vehicleNumber}
               </p>
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-[#97a7bb]">
-                Date
+                Registration Valid Till
               </p>
               <p className="text-sm md:text-lg font-medium text-heading-color mt-1">
-                16 Oct 2017
+                {formatDate(verificationData.data.registrationUpto)}
               </p>
             </div>
-          </div>
+          </DetailSection>
         </article>
+
         <article className="rounded-xl border border-border-stroke bg-white px-4 sm:px-6 py-4 sm:py-5">
           <h2 className="text-base md:text-lg font-semibold text-heading-color">
             Insurance Details
           </h2>
-          <div className="border-t border-border-stroke mt-3 pt-4 grid grid-cols-2 gap-4 sm:gap-5">
+          <DetailSection className="grid grid-cols-2 gap-4 sm:gap-5">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-[#97a7bb]">
                 Insurance Company
               </p>
               <p className="text-sm md:text-lg font-medium text-heading-color mt-1">
-                ICICI Lombard General Insurance
+                {verificationData.data.insuranceCompany}
               </p>
             </div>
             <div>
@@ -170,7 +247,7 @@ export default function VerificationVehical() {
                 Policy Number
               </p>
               <p className="text-sm md:text-lg font-medium text-heading-color mt-1">
-                TRK987654321
+                {verificationData.data.insurancePolicyNumber}
               </p>
             </div>
             <div>
@@ -178,45 +255,47 @@ export default function VerificationVehical() {
                 Valid Till
               </p>
               <p className="text-sm md:text-lg font-medium text-heading-color mt-1">
-                25 Dec 2026
+                {formatDate(verificationData.data.insuranceValidTill)}
               </p>
             </div>
-          </div>
+          </DetailSection>
         </article>
+
         <article className="rounded-xl border border-border-stroke bg-white px-4 sm:px-6 py-4 sm:py-5">
           <h2 className="text-base md:text-lg font-semibold text-heading-color">
             Validity Details
           </h2>
-          <div className="border-t border-border-stroke mt-3 pt-4 grid grid-cols-2 gap-4 sm:gap-5">
+          <DetailSection className="grid grid-cols-2 gap-4 sm:gap-5">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-[#97a7bb]">
                 Fitness Valid Till
               </p>
               <p className="text-sm md:text-lg font-medium text-heading-color mt-1">
-                10 Jun 2029
+                {formatDate(verificationData.data.fitnessValidTill)}
               </p>
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-[#97a7bb]">
-                Tax Paid Till
+                Tax Valid Till
               </p>
               <p className="text-sm md:text-lg font-medium text-heading-color mt-1">
-                10 Jun 2029
+                {formatDate(verificationData.data.taxValidUpto)}
               </p>
             </div>
-          </div>
+          </DetailSection>
         </article>
+
         <article className="rounded-xl border border-border-stroke bg-white px-4 sm:px-6 py-4 sm:py-5">
           <h2 className="text-base md:text-lg font-semibold text-heading-color">
             PUC Details
           </h2>
-          <div className="border-t border-border-stroke mt-3 pt-4 grid grid-cols-2 gap-4 sm:gap-5">
+          <DetailSection className="grid grid-cols-2 gap-4 sm:gap-5">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-[#97a7bb]">
                 PUC Number
               </p>
               <p className="text-lg font-medium text-heading-color mt-1">
-                MH1520210001234
+                {verificationData.data.pucNumber}
               </p>
             </div>
             <div>
@@ -224,22 +303,18 @@ export default function VerificationVehical() {
                 Valid Till
               </p>
               <p className="text-lg font-medium text-heading-color mt-1">
-                15 Jan 2027
+                {formatDate(verificationData.data.pucValidUpto)}
               </p>
             </div>
-          </div>
+          </DetailSection>
         </article>
       </section>
 
-      <section className="px-2 flex justify-end">
-        <button
-          type="button"
-          onClick={() => navigate({ to: "/dashboardp" })}
-          className="h-11 min-w-52 bg-icon-1-color hover:bg-icon-1-color/90 text-white rounded-lg transition-colors text-sm font-medium"
-        >
+      <ButtonActions>
+        <PrimaryButton onClick={() => navigate({ to: "/dashboardp" })}>
           Continue to Dashboard
-        </button>
-      </section>
+        </PrimaryButton>
+      </ButtonActions>
     </main>
   );
 }

@@ -1,10 +1,86 @@
 import { useNavigate } from "@tanstack/react-router";
 import { BadgeCheck, CheckCircle2, MapPin } from "lucide-react";
+import { useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
+import ButtonActions from "@/components/common/ButtonActions";
+import PrimaryButton from "@/components/common/PrimaryButton";
+
+interface DLVerificationData {
+  message: string;
+  data: {
+    licenseNumber: string;
+    name: string;
+    dob: string;
+    state: string;
+    dateOfIssue: string;
+    dateOfExpiry: string;
+    gender: string;
+    permanentAddress: string;
+    temporaryAddress: string;
+    fatherOrHusbandName: string;
+    citizenship: string;
+    olaName: string;
+    olaCode: string;
+    clientId: string;
+    permanentZip: string;
+    cityName: string | null;
+    temporaryZip: string;
+    transportDateOfExpiry: string;
+    transportDateOfIssue: string;
+    bloodGroup: string;
+    vehicleClasses: string[];
+    additionalCheck: any[];
+    initialDateOfIssue: string;
+    currentStatus: any;
+    vehicleClassDescription: any[];
+    status: string;
+    verificationSource: string;
+  };
+}
 
 export default function VerificationDrivingLicence() {
   const navigate = useNavigate();
+  const [verificationData, setVerificationData] =
+    useState<DLVerificationData | null>(null);
+
+  useEffect(() => {
+    // Retrieve verification data from session storage
+    const storedData = sessionStorage.getItem("dlVerificationData");
+    if (storedData) {
+      setVerificationData(JSON.parse(storedData));
+    }
+  }, []);
+
+  const formatDate = (dateString: string) => {
+    if (!dateString || dateString === "1800-01-01T00:00:00.000Z") return "N/A";
+    return new Date(dateString).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  if (!verificationData) {
+    return (
+      <main className="bg-common-bg px-2 sm:pr-4 sm:pl-3 pt-1 pb-4 min-h-full space-y-4">
+        <section className="px-2">
+          <div className="text-center py-10">
+            <p className="text-inactive-text">
+              No verification data found. Please complete the verification
+              process.
+            </p>
+            <Button
+              onClick={() => navigate({ to: "/drivingLicence" })}
+              className="mt-4"
+            >
+              Go to Verification
+            </Button>
+          </div>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main className="bg-common-bg px-2 sm:pr-4 sm:pl-3 pt-1 pb-4 min-h-full space-y-4">
@@ -36,12 +112,12 @@ export default function VerificationDrivingLicence() {
                 Licence Number
               </p>
               <p className="text-lg md:text-xl md:text-2xl font-semibold text-heading-color mt-1 break-all">
-                UP1420180098765
+                {verificationData.data.licenseNumber}
               </p>
             </div>
             <p className="text-xs md:text-sm md:text-base font-semibold text-icon-1-color inline-flex items-center gap-2">
               <BadgeCheck className="w-4 h-4 md:w-5 md:h-5" />
-              Verified
+              {verificationData.data.status}
             </p>
           </div>
 
@@ -51,7 +127,7 @@ export default function VerificationDrivingLicence() {
                 Name On License
               </p>
               <p className="text-sm md:text-base font-semibold text-heading-color mt-1">
-                Rajesh Santosh Kumar
+                {verificationData.data.name}
               </p>
             </div>
             <div>
@@ -59,7 +135,7 @@ export default function VerificationDrivingLicence() {
                 Vehicle Class
               </p>
               <p className="text-sm md:text-base font-semibold text-heading-color mt-1">
-                HGMV
+                {verificationData.data.vehicleClasses.join(", ")}
               </p>
             </div>
             <div>
@@ -67,7 +143,7 @@ export default function VerificationDrivingLicence() {
                 RTO Name
               </p>
               <p className="text-sm md:text-base font-semibold text-heading-color mt-1">
-                RTO Pune
+                {verificationData.data.olaName}
               </p>
             </div>
           </div>
@@ -85,7 +161,7 @@ export default function VerificationDrivingLicence() {
                 Date Of Issue
               </p>
               <p className="text-sm md:text-base font-medium text-heading-color mt-1">
-                12 Aug 2018
+                {formatDate(verificationData.data.dateOfIssue)}
               </p>
             </div>
             <div>
@@ -93,7 +169,7 @@ export default function VerificationDrivingLicence() {
                 Expiry Date
               </p>
               <p className="text-sm md:text-base font-medium text-heading-color mt-1">
-                12 Aug 2018
+                {formatDate(verificationData.data.dateOfExpiry)}
               </p>
             </div>
             <div>
@@ -101,15 +177,15 @@ export default function VerificationDrivingLicence() {
                 Initial Issue Date
               </p>
               <p className="text-sm md:text-base font-medium text-heading-color mt-1">
-                12 Aug 2018
+                {formatDate(verificationData.data.initialDateOfIssue)}
               </p>
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-[#97a7bb]">
-                Manufacturer
+                State
               </p>
               <p className="text-sm md:text-base font-medium text-heading-color mt-1">
-                Tata Motors
+                {verificationData.data.state}
               </p>
             </div>
           </div>
@@ -127,7 +203,7 @@ export default function VerificationDrivingLicence() {
                 Owner Name
               </p>
               <p className="text-sm md:text-base font-medium text-heading-color mt-1 break-words">
-                Rajesh Santosh Kumar
+                {verificationData.data.name}
               </p>
             </div>
             <div>
@@ -136,7 +212,9 @@ export default function VerificationDrivingLicence() {
               </p>
               <p className="text-sm md:text-base font-medium text-heading-color mt-1 inline-flex items-center gap-1 break-words">
                 <MapPin className="w-3 h-3 md:w-4 md:h-4 text-inactive-text" />
-                Pune, 411014
+                {verificationData.data.permanentAddress ||
+                  verificationData.data.temporaryAddress ||
+                  "N/A"}
               </p>
             </div>
           </div>
@@ -144,15 +222,11 @@ export default function VerificationDrivingLicence() {
       </section>
 
       <section className="px-2">
-        <div className="mt-6 sm:mt-10 flex justify-end gap-3">
-          <Button
-            type="button"
-            onClick={() => navigate({ to: "/addvehical" })}
-            className="h-10 md:h-11 w-full sm:w-auto sm:min-w-52 bg-icon-1-color hover:bg-icon-1-color/90 text-white"
-          >
-            Continue
-          </Button>
-        </div>
+        <ButtonActions>
+          <PrimaryButton onClick={() => navigate({ to: "/addvehical" })}>
+            Continue to Vehicle
+          </PrimaryButton>
+        </ButtonActions>
       </section>
     </main>
   );

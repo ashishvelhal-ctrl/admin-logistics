@@ -6,6 +6,7 @@ import type { ChangeEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { usePromoterServices } from "../hooks/usePromoterServices";
 
 const loadCapacityOptions = ["05-4T", "4-10T", "10-20T", "25+T"];
 
@@ -27,6 +28,7 @@ export default function CreateVehical() {
     [],
   );
   const [photoName, setPhotoName] = useState("");
+  const { isLoading, verifyVehicle } = usePromoterServices();
 
   const toggleCapability = (capability: string) => {
     setSelectedCapabilities((prev) =>
@@ -43,6 +45,22 @@ export default function CreateVehical() {
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     setPhotoName(file?.name || "");
+  };
+
+  const handleVerifyVehicle = async () => {
+    if (!rcNumber) {
+      alert("Please enter RC Number");
+      return;
+    }
+
+    try {
+      await verifyVehicle(rcNumber);
+      navigate({ to: "/verificationVehical" });
+    } catch (error) {
+      alert(
+        "Vehicle verification failed. Please check your RC number and try again.",
+      );
+    }
   };
 
   return (
@@ -167,16 +185,18 @@ export default function CreateVehical() {
             type="button"
             variant="outline"
             onClick={() => navigate({ to: "/addUser" })}
+            disabled={isLoading}
             className="h-10 md:h-11 w-full md:w-auto sm:min-w-28 border-border-stroke text-icon-text hover:bg-gray-50"
           >
             Cancel
           </Button>
           <Button
             type="button"
-            onClick={() => navigate({ to: "/verificationVehical" })}
+            onClick={handleVerifyVehicle}
+            disabled={isLoading}
             className="h-10 md:h-11 w-full md:w-auto sm:min-w-52 bg-icon-1-color hover:bg-icon-1-color/90 text-white"
           >
-            Continue
+            {isLoading ? "Verifying..." : "Verify Vehicle"}
           </Button>
         </div>
       </section>

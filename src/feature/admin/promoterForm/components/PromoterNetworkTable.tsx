@@ -4,6 +4,7 @@ import { Search } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -15,6 +16,7 @@ import { PaginationWrapper as Pagination } from "@/components/common/Pagination"
 import { cn } from "@/lib/utils";
 
 export type NetworkStatus = "completed" | "pending" | "inProgress";
+type TableView = "network" | "trips";
 
 export interface PromoterNetworkMember {
   id: number;
@@ -73,26 +75,50 @@ export default function PromoterDetailsRightPanel({
   const [statusFilter, setStatusFilter] = useState<"all" | NetworkStatus>(
     "all",
   );
+  const [activeView, setActiveView] = useState<TableView>("network");
   const [page, setPage] = useState(1);
 
-  const filteredNetwork = useMemo(() => {
-    return networkMembers.filter((member) => {
+  const tripRows = useMemo(
+    () =>
+      networkMembers.map((member, index) => ({
+        id: member.id * 1000 + index,
+        name: `Trip #${index + 1}`,
+        secondary: member.name,
+        status: member.status,
+      })),
+    [networkMembers],
+  );
+
+  const tableRows = useMemo(() => {
+    if (activeView === "network") {
+      return networkMembers.map((member) => ({
+        id: member.id,
+        name: member.name,
+        secondary: member.phone,
+        status: member.status,
+      }));
+    }
+
+    return tripRows;
+  }, [activeView, networkMembers, tripRows]);
+
+  const filteredRows = useMemo(() => {
+    return tableRows.filter((row) => {
       const matchesSearch =
-        member.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-        member.phone.includes(searchValue.trim());
-      const matchesStatus =
-        statusFilter === "all" || member.status === statusFilter;
+        row.name.toLowerCase().includes(searchValue.toLowerCase()) ||
+        row.secondary.toLowerCase().includes(searchValue.trim().toLowerCase());
+      const matchesStatus = statusFilter === "all" || row.status === statusFilter;
 
       return matchesSearch && matchesStatus;
     });
-  }, [networkMembers, searchValue, statusFilter]);
+  }, [tableRows, searchValue, statusFilter]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredNetwork.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
 
   useEffect(() => {
     setPage(1);
-  }, [searchValue, statusFilter]);
+  }, [searchValue, statusFilter, activeView]);
 
   useEffect(() => {
     if (page > totalPages) {
@@ -100,7 +126,7 @@ export default function PromoterDetailsRightPanel({
     }
   }, [page, totalPages]);
 
-  const paginatedMembers = filteredNetwork.slice(
+  const paginatedRows = filteredRows.slice(
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE,
   );
@@ -155,17 +181,48 @@ export default function PromoterDetailsRightPanel({
         </Card>
       </div>
 
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <Button
+          type="button"
+          variant="outline"
+          className={cn(
+            "h-10 border-icon-1-color",
+            activeView === "network"
+              ? "bg-icon-1-color text-white hover:bg-icon-1-color/90 hover:text-white"
+              : "text-icon-1-color hover:bg-icon-1-color/10",
+          )}
+          onClick={() => setActiveView("network")}
+        >
+          Promoter Network
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          className={cn(
+            "h-10 border-icon-1-color",
+            activeView === "trips"
+              ? "bg-icon-1-color text-white hover:bg-icon-1-color/90 hover:text-white"
+              : "text-icon-1-color hover:bg-icon-1-color/10",
+          )}
+          onClick={() => setActiveView("trips")}
+        >
+          Total Created Trips
+        </Button>
+      </div>
+
       <Card className="shadow-sm">
         <CardContent className="p-0">
           <div className="flex flex-col gap-3 border-b p-4 md:flex-row md:items-center md:justify-between">
             <h3 className="text-xl font-semibold text-heading-color">
-              Promoter Network
+              {activeView === "network" ? "Promoter Network" : "Total Created Trips"}
             </h3>
             <div className="flex w-full flex-col gap-3 sm:flex-row md:w-auto">
               <div className="relative w-full sm:w-[240px]">
                 <Search className="absolute top-2.5 left-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search User"
+                  placeholder={
+                    activeView === "network" ? "Search User" : "Search Trip"
+                  }
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
                   className="h-9 border-border-stroke bg-common-bg pl-9"
@@ -198,50 +255,59 @@ export default function PromoterDetailsRightPanel({
             <table className="min-w-full text-sm">
               <thead className="bg-common-bg/70 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 <tr>
-                  <th className="px-4 py-3">User Name</th>
-                  <th className="px-4 py-3">Phone Number</th>
+                  <th className="px-4 py-3">
+                    {activeView === "network" ? "User Name" : "Trip Name"}
+                  </th>
+                  <th className="px-4 py-3">
+                    {activeView === "network" ? "Phone Number" : "Created By"}
+                  </th>
                   <th className="px-4 py-3">Status</th>
                 </tr>
               </thead>
               <tbody>
-                {paginatedMembers.length === 0 ? (
+                {paginatedRows.length === 0 ? (
                   <tr>
                     <td
                       className="px-4 py-5 text-center text-muted-foreground"
                       colSpan={3}
                     >
-                      No users found for this filter.
+                      No records found for this filter.
                     </td>
                   </tr>
                 ) : (
-                  paginatedMembers.map((member) => (
+                  paginatedRows.map((row) => (
                     <tr
-                      key={member.id}
-                      className="border-t cursor-pointer hover:bg-common-bg/50"
+                      key={row.id}
+                      className={cn(
+                        "border-t",
+                        activeView === "network" &&
+                          "cursor-pointer hover:bg-common-bg/50",
+                      )}
                       onClick={() =>
+                        activeView === "network" &&
                         navigate({
                           to: "/userDetails",
                           search: {
-                            userId: String(member.id),
+                            userId: String(row.id),
                             promoterId: promoterId ?? "1",
                           },
                         })
                       }
                     >
                       <td className="px-4 py-3 font-medium text-heading-color">
-                        {member.name}
+                        {row.name}
                       </td>
                       <td className="px-4 py-3 text-text-color">
-                        {member.phone}
+                        {row.secondary}
                       </td>
                       <td className="px-4 py-3">
                         <span
                           className={cn(
                             "inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide",
-                            statusBadgeClassMap[member.status],
+                            statusBadgeClassMap[row.status],
                           )}
                         >
-                          {statusLabelMap[member.status]}
+                          {statusLabelMap[row.status]}
                         </span>
                       </td>
                     </tr>

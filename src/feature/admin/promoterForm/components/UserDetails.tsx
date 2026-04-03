@@ -260,7 +260,7 @@ export default function UserDetails() {
               <div className="space-y-3">
                 <div className="flex items-center gap-3 rounded-md bg-common-bg px-3 py-2">
                   <Phone className="h-3.5 w-3.5 md:h-4 md:w-4 text-icon-1-color" />
-                  <div>
+                  <div className="flex-1">
                     <p className="text-xs uppercase tracking-wide text-muted-foreground">
                       Phone Number
                     </p>
@@ -268,6 +268,13 @@ export default function UserDetails() {
                       {profile.mobileNumber}
                     </p>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => navigate({ to: "/addUser" })}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-icon-1-color hover:bg-icon-1-color/90 rounded-lg transition-colors"
+                  >
+                    Click to Verify
+                  </button>
                 </div>
 
                 <div className="flex items-center gap-3 rounded-md bg-common-bg px-3 py-2">

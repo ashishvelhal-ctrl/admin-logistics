@@ -1,18 +1,19 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useAtomValue } from "jotai/react";
-import { Clock3, Plus, RefreshCcw, Truck, UserRound } from "lucide-react";
+import {
+  ChartNoAxesCombined,
+  Clock3,
+  Plus,
+  RefreshCcw,
+  Truck,
+  UserRound,
+} from "lucide-react";
 import { useState, useMemo } from "react";
 
 import { authAtom } from "@/atoms/authAtom";
 import RecentOnboardTable from "@/components/common/RecentOnboardTable";
+import StatCard from "@/components/common/StatCard";
 import { PaginationWrapper as Pagination } from "@/components/common/Pagination";
-
-interface StatItem {
-  id: string;
-  label: string;
-  value: string;
-  growth: string;
-}
 
 interface OnboardItem {
   id: string;
@@ -21,22 +22,6 @@ interface OnboardItem {
   date: string;
   location: string;
 }
-
-const stats: StatItem[] = [
-  {
-    id: "onboard",
-    label: "Total Onboard",
-    value: "2,450",
-    growth: "+12% this month",
-  },
-  {
-    id: "active",
-    label: "Active Users",
-    value: "186",
-    growth: "+5% this month",
-  },
-  { id: "month", label: "This Month", value: "324", growth: "+8% this month" },
-];
 
 const recentOnboards: OnboardItem[] = Array.from(
   { length: 20 },
@@ -97,37 +82,25 @@ export default function DashBoard() {
         </div>
       </section>
 
-      <section className="grid grid-cols-3 md:grid-cols-2 xl:grid-cols-3 gap-2 md:gap-3 px-1 md:px-2">
-        {stats.map((item) => (
-          <article
-            key={item.id}
-            className="bg-white border border-border-stroke rounded-xl px-2.5 md:px-3 py-2 md:py-2.5 flex items-start justify-between"
-          >
-            <div>
-              <p
-                className="text-[11px] md:text-xs font-medium leading-tight"
-                style={{ color: "#2E705F" }}
-              >
-                {item.label}
-              </p>
-              <p
-                className="text-lg md:text-xl leading-tight font-semibold mt-0.5 md:mt-1"
-                style={{ color: "#2E705F" }}
-              >
-                {item.value}
-              </p>
-              <p
-                className="text-[10px] md:text-xs font-medium mt-0.5 md:mt-1"
-                style={{ color: "#7ADB93" }}
-              >
-                {item.growth}
-              </p>
-            </div>
-            <span className="hidden md:block w-6 h-6 md:w-7 md:h-7 rounded-lg bg-icon-bg flex items-center justify-center">
-              <UserRound className="w-3.5 h-3.5 text-icon-text" />
-            </span>
-          </article>
-        ))}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-4 px-2">
+        <StatCard
+          label="Total Onboard"
+          value="2,450"
+          growth="+12% this month"
+          Icon={UserRound}
+        />
+        <StatCard
+          label="Trips Created"
+          value="186"
+          growth="+5% this month"
+          Icon={Truck}
+        />
+        <StatCard
+          label="Total Earnings"
+          value="₹12,000"
+          growth="+8% this month"
+          Icon={ChartNoAxesCombined}
+        />
       </section>
 
       <section className="px-1 md:hidden space-y-2">
