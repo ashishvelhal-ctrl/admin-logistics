@@ -5,6 +5,7 @@ import { promoterService } from "../service/promoter.service";
 import type {
   CreatePromoterUserRequest,
   UpdatePromoterUserRequest,
+  VerifyPromoterUserOtpRequest,
 } from "../types/promoter.types";
 import type { GetPromoterUsersQuery } from "../schema/promoter.schema";
 
@@ -37,7 +38,7 @@ export const useCreatePromoterUser = () => {
     mutationFn: (userData: CreatePromoterUserRequest) =>
       promoterService.createPromoterUser(userData),
     onSuccess: () => {
-      // toast.success("User created successfully!");
+      // OTP sent successfully
       // Invalidate users list to refresh data
       queryClient.invalidateQueries({ queryKey: promoterQueryKeys.users() });
     },
@@ -59,8 +60,9 @@ export const useUpdatePromoterUser = () => {
       userId: string;
       updateData: UpdatePromoterUserRequest;
     }) => promoterService.updatePromoterUser(userId, updateData),
-    onSuccess: (data) => {
-      // toast.success(`User "${data.name}" updated successfully!`);
+    onSuccess: (response) => {
+      const data = response.data;
+      if (!data) return;
       // Update the specific user in cache
       queryClient.setQueryData(promoterQueryKeys.user(data.id), data);
       // Invalidate users list to refresh data
@@ -72,11 +74,32 @@ export const useUpdatePromoterUser = () => {
   });
 };
 
+// Hook for verifying OTP for promoter-created user
+export const useVerifyPromoterUserOtp = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: VerifyPromoterUserOtpRequest) =>
+      promoterService.verifyPromoterUserOtp(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: promoterQueryKeys.users() });
+    },
+  });
+};
+
 // Hook for fetching a single promoter user
 export const usePromoterUser = (userId: string) => {
   return useQuery({
     queryKey: promoterQueryKeys.user(userId),
-    queryFn: () => promoterService.getPromoterUserById(userId),
+    queryFn: async () => {
+      const response = await promoterService.getPromoterUsers({
+        limit: 100,
+        offset: 0,
+      });
+      const user = response.data.find((item) => item.id === userId);
+      if (!user) throw new Error("User not found");
+      return user;
+    },
     enabled: !!userId, // Only run query if userId is provided
     staleTime: 1000 * 60 * 5, // 5 minutes
   });

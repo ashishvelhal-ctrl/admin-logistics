@@ -1,50 +1,18 @@
 import type {
+  ApiResponse,
   CreatePromoterUserRequest,
-  UpdatePromoterUserRequest,
   PromoterUser,
   PromoterUsersListResponse,
+  UpdatePromoterUserRequest,
+  VerifyDrivingLicenseRequest,
+  VerifyPromoterUserOtpRequest,
+  VehicleCreateRequest,
+  VehicleObject,
 } from "../types/promoter.types";
 import type { GetPromoterUsersQuery } from "../schema/promoter.schema";
-import { authAtom } from "@/atoms/authAtom";
-import { getDefaultStore } from "jotai";
-
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api/v1";
+import { apiClient } from "@/lib/api";
 
 class PromoterService {
-  private baseUrl: string;
-
-  constructor() {
-    this.baseUrl = `${API_BASE_URL}/promoter`;
-  }
-
-  private getAuthHeaders(): Record<string, string> {
-    const store = getDefaultStore();
-    const auth = store.get(authAtom);
-
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-    };
-
-    if (auth.token) {
-      headers["Authorization"] = `Bearer ${auth.token}`;
-    }
-
-    return headers;
-  }
-
-  private async handleResponse<T>(response: Response): Promise<T> {
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(
-        data.error?.message || data.message || "API request failed",
-      );
-    }
-
-    return data;
-  }
-
   // Get all users for a promoter with pagination and search
   async getPromoterUsers(
     query: Partial<GetPromoterUsersQuery> = {},
@@ -60,70 +28,125 @@ class PromoterService {
     queryParams.append("limit", defaultQuery.limit.toString());
     queryParams.append("offset", defaultQuery.offset.toString());
     if (defaultQuery.search) queryParams.append("search", defaultQuery.search);
+    const rawResponse = (await apiClient.get(
+      `/promoter/users?${queryParams.toString()}`,
+    )) as any;
 
-    const response = await fetch(
-      `${this.baseUrl}/users?${queryParams.toString()}`,
-      {
-        method: "GET",
-        headers: this.getAuthHeaders(),
+    const normalizedResponse =
+      rawResponse &&
+      typeof rawResponse === "object" &&
+      rawResponse.data &&
+      !Array.isArray(rawResponse.data) &&
+      Array.isArray(rawResponse.data.data)
+        ? rawResponse.data
+        : rawResponse;
+
+    const users = Array.isArray(normalizedResponse?.data)
+      ? normalizedResponse.data
+      : Array.isArray(rawResponse?.data)
+        ? rawResponse.data
+        : [];
+
+    return {
+      message:
+        normalizedResponse?.message ??
+        rawResponse?.message ??
+        "Users fetched successfully",
+      data: users,
+      paginationMeta: normalizedResponse?.paginationMeta ?? {
+        total: users.length,
+        limit: defaultQuery.limit,
+        offset: defaultQuery.offset,
+        current_page: Math.floor(defaultQuery.offset / defaultQuery.limit) + 1,
+        total_pages: Math.max(1, Math.ceil(users.length / defaultQuery.limit)),
+        has_next_page: false,
+        has_prev_page: defaultQuery.offset > 0,
       },
-    );
-
-    return this.handleResponse<PromoterUsersListResponse>(response);
+    };
   }
 
-  // Create a new user under promoter
+  // Create a promoter-owned user and send OTP
   async createPromoterUser(
     userData: CreatePromoterUserRequest,
-  ): Promise<PromoterUser> {
-    const response = await fetch(`${this.baseUrl}/user`, {
-      method: "POST",
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify(userData),
-    });
+  ): Promise<ApiResponse<null>> {
+    const response = (await apiClient.post("/promoter/user", userData)) as any;
+    return {
+      message: response?.message ?? "OTP sent successfully",
+      data: response?.data ?? null,
+    };
+  }
 
-    return this.handleResponse<PromoterUser>(response);
+  // Verify promoter-owned user's OTP
+  async verifyPromoterUserOtp(
+    payload: VerifyPromoterUserOtpRequest,
+  ): Promise<ApiResponse<PromoterUser>> {
+    const response = (await apiClient.post(
+      "/promoter/user/verify-otp",
+      payload,
+    )) as any;
+    return {
+      message: response?.message ?? "OTP verified successfully",
+      data: response?.data,
+    };
   }
 
   // Update an existing user
   async updatePromoterUser(
     userId: string,
     updateData: UpdatePromoterUserRequest,
-  ): Promise<PromoterUser> {
-    const response = await fetch(`${this.baseUrl}/user/${userId}`, {
-      method: "PATCH",
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify(updateData),
-    });
-
-    return this.handleResponse<PromoterUser>(response);
+  ): Promise<ApiResponse<PromoterUser>> {
+    const response = (await apiClient.patch(
+      `/promoter/user/${userId}`,
+      updateData,
+    )) as any;
+    return {
+      message: response?.message ?? "User updated successfully",
+      data: response?.data,
+    };
   }
 
-  // Get a single user by ID
-  async getPromoterUserById(userId: string): Promise<PromoterUser> {
-    const response = await fetch(`${this.baseUrl}/user/${userId}`, {
-      method: "GET",
-      headers: this.getAuthHeaders(),
-    });
-
-    return this.handleResponse<PromoterUser>(response);
+  // Verify driving license of a promoter-owned user
+  async verifyDrivingLicense(
+    payload: VerifyDrivingLicenseRequest,
+  ): Promise<ApiResponse<any>> {
+    const response = (await apiClient.post(
+      "/promoter/user/verify-driving-license",
+      payload,
+    )) as any;
+    return {
+      message: response?.message ?? "Driving license verified successfully",
+      data: response?.data,
+    };
   }
 
-  // Note: Delete user is not implemented in backend yet
-  // async deletePromoterUser(userId: string): Promise<void> {
-  //   const response = await fetch(`${this.baseUrl}/user/${userId}`, {
-  //     method: "DELETE",
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //       // "Authorization": `Bearer ${token}`,
-  //     },
-  //   });
+  // Create vehicle for a promoter-owned user
+  async createVehicle(
+    payload: VehicleCreateRequest,
+  ): Promise<ApiResponse<VehicleObject>> {
+    const formData = new FormData();
+    formData.append("userId", payload.userId);
+    formData.append("rcNumber", payload.rcNumber);
+    formData.append("loadCapacity", payload.loadCapacity);
+    payload.specialCapabilities.forEach((capability) => {
+      formData.append("specialCapabilities", capability);
+    });
 
-  //   if (!response.ok) {
-  //     const data = await response.json();
-  //     throw new Error(data.error?.message || data.message || "Failed to delete user");
-  //   }
-  // }
+    if (payload.thumbnailImage) {
+      formData.append("thumbnailImage", payload.thumbnailImage);
+    }
+    payload.additionalImages?.forEach((file) => {
+      formData.append("additionalImages", file);
+    });
+
+    const response = (await apiClient.post(
+      "/promoter/user/vehicles",
+      formData,
+    )) as any;
+    return {
+      message: response?.message ?? "Vehicle created successfully",
+      data: response?.data,
+    };
+  }
 }
 
 // Create singleton instance

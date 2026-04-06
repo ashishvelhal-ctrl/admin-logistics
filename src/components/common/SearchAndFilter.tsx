@@ -77,7 +77,11 @@ export function SearchAndFilter({
             </Button>
           </PopoverTrigger>
 
-          <PopoverContent className="p-0 w-full">
+          <PopoverContent
+            align="start"
+            side="bottom"
+            className="z-50 p-0 w-[var(--radix-popover-trigger-width)]"
+          >
             <Command>
               <CommandInput
                 placeholder="Search..."

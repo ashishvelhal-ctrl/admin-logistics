@@ -80,7 +80,7 @@ export function Sidebar({ variant, onNavigate }: SidebarProps) {
       title: "My Network",
       icon: Users2,
       url: "/myNetwork",
-      activePaths: ["/myNetwork"],
+      activePaths: ["/myNetwork", "/promoterUserDetails"],
       roles: ["promoter"],
     },
     {

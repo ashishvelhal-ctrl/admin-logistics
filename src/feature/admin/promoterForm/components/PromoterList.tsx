@@ -75,7 +75,7 @@ export default function PromoterList() {
       render: (value: string) => value || "N/A",
     },
     {
-      key: "onboardingCount",
+      key: "onboardedUsersCount",
       title: "Onboarding",
       render: (value: number) => value || 0,
     },

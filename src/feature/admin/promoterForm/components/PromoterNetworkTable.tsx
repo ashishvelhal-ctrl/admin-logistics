@@ -107,7 +107,8 @@ export default function PromoterDetailsRightPanel({
       const matchesSearch =
         row.name.toLowerCase().includes(searchValue.toLowerCase()) ||
         row.secondary.toLowerCase().includes(searchValue.trim().toLowerCase());
-      const matchesStatus = statusFilter === "all" || row.status === statusFilter;
+      const matchesStatus =
+        statusFilter === "all" || row.status === statusFilter;
 
       return matchesSearch && matchesStatus;
     });
@@ -214,7 +215,9 @@ export default function PromoterDetailsRightPanel({
         <CardContent className="p-0">
           <div className="flex flex-col gap-3 border-b p-4 md:flex-row md:items-center md:justify-between">
             <h3 className="text-xl font-semibold text-heading-color">
-              {activeView === "network" ? "Promoter Network" : "Total Created Trips"}
+              {activeView === "network"
+                ? "Promoter Network"
+                : "Total Created Trips"}
             </h3>
             <div className="flex w-full flex-col gap-3 sm:flex-row md:w-auto">
               <div className="relative w-full sm:w-[240px]">

@@ -44,6 +44,20 @@ export interface UpdateNetworkUserPayload {
   address?: string;
 }
 
+export interface UserProfileCompletionStatus {
+  profileStatus?: string;
+  completionPercentage?: number;
+  isComplete?: boolean;
+  isDrivingLicenseVerified?: boolean;
+  [key: string]: any;
+}
+
+export interface UserVehiclesResponse {
+  message: string;
+  data: any[];
+  paginationMeta: NetworkPaginationMeta;
+}
+
 const toPositiveInt = (value: unknown, fallback: number): number => {
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : fallback;
@@ -52,6 +66,19 @@ const toPositiveInt = (value: unknown, fallback: number): number => {
 const toNonNegativeInt = (value: unknown, fallback: number): number => {
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed >= 0 ? Math.floor(parsed) : fallback;
+};
+
+const normalizeResponseData = (rawResponse: any) => {
+  if (
+    rawResponse &&
+    typeof rawResponse === "object" &&
+    rawResponse.data &&
+    !Array.isArray(rawResponse.data) &&
+    typeof rawResponse.data === "object"
+  ) {
+    return rawResponse.data;
+  }
+  return rawResponse;
 };
 
 export const networkApi = {
@@ -140,5 +167,109 @@ export const networkApi = {
   updateUser: async (id: string, payload: UpdateNetworkUserPayload) => {
     const response = await apiClient.patch(`/promoter/user/${id}`, payload);
     return response;
+  },
+
+  // Backend does not expose GET /promoter/user/:id.
+  // We resolve user details by walking paginated /promoter/users.
+  getUserById: async (id: string): Promise<NetworkUser | null> => {
+    const limit = 50;
+    let offset = 0;
+    let total = Number.POSITIVE_INFINITY;
+
+    while (offset < total) {
+      const response = await networkApi.getUsers({ limit, offset });
+      const found = response.data.find(
+        (user) => String(user.id) === String(id),
+      );
+      if (found) {
+        return found;
+      }
+
+      total = response.paginationMeta.total;
+      offset += limit;
+
+      if (!response.paginationMeta.has_next_page) {
+        break;
+      }
+    }
+
+    return null;
+  },
+
+  // GET /promoter/user/:id/status
+  getUserProfileCompletionStatus: async (
+    id: string,
+  ): Promise<UserProfileCompletionStatus> => {
+    const rawResponse = (await apiClient.get(
+      `/promoter/user/${id}/status`,
+    )) as any;
+    const normalized = normalizeResponseData(rawResponse);
+    return (normalized?.data ??
+      normalized ??
+      {}) as UserProfileCompletionStatus;
+  },
+
+  // GET /promoter/user/:id/vehicles
+  getUserVehicles: async (
+    id: string,
+    params: { limit?: number; offset?: number } = {},
+  ): Promise<UserVehiclesResponse> => {
+    const queryParams = new URLSearchParams();
+    if (params.limit !== undefined) {
+      queryParams.append("limit", String(params.limit));
+    }
+    if (params.offset !== undefined) {
+      queryParams.append("offset", String(params.offset));
+    }
+    const url = queryParams.toString()
+      ? `/promoter/user/${id}/vehicles?${queryParams.toString()}`
+      : `/promoter/user/${id}/vehicles`;
+
+    const rawResponse = (await apiClient.get(url)) as any;
+    const normalizedResponse = normalizeResponseData(rawResponse);
+    const vehicles = Array.isArray(normalizedResponse?.data)
+      ? normalizedResponse.data
+      : Array.isArray(rawResponse?.data)
+        ? rawResponse.data
+        : [];
+
+    const rawPaginationMeta = normalizedResponse?.paginationMeta ?? {};
+    const limit = toPositiveInt(rawPaginationMeta.limit, params.limit ?? 10);
+    const offset = toNonNegativeInt(
+      rawPaginationMeta.offset,
+      params.offset ?? 0,
+    );
+    const total = toNonNegativeInt(rawPaginationMeta.total, vehicles.length);
+    const totalPages = toPositiveInt(
+      rawPaginationMeta.total_pages,
+      Math.max(1, Math.ceil(total / Math.max(limit, 1))),
+    );
+    const currentPage = toPositiveInt(
+      rawPaginationMeta.current_page,
+      Math.floor(offset / Math.max(limit, 1)) + 1,
+    );
+
+    return {
+      message:
+        normalizedResponse?.message ??
+        rawResponse?.message ??
+        "Vehicles fetched successfully",
+      data: vehicles,
+      paginationMeta: {
+        total,
+        limit,
+        offset,
+        current_page: Math.min(currentPage, totalPages),
+        total_pages: totalPages,
+        has_next_page:
+          typeof rawPaginationMeta.has_next_page === "boolean"
+            ? rawPaginationMeta.has_next_page
+            : currentPage < totalPages,
+        has_prev_page:
+          typeof rawPaginationMeta.has_prev_page === "boolean"
+            ? rawPaginationMeta.has_prev_page
+            : currentPage > 1,
+      },
+    };
   },
 };

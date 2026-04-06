@@ -1,14 +1,31 @@
 import { useNavigate } from "@tanstack/react-router";
-import { CalendarDays, ChevronDown, MapPin } from "lucide-react";
+import { CalendarDays, ChevronDown, MapPin, CheckIcon } from "lucide-react";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
+import { networkApi } from "@/feature/promoter/network/services/networkApi";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import PageHeader from "@/components/common/PageHeader";
 import { FormActionRow } from "@/components/common/FormActionRow";
 
 interface TripFormData {
   userSearch: string;
+  selectedUserId: string;
   vehicle: string;
   pickupLocation: string;
   dropLocation: string;
@@ -22,6 +39,7 @@ export default function CreateTrip() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState<TripFormData>({
     userSearch: "",
+    selectedUserId: "",
     vehicle: "",
     pickupLocation: "",
     dropLocation: "",
@@ -31,14 +49,63 @@ export default function CreateTrip() {
     notes: "",
   });
 
+  const [userQuery, setUserQuery] = useState("");
+  const { data: usersResponse } = useQuery({
+    queryKey: ["trip-create-users", userQuery],
+    queryFn: () =>
+      networkApi.getUsers({ limit: 100, offset: 0, search: userQuery }),
+    enabled: true,
+  });
+
+  const [open, setOpen] = useState(false);
+  const [vehicleOpen, setVehicleOpen] = useState(false);
+
+  // Fetch vehicles when user is selected
+  const { data: vehiclesResponse } = useQuery({
+    queryKey: ["user-vehicles", formData.selectedUserId],
+    queryFn: () =>
+      networkApi.getUserVehicles(formData.selectedUserId, {
+        limit: 100,
+        offset: 0,
+      }),
+    enabled: !!formData.selectedUserId,
+  });
+
+  const vehicleOptions = (vehiclesResponse?.data ?? []).map((vehicle: any) => ({
+    value: String(vehicle.id),
+    label: `${vehicle.rcNumberData?.makerModel || "Unknown Vehicle"} (${vehicle.rcNumber || "N/A"})`,
+  }));
+
+  const selectedVehicle = vehicleOptions.find(
+    (vehicle) => vehicle.value === formData.vehicle,
+  );
+
+  const handleVehicleSelectChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, vehicle: value }));
+    setVehicleOpen(false);
+  };
+
+  const userOptions = (usersResponse?.data ?? []).map((user) => ({
+    value: String(user.id),
+    label: `${user.name} (${user.phoneNumber})`,
+  }));
+
+  const selectedUser = userOptions.find(
+    (user) => user.value === formData.selectedUserId,
+  );
+
   const handleChange =
     (field: keyof TripFormData) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setFormData((prev) => ({ ...prev, [field]: e.target.value }));
     };
 
+  const handleUserSelectChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, selectedUserId: value }));
+    setOpen(false);
+  };
+
   const handleCreateTrip = () => {
-    // Hook API here when trip endpoints are ready.
     console.log("Create Trip payload:", formData);
   };
 
@@ -50,7 +117,7 @@ export default function CreateTrip() {
       />
 
       <section className="mt-4 mx-2 space-y-4">
-        <article className="rounded-xl border border-border-stroke bg-white overflow-hidden">
+        <article className="rounded-xl border border-border-stroke bg-white overflow-visible">
           <div className="px-5 py-3 border-b border-border-stroke bg-[#F8FAF9]">
             <h2 className="text-lg font-semibold text-heading-color ">
               Assign Trip
@@ -58,38 +125,100 @@ export default function CreateTrip() {
           </div>
           <div className="p-4 md:p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label
-                htmlFor="userSearch"
-                className="text-xs font-semibold text-heading-color"
-              >
+              <Label className="text-xs font-semibold text-heading-color">
                 Select User
               </Label>
-              <Input
-                id="userSearch"
-                value={formData.userSearch}
-                onChange={handleChange("userSearch")}
-                placeholder="Search User by name or mobile number"
-                className="h-10 bg-[#F8FAF9] border-border-stroke text-sm"
-              />
+              <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full h-10 justify-between bg-[#F8FAF9] border-border-stroke rounded-md px-3 text-text-color font-medium text-sm"
+                  >
+                    {selectedUser?.label ?? "Choose User"}
+                    <ChevronDown className="w-4 h-4 text-inactive-text" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="z-50 p-0 w-full">
+                  <Command>
+                    <CommandInput
+                      placeholder="Search user by name or mobile number..."
+                      value={userQuery}
+                      onValueChange={setUserQuery}
+                    />
+                    <CommandList>
+                      <CommandEmpty>No users found</CommandEmpty>
+                      <CommandGroup>
+                        {userOptions.map((user) => (
+                          <CommandItem
+                            key={user.value}
+                            value={user.label}
+                            onSelect={() => handleUserSelectChange(user.value)}
+                          >
+                            <CheckIcon
+                              className={`mr-2 size-4 ${
+                                formData.selectedUserId === user.value
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              }`}
+                            />
+                            {user.label}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div className="space-y-2">
-              <Label
-                htmlFor="vehicle"
-                className="text-xs font-semibold text-heading-color"
-              >
+              <Label className="text-xs font-semibold text-heading-color">
                 Vehicle Select
               </Label>
-              <div className="relative">
-                <Input
-                  id="vehicle"
-                  value={formData.vehicle}
-                  onChange={handleChange("vehicle")}
-                  placeholder="Choose Vehicle"
-                  className="h-10 bg-[#F8FAF9] border-border-stroke text-sm pr-9"
-                />
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-inactive-text pointer-events-none" />
-              </div>
+              <Popover open={vehicleOpen} onOpenChange={setVehicleOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full h-10 justify-between bg-[#F8FAF9] border-border-stroke rounded-md px-3 text-text-color font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={!formData.selectedUserId}
+                  >
+                    {selectedVehicle?.label ??
+                      (formData.selectedUserId
+                        ? "Choose Vehicle"
+                        : "Select User First")}
+                    <ChevronDown className="w-4 h-4 text-inactive-text" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="z-50 p-0 w-full">
+                  <Command>
+                    <CommandList>
+                      <CommandEmpty>
+                        No vehicles found for this user
+                      </CommandEmpty>
+                      <CommandGroup>
+                        {vehicleOptions.map((vehicle) => (
+                          <CommandItem
+                            key={vehicle.value}
+                            value={vehicle.label}
+                            onSelect={() =>
+                              handleVehicleSelectChange(vehicle.value)
+                            }
+                          >
+                            <CheckIcon
+                              className={`mr-2 size-4 ${
+                                formData.vehicle === vehicle.value
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              }`}
+                            />
+                            {vehicle.label}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
         </article>

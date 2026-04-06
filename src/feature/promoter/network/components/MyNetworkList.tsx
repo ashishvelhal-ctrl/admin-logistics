@@ -222,8 +222,8 @@ export default function MyNetworkList() {
               emptyMessage="No users found in your network."
               onRowClick={(item) =>
                 navigate({
-                  to: "/userDetails",
-                  search: { userId: item.id, promoterId: "1" },
+                  to: "/promoterUserDetails",
+                  search: { userId: item.id },
                 })
               }
               onEditClick={(item) => {
@@ -295,11 +295,8 @@ export default function MyNetworkList() {
             emptyMessage="No users found in your network."
             onRowClick={(row) =>
               navigate({
-                to: "/userDetails",
-                search: {
-                  userId: String(row.id),
-                  promoterId: "1",
-                },
+                to: "/promoterUserDetails",
+                search: { userId: String(row.id) },
               })
             }
           />

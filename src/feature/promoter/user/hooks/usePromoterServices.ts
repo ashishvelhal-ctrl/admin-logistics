@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { promoterService } from "../service/promoter.service";
 
 // Types for API responses
 interface DLVerificationResponse {
@@ -71,6 +72,24 @@ interface VehicleVerificationResponse {
 export const usePromoterServices = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const VERIFIED_USER_STORAGE_KEY = "promoter_verified_user";
+
+  const getVerifiedUserId = (): string => {
+    try {
+      const raw = sessionStorage.getItem(VERIFIED_USER_STORAGE_KEY);
+      if (!raw) {
+        throw new Error("Please verify user OTP before continuing.");
+      }
+      const parsed = JSON.parse(raw) as { id?: string };
+      if (!parsed?.id) {
+        throw new Error("Verified user was not found. Please retry OTP flow.");
+      }
+      return parsed.id;
+    } catch (error) {
+      if (error instanceof Error) throw error;
+      throw new Error("Unable to resolve verified user.");
+    }
+  };
 
   // Driving License Verification
   const verifyDrivingLicense = async (
@@ -79,23 +98,18 @@ export const usePromoterServices = () => {
   ): Promise<DLVerificationResponse> => {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/promoter/verify-driving-license", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId: "69ccb2fa7e2be2e4af126242", // This should come from auth context
-          dlNumber,
-          dateOfBirth,
-        }),
+      const userId = getVerifiedUserId();
+      const response = await promoterService.verifyDrivingLicense({
+        userId,
+        dlNumber,
+        dateOfBirth,
       });
 
-      if (!response.ok) {
-        throw new Error("Verification failed");
-      }
-
-      const result = await response.json();
+      const verificationResult = response.data?.verification ?? response.data;
+      const result = {
+        message: response.message,
+        data: verificationResult,
+      };
 
       // Store verification data in session storage
       sessionStorage.setItem("dlVerificationData", JSON.stringify(result));
@@ -115,22 +129,46 @@ export const usePromoterServices = () => {
   ): Promise<VehicleVerificationResponse> => {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/promoter/verify-vehicle", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId: "69ccb2fa7e2be2e4af126242", // This should come from auth context
-          vehicleNumber,
-        }),
+      const userId = getVerifiedUserId();
+      const response = await promoterService.createVehicle({
+        userId,
+        rcNumber: vehicleNumber,
+        loadCapacity: "4-10T",
+        specialCapabilities: [],
       });
-
-      if (!response.ok) {
-        throw new Error("Vehicle verification failed");
-      }
-
-      const result = await response.json();
+      const result = {
+        message: response.message,
+        data: {
+          vehicleNumber,
+          registrationDate: "",
+          registerDate: "",
+          owner: "",
+          model: "",
+          vehicleType: "",
+          fuelType: "",
+          manufacturer: "",
+          bodyType: "",
+          engineNumber: "",
+          chassisNumber: "",
+          fitnessValidTill: "",
+          insuranceValidTill: "",
+          registrationCertificateNumber: "",
+          registrationUpto: "",
+          taxValidUpto: "",
+          pollutionValidUpto: "",
+          manufacturerModel: "",
+          manufacturerSlNo: "",
+          blackListStatus: "",
+          insuranceCompany: "",
+          insurancePolicyNumber: "",
+          pucNumber: "",
+          pucValidUpto: "",
+          pucIssuedDate: "",
+          status: "verified",
+          verificationSource: "vehicle_creation",
+          ...(response.data ?? {}),
+        },
+      };
 
       // Store verification data in session storage
       sessionStorage.setItem("vehicleVerificationData", JSON.stringify(result));
@@ -148,23 +186,16 @@ export const usePromoterServices = () => {
   const createVehicle = async (vehicleData: any) => {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/promoter/vehicles", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId: "69ccb2fa7e2be2e4af126242", // This should come from auth context
-          ...vehicleData,
-        }),
+      const userId = getVerifiedUserId();
+      const response = await promoterService.createVehicle({
+        userId,
+        rcNumber: vehicleData.rcNumber,
+        loadCapacity: vehicleData.loadCapacity,
+        specialCapabilities: vehicleData.specialCapabilities || [],
+        thumbnailImage: vehicleData.thumbnailImage,
+        additionalImages: vehicleData.additionalImages,
       });
-
-      if (!response.ok) {
-        throw new Error("Vehicle creation failed");
-      }
-
-      const result = await response.json();
-      return result;
+      return response;
     } catch (error) {
       console.error("Vehicle Creation Error:", error);
       throw error;

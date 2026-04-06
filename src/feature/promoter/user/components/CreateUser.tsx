@@ -4,11 +4,13 @@ import { MapPin } from "lucide-react";
 import type { ChangeEvent } from "react";
 import { ZodError } from "zod";
 
+import { useCreatePromoterUser } from "../hooks/usePromoterUsers";
 import { FormActionRow } from "@/components/common/FormActionRow";
 import PageHeader from "@/components/common/PageHeader";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createPromoterUserSchema } from "../schema/promoter.schema";
+import { toastService } from "@/lib/toast";
 
 interface CreateUserFormData {
   name: string;
@@ -19,6 +21,7 @@ interface CreateUserFormData {
 
 export default function CreateUser() {
   const navigate = useNavigate();
+  const createPromoterUser = useCreatePromoterUser();
   const [formData, setFormData] = useState<CreateUserFormData>({
     name: "",
     phoneNumber: "",
@@ -59,7 +62,21 @@ export default function CreateUser() {
         "promoter_new_user_pending",
         JSON.stringify(formData),
       );
-      navigate({ to: "/verifyUserOtp" });
+      await createPromoterUser.mutateAsync({
+        name: formData.name.trim(),
+        phoneNumber: formData.phoneNumber.trim(),
+        address: formData.address.trim(),
+        provideLogistics: formData.provideLogistics,
+        hashCode: Math.random().toString(36).slice(2),
+      });
+      toastService.success("OTP sent successfully");
+      navigate({
+        to: "/verifyUserOtp",
+        search: {
+          phone: formData.phoneNumber.replace(/[^\d]/g, "").slice(-10),
+          resend: false,
+        },
+      });
     } catch (error) {
       if (error instanceof ZodError) {
         const errors: Record<string, string> = {};
@@ -72,7 +89,12 @@ export default function CreateUser() {
         });
 
         setValidationErrors(errors);
+        return;
       }
+
+      toastService.error(
+        error instanceof Error ? error.message : "Failed to send OTP",
+      );
     }
   };
 
@@ -196,6 +218,8 @@ export default function CreateUser() {
         <FormActionRow
           primaryType="button"
           primaryLabel="Send OTP"
+          loadingLabel="Sending OTP..."
+          isLoading={createPromoterUser.isPending}
           onPrimaryClick={handleContinue}
           onCancel={handleCancel}
         />

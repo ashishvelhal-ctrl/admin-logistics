@@ -73,7 +73,7 @@ export default function EditUser() {
         throw new Error("Address must be at least 5 characters.");
       }
 
-      updateUser.mutate({
+      await updateUser.mutateAsync({
         userId,
         updateData: {
           name,

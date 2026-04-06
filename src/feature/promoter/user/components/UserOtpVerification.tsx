@@ -1,9 +1,9 @@
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { ArrowLeft, Lock } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 
-import { useCreatePromoterUser } from "../hooks/usePromoterUsers";
-import { createPromoterUserSchema } from "../schema/promoter.schema";
+import { useVerifyPromoterUserOtp } from "../hooks/usePromoterUsers";
+import { useSendOTP } from "@/feature/auth/hooks/useSendOtp";
 
 import { SixDigitOtpInput } from "@/components/common/SixDigitOtpInput";
 import { Button } from "@/components/ui/button";
@@ -16,13 +16,25 @@ interface PendingUserData {
   provideLogistics: boolean;
 }
 
+interface ExistingUserData {
+  phoneNumber: string;
+  name?: string;
+}
+
 const PENDING_USER_STORAGE_KEY = "promoter_new_user_pending";
+const VERIFIED_USER_STORAGE_KEY = "promoter_verified_user";
 
 export default function UserOtpVerification() {
   const navigate = useNavigate();
-  const createUserMutation = useCreatePromoterUser();
+  const search = useSearch({ from: "/(promoter)/verifyUserOtp" });
+  const verifyOtpMutation = useVerifyPromoterUserOtp();
+  const sendOTPMutation = useSendOTP();
   const [otp, setOtp] = useState("");
-  const [resendLoading, setResendLoading] = useState(false);
+  const [, setResendLoading] = useState(false);
+  const [isExistingUser, setIsExistingUser] = useState(false);
+  const [existingUser, setExistingUser] = useState<ExistingUserData | null>(
+    null,
+  );
 
   const pendingUser = useMemo(() => {
     if (typeof window === "undefined") return null;
@@ -36,28 +48,74 @@ export default function UserOtpVerification() {
     }
   }, []);
 
-  const maskedPhone = useMemo(() => {
-    const phone = pendingUser?.phoneNumber ?? "";
-    if (!phone || phone.length < 4) return "+91 XXXXXXXX";
-    return `+91 ${phone.slice(0, 2)}XXXXXX${phone.slice(-2)}`;
-  }, [pendingUser]);
-
   const handleResendOtp = async () => {
+    const phoneNumber = isExistingUser
+      ? existingUser?.phoneNumber
+      : pendingUser?.phoneNumber;
+
+    if (!phoneNumber) {
+      toastService.error("User details not found. Please add details again.");
+      if (isExistingUser) {
+        navigate({ to: "/myNetwork" });
+      } else {
+        navigate({ to: "/addUser" });
+      }
+      return;
+    }
+
     try {
       setResendLoading(true);
-      await new Promise((resolve) => setTimeout(resolve, 600));
+      await sendOTPMutation.mutateAsync({
+        phoneNumber,
+        hashCode: Math.random().toString(36).slice(2),
+      });
       toastService.success("OTP resent successfully");
-    } catch {
-      toastService.error("Failed to resend OTP");
+    } catch (error) {
+      toastService.error(
+        error instanceof Error ? error.message : "Failed to resend OTP",
+      );
     } finally {
       setResendLoading(false);
     }
   };
 
+  // Check if this is an existing user verification
+  useEffect(() => {
+    if (search.phone) {
+      setIsExistingUser(true);
+      setExistingUser({
+        phoneNumber: search.phone,
+      });
+    }
+  }, [search.phone]);
+
+  // Auto-send OTP if resend flag is true and existing user is set
+  useEffect(() => {
+    if (search.resend && existingUser?.phoneNumber) {
+      handleResendOtp();
+    }
+  }, [search.resend, existingUser?.phoneNumber]);
+
+  const maskedPhone = useMemo(() => {
+    const phone = isExistingUser
+      ? existingUser?.phoneNumber
+      : (pendingUser?.phoneNumber ?? "");
+    if (!phone || phone.length < 4) return "+91 XXXXXXXX";
+    return `+91 ${phone.slice(0, 2)}XXXXXX${phone.slice(-2)}`;
+  }, [pendingUser, existingUser, isExistingUser]);
+
   const handleVerifyOtp = async () => {
-    if (!pendingUser) {
+    const phoneNumber = isExistingUser
+      ? existingUser?.phoneNumber
+      : pendingUser?.phoneNumber;
+
+    if (!phoneNumber) {
       toastService.error("User details not found. Please add details again.");
-      navigate({ to: "/addUser" });
+      if (isExistingUser) {
+        navigate({ to: "/myNetwork" });
+      } else {
+        navigate({ to: "/addUser" });
+      }
       return;
     }
 
@@ -66,32 +124,36 @@ export default function UserOtpVerification() {
       return;
     }
 
-    const validatedData = createPromoterUserSchema.safeParse({
-      name: pendingUser.name,
-      phoneNumber: pendingUser.phoneNumber,
-      address: pendingUser.address,
-    });
-
-    if (!validatedData.success) {
-      toastService.error(
-        "User details are invalid. Please review and try again.",
-      );
-      navigate({ to: "/addUser" });
-      return;
-    }
-
     try {
-      await createUserMutation.mutateAsync(validatedData.data);
-      sessionStorage.removeItem(PENDING_USER_STORAGE_KEY);
+      const response = await verifyOtpMutation.mutateAsync({
+        phoneNumber,
+        otpCode: otp,
+      });
 
-      if (pendingUser.provideLogistics) {
+      if (isExistingUser) {
+        // For existing users, navigate back to user details after successful verification
+        toastService.success("Phone number verified successfully!");
+        navigate({ to: "/myNetwork" });
+        return;
+      }
+
+      // For new users, continue with existing flow
+      sessionStorage.setItem(
+        VERIFIED_USER_STORAGE_KEY,
+        JSON.stringify(response.data),
+      );
+
+      if (pendingUser?.provideLogistics) {
         navigate({ to: "/drivingLicence" });
         return;
       }
 
+      sessionStorage.removeItem(PENDING_USER_STORAGE_KEY);
       navigate({ to: "/dashboardp" });
-    } catch {
-      toastService.error("Failed to create user. Please try again.");
+    } catch (error) {
+      toastService.error(
+        error instanceof Error ? error.message : "Failed to verify OTP",
+      );
     }
   };
 
@@ -103,16 +165,24 @@ export default function UserOtpVerification() {
             Enter OTP
           </h1>
           <p className="text-xs md:text-sm text-inactive-text mt-1">
-            Add customer or driver details to get started
+            {isExistingUser
+              ? "Verify existing user phone number"
+              : "Add customer or driver details to get started"}
           </p>
         </div>
         <button
           type="button"
-          onClick={() => navigate({ to: "/addUser" })}
+          onClick={() => {
+            if (isExistingUser) {
+              navigate({ to: "/myNetwork" });
+            } else {
+              navigate({ to: "/addUser" });
+            }
+          }}
           className="inline-flex items-center gap-2 text-xs md:text-sm text-icon-text hover:opacity-80 pt-2 md:pt-3"
         >
           <ArrowLeft className="w-3 h-3 md:w-4 md:h-4" />
-          Back to Add New
+          Back to {isExistingUser ? "Network" : "Add New"}
         </button>
       </section>
 
@@ -136,19 +206,19 @@ export default function UserOtpVerification() {
             <Button
               type="button"
               onClick={handleVerifyOtp}
-              disabled={createUserMutation.isPending}
+              disabled={verifyOtpMutation.isPending}
               className="w-full h-10 md:h-11 rounded-lg bg-icon-1-color hover:bg-icon-1-color/90 text-white"
             >
-              {createUserMutation.isPending ? "Verifying..." : "Verify OTP"}
+              {verifyOtpMutation.isPending ? "Verifying..." : "Verify OTP"}
             </Button>
             <Button
               type="button"
               variant="outline"
               onClick={handleResendOtp}
-              disabled={resendLoading}
+              disabled={sendOTPMutation.isPending}
               className="w-full h-10 md:h-11 rounded-lg border-border-stroke text-icon-text hover:bg-gray-50"
             >
-              {resendLoading ? "Sending..." : "Resend OTP"}
+              {sendOTPMutation.isPending ? "Sending..." : "Resend OTP"}
             </Button>
           </div>
 
