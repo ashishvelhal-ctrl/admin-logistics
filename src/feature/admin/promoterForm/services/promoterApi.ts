@@ -339,6 +339,49 @@ export const promoterApi = {
     }
   },
 
+  // Get users for a specific promoter (admin endpoint)
+  getPromoterUsers: async (
+    promoterId: string,
+    params: { limit?: number; offset?: number } = {},
+  ): Promise<{ data: any[]; total: number }> => {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params.limit) queryParams.append("limit", String(params.limit));
+      if (params.offset) queryParams.append("offset", String(params.offset));
+
+      const url = queryParams.toString()
+        ? `/admin/promoters/${promoterId}/users?${queryParams.toString()}`
+        : `/admin/promoters/${promoterId}/users`;
+
+      const response = (await apiClient.get(url)) as any;
+
+      // Handle different response structures
+      // Case 1: response is directly the data object { message: '...', data: [...], paginationMeta: {...} }
+      // Case 2: response is wrapped { data: { message: '...', data: [...], paginationMeta: {...} } }
+      const isDirectResponse = Array.isArray(response.data);
+      const responseData = isDirectResponse
+        ? response
+        : response.data || response;
+
+      const users = Array.isArray(responseData.data)
+        ? responseData.data
+        : Array.isArray(responseData.users)
+          ? responseData.users
+          : [];
+
+      const total =
+        responseData.paginationMeta?.total ||
+        responseData.total ||
+        users.length ||
+        0;
+
+      return { data: users, total };
+    } catch (err: any) {
+      console.error("Failed to fetch promoter users:", err);
+      return { data: [], total: 0 };
+    }
+  },
+
   // Delete a promoter by ID (soft delete / deactivate)
   deletePromoter: async (
     promoterId: string,

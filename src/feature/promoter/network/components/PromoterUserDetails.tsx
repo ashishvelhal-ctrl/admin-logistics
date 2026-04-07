@@ -107,10 +107,7 @@ export default function PromoterUserDetails() {
     }));
   }, [vehiclesResponse?.data]);
 
-  const trips = ((userDetails as any)?.trips as any[] | undefined) ?? [];
-
   const vehicleTotalPages = Math.max(1, Math.ceil(vehicles.length / 5));
-  const tripTotalPages = Math.max(1, Math.ceil(trips.length / 5));
 
   if (!userId) {
     return (
@@ -422,10 +419,9 @@ export default function PromoterUserDetails() {
                 />
               ) : (
                 <TripTable
-                  trips={trips}
+                  userId={userId || ""}
                   currentPage={tripPage}
                   onPageChange={setTripPage}
-                  totalPages={tripTotalPages}
                 />
               )}
             </CardContent>

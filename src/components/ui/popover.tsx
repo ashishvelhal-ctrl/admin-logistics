@@ -96,36 +96,72 @@ function PopoverContent({
   children,
   align = "center",
   side = "bottom",
+  sideOffset = 4,
   ...props
 }: React.ComponentProps<"div"> & {
   align?: "start" | "center" | "end";
   side?: "top" | "bottom" | "left" | "right";
+  sideOffset?: number;
 }) {
   const popoverContext = React.useContext(PopoverContext);
 
   if (!popoverContext?.open) return null;
 
-  const getPositionClasses = () => {
+  const getPositionStyle = () => {
+    const base: React.CSSProperties = {
+      position: "absolute",
+    };
+
     switch (side) {
       case "top":
-        return "bottom-full left-1/2 -translate-x-1/2 mb-1";
+        return {
+          ...base,
+          bottom: "100%",
+          left: "50%",
+          transform: "translateX(-50%)",
+          marginBottom: sideOffset,
+        };
       case "bottom":
-        return "top-full left-1/2 -translate-x-1/2 mt-1";
+        return {
+          ...base,
+          top: "100%",
+          left: "50%",
+          transform: "translateX(-50%)",
+          marginTop: sideOffset,
+        };
       case "left":
-        return "right-full top-1/2 -translate-y-1/2 mr-1";
+        return {
+          ...base,
+          right: "100%",
+          top: "50%",
+          transform: "translateY(-50%)",
+          marginRight: sideOffset,
+        };
       case "right":
-        return "left-full top-1/2 -translate-y-1/2 ml-1";
+        return {
+          ...base,
+          left: "100%",
+          top: "50%",
+          transform: "translateY(-50%)",
+          marginLeft: sideOffset,
+        };
       default:
-        return "bottom-full left-1/2 -translate-x-1/2 mb-1";
+        return {
+          ...base,
+          top: "100%",
+          left: "50%",
+          transform: "translateX(-50%)",
+          marginTop: sideOffset,
+        };
     }
   };
 
   return (
     <div
       data-slot="popover-content"
+      style={getPositionStyle()}
       className={cn(
-        "bg-popover text-popover-foreground z-50 w-72 rounded-md border p-4 shadow-md outline-hidden absolute",
-        getPositionClasses(),
+        "bg-popover text-popover-foreground z-50 w-72 rounded-md border p-4 shadow-md outline-hidden",
         className,
       )}
       {...props}

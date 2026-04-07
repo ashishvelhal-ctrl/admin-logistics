@@ -88,15 +88,16 @@ export default function PromoterDetails() {
       queryClient.invalidateQueries({ queryKey: ["promoters"] });
     },
   });
+  // Fetch promoter users using admin endpoint
   const {
-    data: networkData,
-    isLoading: isLoadingNetwork,
-    error: networkError,
+    data: usersData,
+    isLoading: isLoadingUsers,
+    error: usersError,
   } = useQuery({
-    queryKey: ["promoterNetwork", promoterId],
+    queryKey: ["promoterUsers", promoterId],
     queryFn: async () => {
       if (!promoterId) return { data: [], total: 0 };
-      return promoterApi.getPromoterNetwork(promoterId, { limit: 100 });
+      return promoterApi.getPromoterUsers(promoterId, { limit: 100 });
     },
     enabled: !!promoterId,
   });
@@ -112,27 +113,30 @@ export default function PromoterDetails() {
           promoterData.assignedAddress || promoterData.address || "Pune",
         isActive:
           promoterData.isActive !== false && promoterData.isDeleted !== true,
-        totalOnboard: networkData?.total || 0,
+        totalOnboard: usersData?.total || 0,
         totalEarnings:
-          networkData?.data?.reduce(
+          usersData?.data?.reduce(
             (sum: number, user: any) =>
               sum + (user.profileStatus === "verified" ? 10 : 0),
             0,
           ) || 0,
         targetCurrent:
-          networkData?.data?.reduce(
+          usersData?.data?.reduce(
             (sum: number, user: any) =>
               sum + (user.profileStatus === "verified" ? 10 : 0),
             0,
           ) || 0,
-        targetTotal: (networkData?.total || 0) * 20 || 2000,
+        targetTotal: (usersData?.total || 0) * 20 || 2000,
         networkMembers:
-          networkData?.data?.map((user: any) => ({
-            id: parseInt(user.id) || Math.random(),
+          usersData?.data?.map((user: any) => ({
+            id: user.id || String(Math.random()),
             name: user.name || "Unknown",
             phone: user.phoneNumber || "N/A",
             status:
-              user.profileStatus === "verified"
+              user.profileStatus === "verified" ||
+              user.profileStatus === "phone_number_verified" ||
+              user.profileStatus === "dl_verified" ||
+              user.profileStatus === "profile_completed"
                 ? "completed"
                 : user.profileStatus === "pending"
                   ? "pending"
@@ -141,9 +145,9 @@ export default function PromoterDetails() {
       }
     : null;
 
-  if (promoterError || networkError) {
+  if (promoterError || usersError) {
     console.error("Promoter API Error:", promoterError);
-    console.error("Network API Error:", networkError);
+    console.error("Users API Error:", usersError);
   }
 
   if (!promoterId) {
@@ -161,7 +165,7 @@ export default function PromoterDetails() {
     );
   }
 
-  if (isLoadingPromoter || isLoadingNetwork) {
+  if (isLoadingPromoter || isLoadingUsers) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-4">
         <Loader2 className="h-8 w-8 animate-spin" />

@@ -58,6 +58,30 @@ export interface UserVehiclesResponse {
   paginationMeta: NetworkPaginationMeta;
 }
 
+export interface UserTrip {
+  id: string;
+  date: string;
+  time: string;
+  price: number;
+  startLocation: {
+    address: string;
+    point: { lat: number; lng: number };
+  };
+  endLocation: {
+    address: string;
+    point: { lat: number; lng: number };
+  };
+  status?: string;
+  createdAt?: string;
+  [key: string]: any;
+}
+
+export interface UserTripsResponse {
+  message: string;
+  data: UserTrip[];
+  paginationMeta: NetworkPaginationMeta;
+}
+
 const toPositiveInt = (value: unknown, fallback: number): number => {
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : fallback;
@@ -271,5 +295,96 @@ export const networkApi = {
             : currentPage > 1,
       },
     };
+  },
+
+  // GET /promoter/user/service-posts (get trips for specific user under current promoter)
+  getUserTrips: async (
+    id: string,
+    params: { limit?: number; offset?: number } = {},
+  ): Promise<UserTripsResponse> => {
+    const queryParams = new URLSearchParams();
+    if (params.limit !== undefined) {
+      queryParams.append("limit", String(params.limit));
+    }
+    if (params.offset !== undefined) {
+      queryParams.append("offset", String(params.offset));
+    }
+    if (id) {
+      queryParams.append("userId", id);
+    }
+    const url = queryParams.toString()
+      ? `/promoter/user/service-posts?${queryParams.toString()}`
+      : `/promoter/user/service-posts?userId=${id}`;
+
+    try {
+      const rawResponse = (await apiClient.get(url)) as any;
+
+      const normalizedResponse = normalizeResponseData(rawResponse);
+      const trips = Array.isArray(normalizedResponse?.data)
+        ? normalizedResponse.data
+        : Array.isArray(rawResponse?.data)
+          ? rawResponse.data
+          : [];
+
+      const rawPaginationMeta = normalizedResponse?.paginationMeta ?? {};
+      const limit = toPositiveInt(rawPaginationMeta.limit, params.limit ?? 10);
+      const offset = toNonNegativeInt(
+        rawPaginationMeta.offset,
+        params.offset ?? 0,
+      );
+      const total = toNonNegativeInt(rawPaginationMeta.total, trips.length);
+      const totalPages = toPositiveInt(
+        rawPaginationMeta.total_pages,
+        Math.max(1, Math.ceil(total / Math.max(limit, 1))),
+      );
+      const currentPage = toPositiveInt(
+        rawPaginationMeta.current_page,
+        Math.floor(offset / Math.max(limit, 1)) + 1,
+      );
+
+      return {
+        message:
+          normalizedResponse?.message ??
+          rawResponse?.message ??
+          "Trips fetched successfully",
+        data: trips,
+        paginationMeta: {
+          total,
+          limit,
+          offset,
+          current_page: Math.min(currentPage, totalPages),
+          total_pages: totalPages,
+          has_next_page:
+            typeof rawPaginationMeta.has_next_page === "boolean"
+              ? rawPaginationMeta.has_next_page
+              : currentPage < totalPages,
+          has_prev_page:
+            typeof rawPaginationMeta.has_prev_page === "boolean"
+              ? rawPaginationMeta.has_prev_page
+              : currentPage > 1,
+        },
+      };
+    } catch (error: any) {
+      // If endpoint doesn't exist, return empty data
+      if (
+        error?.response?.status === 404 ||
+        error?.message?.includes("not found")
+      ) {
+        return {
+          message: "Trip history not available",
+          data: [],
+          paginationMeta: {
+            total: 0,
+            limit: params.limit ?? 10,
+            offset: params.offset ?? 0,
+            current_page: 1,
+            total_pages: 1,
+            has_next_page: false,
+            has_prev_page: false,
+          },
+        };
+      }
+      throw error;
+    }
   },
 };

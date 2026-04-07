@@ -19,7 +19,7 @@ export type NetworkStatus = "completed" | "pending" | "inProgress";
 type TableView = "network" | "trips";
 
 export interface PromoterNetworkMember {
-  id: number;
+  id: string;
   name: string;
   phone: string;
   status: NetworkStatus;
@@ -81,7 +81,7 @@ export default function PromoterDetailsRightPanel({
   const tripRows = useMemo(
     () =>
       networkMembers.map((member, index) => ({
-        id: member.id * 1000 + index,
+        id: `${member.id}-trip-${index}`,
         name: `Trip #${index + 1}`,
         secondary: member.name,
         status: member.status,

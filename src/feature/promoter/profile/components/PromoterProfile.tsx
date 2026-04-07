@@ -122,7 +122,7 @@ export default function PromoterProfile() {
     targetTotal: (usersData?.data?.length || 0) * 20 || 2000,
     networkMembers:
       usersData?.data?.map((user: any) => ({
-        id: parseInt(user.id),
+        id: user.id,
         name: user.name,
         phone: user.phoneNumber,
         status:
