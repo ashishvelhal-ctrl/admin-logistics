@@ -66,8 +66,8 @@ export default function TripMapPicker(props: TripMapPickerProps) {
           <div className="relative flex-1">
             <div ref={mapContainerRef} className="h-full w-full bg-[#EEF2F5]" />
 
-            <div className="absolute left-1/2 top-4 z-10 w-[min(820px,calc(100%-2rem))] -translate-x-1/2 rounded-2xl border border-border-stroke bg-white/95 p-4 shadow-xl backdrop-blur-sm">
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_1fr_auto]">
+            <div className="absolute left-1/2 top-3 z-20 w-[calc(100%-1rem)] -translate-x-1/2 rounded-2xl border border-border-stroke bg-white/95 p-3 shadow-xl backdrop-blur-sm md:top-4 md:w-[min(820px,calc(100%-2rem))] md:p-4">
+              <div className="grid grid-cols-1 gap-3 overflow-visible md:grid-cols-[1fr_1fr_auto]">
                 <TripMapSearchField
                   field="pickup"
                   value={fieldState.pickup.value}

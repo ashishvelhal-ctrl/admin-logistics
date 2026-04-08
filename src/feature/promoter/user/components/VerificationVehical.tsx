@@ -1,66 +1,15 @@
 import { BadgeCheck, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
 
 import ButtonActions from "@/components/common/ButtonActions";
 import DetailSection from "@/components/common/DetailSection";
 import FormGrid from "@/components/common/FormGrid";
 import PrimaryButton from "@/components/common/PrimaryButton";
-
-interface VehicleVerificationData {
-  message: string;
-  data: {
-    vehicleNumber: string;
-    registrationDate: string;
-    registerDate: string;
-    owner: string;
-    model: string;
-    vehicleType: string;
-    fuelType: string;
-    manufacturer: string;
-    bodyType: string;
-    engineNumber: string;
-    chassisNumber: string;
-    fitnessValidTill: string;
-    insuranceValidTill: string;
-    registrationCertificateNumber: string;
-    registrationUpto: string;
-    taxValidUpto: string;
-    pollutionValidUpto: string;
-    manufacturerModel: string;
-    manufacturerSlNo: string;
-    blackListStatus: string;
-    insuranceCompany: string;
-    insurancePolicyNumber: string;
-    pucNumber: string;
-    pucValidUpto: string;
-    pucIssuedDate: string;
-    status: string;
-    verificationSource: string;
-  };
-}
+import { useVehicleVerificationData } from "../hooks/useVerificationData";
 
 export default function VerificationVehical() {
   const navigate = useNavigate();
-  const [verificationData, setVerificationData] =
-    useState<VehicleVerificationData | null>(null);
-
-  useEffect(() => {
-    // Retrieve verification data from session storage
-    const storedData = sessionStorage.getItem("vehicleVerificationData");
-    if (storedData) {
-      setVerificationData(JSON.parse(storedData));
-    }
-  }, []);
-
-  const formatDate = (dateString: string) => {
-    if (!dateString || dateString === "1800-01-01T00:00:00.000Z") return "N/A";
-    return new Date(dateString).toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-  };
+  const { verificationData, formatDate } = useVehicleVerificationData();
 
   if (!verificationData) {
     return (

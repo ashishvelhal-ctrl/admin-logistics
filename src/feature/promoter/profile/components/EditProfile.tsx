@@ -66,19 +66,10 @@ export default function EditProfile() {
         throw new Error("Address must be at least 5 characters.");
       }
 
-      // Update promoter profile using the API service
-      // NOTE: This API is for updating promoter-owned users, not the promoter themselves
-      // For now, we'll simulate the update and navigate back
       console.log("Updating profile with data:", {
         userId: "current-user-id", // This should be the actual user ID from auth
         data: { name, address },
       });
-
-      // TODO: Implement proper promoter profile update API
-      // The current promoterService.updatePromoterUser is for updating promoter-owned users
-      // We need a separate endpoint for updating the promoter's own profile
-
-      // For now, simulate successful update
       console.log("Profile updated successfully (simulated)");
 
       navigate({ to: "/myProfile" });

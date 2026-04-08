@@ -1,65 +1,14 @@
 import { useNavigate } from "@tanstack/react-router";
 import { BadgeCheck, CheckCircle2, MapPin } from "lucide-react";
-import { useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import ButtonActions from "@/components/common/ButtonActions";
 import PrimaryButton from "@/components/common/PrimaryButton";
-
-interface DLVerificationData {
-  message: string;
-  data: {
-    licenseNumber: string;
-    name: string;
-    dob: string;
-    state: string;
-    dateOfIssue: string;
-    dateOfExpiry: string;
-    gender: string;
-    permanentAddress: string;
-    temporaryAddress: string;
-    fatherOrHusbandName: string;
-    citizenship: string;
-    olaName: string;
-    olaCode: string;
-    clientId: string;
-    permanentZip: string;
-    cityName: string | null;
-    temporaryZip: string;
-    transportDateOfExpiry: string;
-    transportDateOfIssue: string;
-    bloodGroup: string;
-    vehicleClasses: string[];
-    additionalCheck: any[];
-    initialDateOfIssue: string;
-    currentStatus: any;
-    vehicleClassDescription: any[];
-    status: string;
-    verificationSource: string;
-  };
-}
+import { useDLVerificationData } from "../hooks/useVerificationData";
 
 export default function VerificationDrivingLicence() {
   const navigate = useNavigate();
-  const [verificationData, setVerificationData] =
-    useState<DLVerificationData | null>(null);
-
-  useEffect(() => {
-    // Retrieve verification data from session storage
-    const storedData = sessionStorage.getItem("dlVerificationData");
-    if (storedData) {
-      setVerificationData(JSON.parse(storedData));
-    }
-  }, []);
-
-  const formatDate = (dateString: string) => {
-    if (!dateString || dateString === "1800-01-01T00:00:00.000Z") return "N/A";
-    return new Date(dateString).toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-  };
+  const { verificationData, formatDate } = useDLVerificationData();
 
   if (!verificationData) {
     return (

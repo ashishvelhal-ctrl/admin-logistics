@@ -1,36 +1,21 @@
-import { useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
 import { CalendarDays, CheckCircle2, ShieldCheck } from "lucide-react";
 
 import drivingLicenceImage from "@/assets/Driving_lic.jpg";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { usePromoterServices } from "../hooks/usePromoterServices";
+import { useDrivingLicence } from "../hooks/useDrivingLicence";
 
 export default function DrivingLicence() {
-  const navigate = useNavigate();
-  const [licenceNumber, setLicenceNumber] = useState("");
-  const [dateOfBirth, setDateOfBirth] = useState("");
-  const { isLoading, verifyDrivingLicense } = usePromoterServices();
-
-  const handleCancel = () => {
-    navigate({ to: "/addvehical" });
-  };
-
-  const handleContinue = async () => {
-    if (!licenceNumber || !dateOfBirth) {
-      alert("Please fill in all fields");
-      return;
-    }
-
-    try {
-      await verifyDrivingLicense(licenceNumber, dateOfBirth);
-      navigate({ to: "/verifyDrivingLicence" });
-    } catch (error) {
-      alert("Verification failed. Please check your details and try again.");
-    }
-  };
+  const {
+    licenceNumber,
+    setLicenceNumber,
+    dateOfBirth,
+    setDateOfBirth,
+    isLoading,
+    handleCancel,
+    handleContinue,
+  } = useDrivingLicence();
 
   return (
     <main className="bg-common-bg px-2 sm:pr-4 sm:pl-3 pt-1 pb-4 min-h-full space-y-4 sm:space-y-5">

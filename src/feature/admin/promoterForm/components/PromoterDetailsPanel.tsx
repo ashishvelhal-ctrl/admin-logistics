@@ -1,7 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { Search } from "lucide-react";
 
+import { usePromoterNetwork } from "../hooks/usePromoterNetwork";
+import {
+  type PromoterNetworkMember,
+  type NetworkStatus,
+} from "./PromoterNetworkTable";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,15 +18,6 @@ import {
 import { PaginationWrapper as Pagination } from "@/components/common/Pagination";
 import { cn } from "@/lib/utils";
 
-export type NetworkStatus = "completed" | "pending" | "inProgress";
-
-export interface PromoterNetworkMember {
-  id: number;
-  name: string;
-  phone: string;
-  status: NetworkStatus;
-}
-
 interface PromoterDetailsRightPanelProps {
   totalOnboard: number;
   totalEarnings: number;
@@ -30,8 +25,6 @@ interface PromoterDetailsRightPanelProps {
   targetTotal: number;
   networkMembers: PromoterNetworkMember[];
 }
-
-const PAGE_SIZE = 10;
 
 const numberFormatter = new Intl.NumberFormat("en-IN");
 const currencyFormatter = new Intl.NumberFormat("en-IN", {
@@ -68,41 +61,17 @@ export default function PromoterDetailsRightPanel({
 }: PromoterDetailsRightPanelProps) {
   const navigate = useNavigate();
   const { promoterId } = useSearch({ from: "/(admin)/promoterDetails" });
-  const [searchValue, setSearchValue] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | NetworkStatus>(
-    "all",
-  );
-  const [page, setPage] = useState(1);
 
-  const filteredNetwork = useMemo(() => {
-    return networkMembers.filter((member) => {
-      const matchesSearch =
-        member.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-        member.phone.includes(searchValue.trim());
-      const matchesStatus =
-        statusFilter === "all" || member.status === statusFilter;
-
-      return matchesSearch && matchesStatus;
-    });
-  }, [networkMembers, searchValue, statusFilter]);
-
-  const totalPages = Math.max(1, Math.ceil(filteredNetwork.length / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
-
-  useEffect(() => {
-    setPage(1);
-  }, [searchValue, statusFilter]);
-
-  useEffect(() => {
-    if (page > totalPages) {
-      setPage(totalPages);
-    }
-  }, [page, totalPages]);
-
-  const paginatedMembers = filteredNetwork.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE,
-  );
+  const {
+    searchValue,
+    setSearchValue,
+    statusFilter,
+    setStatusFilter,
+    currentPage,
+    totalPages,
+    paginatedMembers,
+    setPage,
+  } = usePromoterNetwork(networkMembers);
 
   const progressValue =
     targetTotal > 0 ? Math.min((targetCurrent / targetTotal) * 100, 100) : 0;

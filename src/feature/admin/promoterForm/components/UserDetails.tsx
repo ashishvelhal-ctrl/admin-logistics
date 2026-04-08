@@ -1,131 +1,25 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { ArrowLeft, MapPin, Phone } from "lucide-react";
+import { ArrowLeft, MapPin, Phone, Loader2, Ban } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { PaginationWrapper as Pagination } from "@/components/common/Pagination";
 import { AdminTable, type Column } from "@/components/common/AdminTable";
 import { cn } from "@/lib/utils";
-
-type TripStatus = "completed" | "cancelled" | "inProgress";
-
-interface UserTrip {
-  tripId: string;
-  date: string;
-  route: string;
-  status: TripStatus;
-  amount: number;
-}
-
-interface UserProfile {
-  id: string;
-  promoterId: string;
-  fullName: string;
-  mobileNumber: string;
-  address: string;
-  isActive: boolean;
-  vehicleType: string;
-  vehicleNumber: string;
-  trips: UserTrip[];
-}
+import {
+  networkApi,
+  type UserTrip,
+} from "@/feature/promoter/network/services/networkApi";
 
 const PAGE_SIZE = 4;
 
-const statusLabel: Record<TripStatus, string> = {
+const statusLabel: Record<string, string> = {
   completed: "COMPLETED",
   cancelled: "CANCELLED",
   inProgress: "IN PROGRESS",
+  pending: "PENDING",
 };
-
-const userProfiles: Record<string, UserProfile> = {
-  "1": {
-    id: "1",
-    promoterId: "1",
-    fullName: "Ramesh Patil",
-    mobileNumber: "9876543210",
-    address: "Pune",
-    isActive: true,
-    vehicleType: "Eicher1902",
-    vehicleNumber: "MH-12 DJ 1329",
-    trips: [
-      {
-        tripId: "#TR-8821",
-        date: "05 Oct 2023",
-        route: "Pune -> Mumbai",
-        status: "completed",
-        amount: 12000,
-      },
-      {
-        tripId: "#TR-7712",
-        date: "28 Sep 2023",
-        route: "Nashik -> Pune",
-        status: "completed",
-        amount: 6500,
-      },
-      {
-        tripId: "#TR-6654",
-        date: "15 Sep 2023",
-        route: "Mumbai -> Surat",
-        status: "cancelled",
-        amount: 0,
-      },
-      {
-        tripId: "#TR-6528",
-        date: "14 Sep 2023",
-        route: "Pune -> Kolhapur",
-        status: "completed",
-        amount: 8200,
-      },
-      {
-        tripId: "#TR-6401",
-        date: "11 Sep 2023",
-        route: "Satara -> Pune",
-        status: "inProgress",
-        amount: 0,
-      },
-    ],
-  },
-  "2": {
-    id: "2",
-    promoterId: "1",
-    fullName: "Suresh Yadav",
-    mobileNumber: "9234567890",
-    address: "Nashik",
-    isActive: true,
-    vehicleType: "Tata 912",
-    vehicleNumber: "MH-15 AB 9081",
-    trips: [
-      {
-        tripId: "#TR-9120",
-        date: "07 Oct 2023",
-        route: "Nashik -> Mumbai",
-        status: "completed",
-        amount: 7300,
-      },
-      {
-        tripId: "#TR-8978",
-        date: "04 Oct 2023",
-        route: "Mumbai -> Pune",
-        status: "inProgress",
-        amount: 0,
-      },
-    ],
-  },
-};
-
-function getStaticUserProfile(userId: string, promoterId: string): UserProfile {
-  return {
-    id: userId,
-    promoterId,
-    fullName: `User ${userId}`,
-    mobileNumber: "9876543210",
-    address: "Pune",
-    isActive: true,
-    vehicleType: "Eicher1902",
-    vehicleNumber: `MH-12 DJ ${String(1200 + Number(userId) || 1201)}`,
-    trips: userProfiles["1"].trips,
-  };
-}
 
 function getInitials(name: string) {
   return name
@@ -148,12 +42,16 @@ interface TripHistoryItem {
 
 function getTripHistoryData(trips: UserTrip[]): TripHistoryItem[] {
   return trips.map((trip) => ({
-    id: trip.tripId,
-    tripId: trip.tripId,
-    date: trip.date,
-    route: trip.route,
-    status: statusLabel[trip.status],
-    amount: trip.amount,
+    id: trip.id,
+    tripId: trip.id.slice(-6).toUpperCase(),
+    date: new Date(trip.date).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }),
+    route: `${trip.startLocation?.address || "-"} -> ${trip.endLocation?.address || "-"}`,
+    status: statusLabel[trip.status || "pending"] || "PENDING",
+    amount: trip.price || 0,
   }));
 }
 
@@ -185,27 +83,115 @@ export default function UserDetails() {
   const navigate = useNavigate();
   const { userId, promoterId } = useSearch({ from: "/(admin)/userDetails" });
   const selectedUserId = userId ?? "1";
-  const profile =
-    userProfiles[selectedUserId] ??
-    getStaticUserProfile(selectedUserId, promoterId ?? "1");
   const [page, setPage] = useState(1);
 
+  // Fetch user details from API
+  const {
+    data: userData,
+    isLoading: isLoadingUser,
+    error: userError,
+  } = useQuery({
+    queryKey: ["userDetails", selectedUserId],
+    queryFn: () => networkApi.getUserById(selectedUserId),
+    enabled: !!selectedUserId,
+  });
+
+  // Fetch user trips from API
+  const {
+    data: tripsData,
+    isLoading: isLoadingTrips,
+    error: tripsError,
+  } = useQuery({
+    queryKey: ["userTrips", selectedUserId, page],
+    queryFn: () =>
+      networkApi.getUserTrips(selectedUserId, {
+        limit: PAGE_SIZE,
+        offset: (page - 1) * PAGE_SIZE,
+      }),
+    enabled: !!selectedUserId,
+  });
+
+  const trips = tripsData?.data || [];
+  const totalTrips = tripsData?.paginationMeta?.total || 0;
+  const totalPages = Math.max(1, Math.ceil(totalTrips / PAGE_SIZE));
+
+  // Transform trips for display
+  const tripHistoryData = useMemo(() => getTripHistoryData(trips), [trips]);
+
+  // Reset page when user changes
   useEffect(() => {
     setPage(1);
-  }, [profile?.id]);
+  }, [selectedUserId]);
 
-  const totalPages = Math.max(1, Math.ceil(profile.trips.length / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
-  const paginatedTrips = useMemo(
-    () =>
-      profile.trips.slice(
-        (currentPage - 1) * PAGE_SIZE,
-        currentPage * PAGE_SIZE,
-      ),
-    [currentPage, profile.trips],
-  );
+  // Build user profile from API data
+  const profile = useMemo(() => {
+    if (!userData) {
+      return {
+        id: selectedUserId,
+        promoterId: promoterId ?? "1",
+        fullName: `User ${selectedUserId}`,
+        mobileNumber: "-",
+        address: "-",
+        isActive: true,
+        vehicleType: "-",
+        vehicleNumber: "-",
+      };
+    }
 
-  const tripHistoryData = getTripHistoryData(paginatedTrips);
+    return {
+      id: userData.id,
+      promoterId: promoterId ?? "1",
+      fullName: userData.name || `User ${selectedUserId}`,
+      mobileNumber: userData.phoneNumber || "-",
+      address: userData.address || "-",
+      isActive:
+        userData.profileStatus === "verified" || userData.isActive !== false,
+      vehicleType: userData.vehicleType || "-",
+      vehicleNumber: userData.vehicleNumber || "-",
+    };
+  }, [userData, selectedUserId, promoterId]);
+
+  const isLoading = isLoadingUser || isLoadingTrips;
+  const hasError = userError || tripsError;
+
+  if (isLoading) {
+    return (
+      <div className="bg-common-bg pr-4 pl-3 md:pr-10 md:pl-4 pb-6">
+        <div className="flex h-64 flex-col items-center justify-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-icon-1-color" />
+          <div className="text-lg text-heading-color">
+            Loading user details...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (hasError) {
+    return (
+      <div className="bg-common-bg pr-4 pl-3 md:pr-10 md:pl-4 pb-6">
+        <div className="flex h-64 flex-col items-center justify-center gap-4">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-red-500">
+            <Ban className="h-7 w-7" />
+          </div>
+          <div className="text-lg text-red-600">Error loading user data</div>
+          <button
+            type="button"
+            onClick={() =>
+              navigate({
+                to: "/promoterDetails",
+                search: { promoterId: promoterId ?? "1" },
+              })
+            }
+            className="inline-flex items-center gap-2 text-sm font-medium text-icon-1-color hover:opacity-80"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Promoter Detail
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-common-bg pr-4 pl-3 md:pr-10 md:pl-4 pb-6">
@@ -395,7 +381,7 @@ export default function UserDetails() {
 
         <div className="flex flex-col gap-2 pt-2 md:flex-row md:items-center md:justify-between md:pt-3 lg:pt-4">
           <Pagination
-            currentPage={currentPage}
+            currentPage={page}
             totalPages={totalPages}
             onPageChange={setPage}
           />

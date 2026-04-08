@@ -30,8 +30,10 @@ export default function TripMapSearchField({
   onFocus,
   onSelect,
 }: TripMapSearchFieldProps) {
+  const isActive = activeField === field;
+
   return (
-    <div className="relative">
+    <div className={`relative ${isActive ? "z-30" : "z-10"}`}>
       <Input
         value={value}
         onChange={(event) => onChange(field, event.target.value)}
@@ -45,8 +47,8 @@ export default function TripMapSearchField({
         <LoaderCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-icon-1-color" />
       ) : null}
 
-      {activeField === field && suggestions.length > 0 ? (
-        <div className="absolute left-0 right-0 top-[calc(100%+0.35rem)] z-20 overflow-hidden rounded-xl border border-border-stroke bg-white shadow-lg">
+      {isActive && suggestions.length > 0 ? (
+        <div className="absolute left-0 right-0 top-[calc(100%+0.35rem)] z-40 max-h-60 overflow-y-auto rounded-xl border border-border-stroke bg-white shadow-lg">
           {suggestions.map((suggestion) => {
             const prediction = suggestion.placePrediction;
 

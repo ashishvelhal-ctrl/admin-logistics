@@ -1,102 +1,21 @@
-import { useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
 import { MapPin } from "lucide-react";
-import type { ChangeEvent } from "react";
-import { ZodError } from "zod";
 
-import { useCreatePromoterUser } from "../hooks/usePromoterUsers";
+import { useCreateUser } from "../hooks/useCreateUser";
 import { FormActionRow } from "@/components/common/FormActionRow";
 import PageHeader from "@/components/common/PageHeader";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createPromoterUserSchema } from "../schema/promoter.schema";
-import { toastService } from "@/lib/toast";
-
-interface CreateUserFormData {
-  name: string;
-  phoneNumber: string;
-  address: string;
-  provideLogistics: boolean;
-}
 
 export default function CreateUser() {
-  const navigate = useNavigate();
-  const createPromoterUser = useCreatePromoterUser();
-  const [formData, setFormData] = useState<CreateUserFormData>({
-    name: "",
-    phoneNumber: "",
-    address: "",
-    provideLogistics: false,
-  });
-  const [validationErrors, setValidationErrors] = useState<
-    Record<string, string>
-  >({});
-
-  const handleInputChange =
-    (field: keyof CreateUserFormData) => (e: ChangeEvent<HTMLInputElement>) => {
-      setFormData((prev) => ({ ...prev, [field]: e.target.value }));
-    };
-
-  const handleLogisticsToggle = () => {
-    setFormData((prev) => ({
-      ...prev,
-      provideLogistics: !prev.provideLogistics,
-    }));
-  };
-
-  const handleCancel = () => {
-    navigate({ to: "/dashboardp" });
-  };
-
-  const handleContinue = async () => {
-    try {
-      setValidationErrors({});
-
-      createPromoterUserSchema.parse({
-        name: formData.name,
-        phoneNumber: formData.phoneNumber,
-        address: formData.address,
-      });
-
-      sessionStorage.setItem(
-        "promoter_new_user_pending",
-        JSON.stringify(formData),
-      );
-      await createPromoterUser.mutateAsync({
-        name: formData.name.trim(),
-        phoneNumber: formData.phoneNumber.trim(),
-        address: formData.address.trim(),
-        provideLogistics: formData.provideLogistics,
-        hashCode: Math.random().toString(36).slice(2),
-      });
-      toastService.success("OTP sent successfully");
-      navigate({
-        to: "/verifyUserOtp",
-        search: {
-          phone: formData.phoneNumber.replace(/[^\d]/g, "").slice(-10),
-          resend: false,
-        },
-      });
-    } catch (error) {
-      if (error instanceof ZodError) {
-        const errors: Record<string, string> = {};
-
-        error.errors.forEach((err) => {
-          if (err.path && err.path.length > 0) {
-            const fieldName = err.path[0] as string;
-            errors[fieldName] = err.message;
-          }
-        });
-
-        setValidationErrors(errors);
-        return;
-      }
-
-      toastService.error(
-        error instanceof Error ? error.message : "Failed to send OTP",
-      );
-    }
-  };
+  const {
+    formData,
+    validationErrors,
+    isPending,
+    handleInputChange,
+    handleLogisticsToggle,
+    handleCancel,
+    handleContinue,
+  } = useCreateUser();
 
   return (
     <main className="bg-common-bg pr-4 pl-3 pt-1 pb-3 min-h-full">
@@ -219,7 +138,7 @@ export default function CreateUser() {
           primaryType="button"
           primaryLabel="Send OTP"
           loadingLabel="Sending OTP..."
-          isLoading={createPromoterUser.isPending}
+          isLoading={isPending}
           onPrimaryClick={handleContinue}
           onCancel={handleCancel}
         />

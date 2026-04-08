@@ -1,86 +1,31 @@
 import { apiClient } from "@/lib/api";
+import type {
+  NetworkUser,
+  NetworkPaginationMeta,
+  NetworkUsersResponse,
+  GetNetworkUsersParams,
+  CreateNetworkUserPayload,
+  UpdateNetworkUserPayload,
+  UserProfileCompletionStatus,
+  UserVehiclesResponse,
+  UserTrip,
+  UserTripsResponse,
+  PaginationParams,
+} from "../schema/networkTypes";
 
-export interface NetworkUser {
-  id: string;
-  name: string;
-  phoneNumber: string;
-  address?: string;
-  profileStatus?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  [key: string]: any;
-}
-
-export interface NetworkPaginationMeta {
-  total: number;
-  limit: number;
-  offset: number;
-  current_page: number;
-  total_pages: number;
-  has_next_page: boolean;
-  has_prev_page: boolean;
-}
-
-export interface NetworkUsersResponse {
-  message: string;
-  data: NetworkUser[];
-  paginationMeta: NetworkPaginationMeta;
-}
-
-export interface GetNetworkUsersParams {
-  limit?: number;
-  offset?: number;
-  search?: string;
-}
-
-export interface CreateNetworkUserPayload {
-  name: string;
-  phoneNumber: string;
-  address: string;
-}
-
-export interface UpdateNetworkUserPayload {
-  name?: string;
-  address?: string;
-}
-
-export interface UserProfileCompletionStatus {
-  profileStatus?: string;
-  completionPercentage?: number;
-  isComplete?: boolean;
-  isDrivingLicenseVerified?: boolean;
-  [key: string]: any;
-}
-
-export interface UserVehiclesResponse {
-  message: string;
-  data: any[];
-  paginationMeta: NetworkPaginationMeta;
-}
-
-export interface UserTrip {
-  id: string;
-  date: string;
-  time: string;
-  price: number;
-  startLocation: {
-    address: string;
-    point: { lat: number; lng: number };
-  };
-  endLocation: {
-    address: string;
-    point: { lat: number; lng: number };
-  };
-  status?: string;
-  createdAt?: string;
-  [key: string]: any;
-}
-
-export interface UserTripsResponse {
-  message: string;
-  data: UserTrip[];
-  paginationMeta: NetworkPaginationMeta;
-}
+export type {
+  NetworkUser,
+  NetworkPaginationMeta,
+  NetworkUsersResponse,
+  GetNetworkUsersParams,
+  CreateNetworkUserPayload,
+  UpdateNetworkUserPayload,
+  UserProfileCompletionStatus,
+  UserVehiclesResponse,
+  UserTrip,
+  UserTripsResponse,
+  PaginationParams,
+};
 
 const toPositiveInt = (value: unknown, fallback: number): number => {
   const parsed = Number(value);
@@ -105,8 +50,52 @@ const normalizeResponseData = (rawResponse: any) => {
   return rawResponse;
 };
 
+interface RawPaginationMeta {
+  total?: unknown;
+  limit?: unknown;
+  offset?: unknown;
+  current_page?: unknown;
+  total_pages?: unknown;
+  has_next_page?: boolean;
+  has_prev_page?: boolean;
+}
+
+const buildPaginationMeta = (
+  rawMeta: RawPaginationMeta,
+  items: unknown[],
+  requestedLimit: number,
+  requestedOffset: number,
+): NetworkPaginationMeta => {
+  const limit = toPositiveInt(rawMeta.limit, requestedLimit);
+  const offset = toNonNegativeInt(rawMeta.offset, requestedOffset);
+  const total = toNonNegativeInt(rawMeta.total, items.length);
+  const totalPages = toPositiveInt(
+    rawMeta.total_pages,
+    Math.max(1, Math.ceil(total / Math.max(limit, 1))),
+  );
+  const currentPage = toPositiveInt(
+    rawMeta.current_page,
+    Math.floor(offset / Math.max(limit, 1)) + 1,
+  );
+
+  return {
+    total,
+    limit,
+    offset,
+    current_page: Math.min(currentPage, totalPages),
+    total_pages: totalPages,
+    has_next_page:
+      typeof rawMeta.has_next_page === "boolean"
+        ? rawMeta.has_next_page
+        : currentPage < totalPages,
+    has_prev_page:
+      typeof rawMeta.has_prev_page === "boolean"
+        ? rawMeta.has_prev_page
+        : currentPage > 1,
+  };
+};
+
 export const networkApi = {
-  // GET /promoter/users
   getUsers: async (
     params: GetNetworkUsersParams = {},
   ): Promise<NetworkUsersResponse> => {
@@ -144,18 +133,6 @@ export const networkApi = {
 
     const requestedLimit = toPositiveInt(params.limit, 10);
     const requestedOffset = toNonNegativeInt(params.offset, 0);
-    const rawPaginationMeta = normalizedResponse?.paginationMeta ?? {};
-    const total = toNonNegativeInt(rawPaginationMeta.total, users.length);
-    const limit = toPositiveInt(rawPaginationMeta.limit, requestedLimit);
-    const offset = toNonNegativeInt(rawPaginationMeta.offset, requestedOffset);
-    const totalPages = toPositiveInt(
-      rawPaginationMeta.total_pages,
-      Math.max(1, Math.ceil(total / limit)),
-    );
-    const currentPage = toPositiveInt(
-      rawPaginationMeta.current_page,
-      Math.floor(offset / limit) + 1,
-    );
 
     return {
       message:
@@ -163,38 +140,25 @@ export const networkApi = {
         rawResponse?.message ??
         "Users fetched successfully",
       data: users,
-      paginationMeta: {
-        total,
-        limit,
-        offset,
-        current_page: Math.min(currentPage, totalPages),
-        total_pages: totalPages,
-        has_next_page:
-          typeof rawPaginationMeta.has_next_page === "boolean"
-            ? rawPaginationMeta.has_next_page
-            : currentPage < totalPages,
-        has_prev_page:
-          typeof rawPaginationMeta.has_prev_page === "boolean"
-            ? rawPaginationMeta.has_prev_page
-            : currentPage > 1,
-      },
+      paginationMeta: buildPaginationMeta(
+        normalizedResponse?.paginationMeta ?? {},
+        users,
+        requestedLimit,
+        requestedOffset,
+      ),
     };
   },
 
-  // POST /promoter/user
   createUser: async (payload: CreateNetworkUserPayload) => {
     const response = await apiClient.post("/promoter/user", payload);
     return response;
   },
 
-  // PATCH /promoter/user/:id
   updateUser: async (id: string, payload: UpdateNetworkUserPayload) => {
     const response = await apiClient.patch(`/promoter/user/${id}`, payload);
     return response;
   },
 
-  // Backend does not expose GET /promoter/user/:id.
-  // We resolve user details by walking paginated /promoter/users.
   getUserById: async (id: string): Promise<NetworkUser | null> => {
     const limit = 50;
     let offset = 0;
@@ -220,7 +184,6 @@ export const networkApi = {
     return null;
   },
 
-  // GET /promoter/user/:id/status
   getUserProfileCompletionStatus: async (
     id: string,
   ): Promise<UserProfileCompletionStatus> => {
@@ -233,7 +196,6 @@ export const networkApi = {
       {}) as UserProfileCompletionStatus;
   },
 
-  // GET /promoter/user/:id/vehicles
   getUserVehicles: async (
     id: string,
     params: { limit?: number; offset?: number } = {},
@@ -257,47 +219,21 @@ export const networkApi = {
         ? rawResponse.data
         : [];
 
-    const rawPaginationMeta = normalizedResponse?.paginationMeta ?? {};
-    const limit = toPositiveInt(rawPaginationMeta.limit, params.limit ?? 10);
-    const offset = toNonNegativeInt(
-      rawPaginationMeta.offset,
-      params.offset ?? 0,
-    );
-    const total = toNonNegativeInt(rawPaginationMeta.total, vehicles.length);
-    const totalPages = toPositiveInt(
-      rawPaginationMeta.total_pages,
-      Math.max(1, Math.ceil(total / Math.max(limit, 1))),
-    );
-    const currentPage = toPositiveInt(
-      rawPaginationMeta.current_page,
-      Math.floor(offset / Math.max(limit, 1)) + 1,
-    );
-
     return {
       message:
         normalizedResponse?.message ??
         rawResponse?.message ??
         "Vehicles fetched successfully",
       data: vehicles,
-      paginationMeta: {
-        total,
-        limit,
-        offset,
-        current_page: Math.min(currentPage, totalPages),
-        total_pages: totalPages,
-        has_next_page:
-          typeof rawPaginationMeta.has_next_page === "boolean"
-            ? rawPaginationMeta.has_next_page
-            : currentPage < totalPages,
-        has_prev_page:
-          typeof rawPaginationMeta.has_prev_page === "boolean"
-            ? rawPaginationMeta.has_prev_page
-            : currentPage > 1,
-      },
+      paginationMeta: buildPaginationMeta(
+        normalizedResponse?.paginationMeta ?? {},
+        vehicles,
+        params.limit ?? 10,
+        params.offset ?? 0,
+      ),
     };
   },
 
-  // GET /promoter/user/service-posts (get trips for specific user under current promoter)
   getUserTrips: async (
     id: string,
     params: { limit?: number; offset?: number } = {},
@@ -326,46 +262,20 @@ export const networkApi = {
           ? rawResponse.data
           : [];
 
-      const rawPaginationMeta = normalizedResponse?.paginationMeta ?? {};
-      const limit = toPositiveInt(rawPaginationMeta.limit, params.limit ?? 10);
-      const offset = toNonNegativeInt(
-        rawPaginationMeta.offset,
-        params.offset ?? 0,
-      );
-      const total = toNonNegativeInt(rawPaginationMeta.total, trips.length);
-      const totalPages = toPositiveInt(
-        rawPaginationMeta.total_pages,
-        Math.max(1, Math.ceil(total / Math.max(limit, 1))),
-      );
-      const currentPage = toPositiveInt(
-        rawPaginationMeta.current_page,
-        Math.floor(offset / Math.max(limit, 1)) + 1,
-      );
-
       return {
         message:
           normalizedResponse?.message ??
           rawResponse?.message ??
           "Trips fetched successfully",
         data: trips,
-        paginationMeta: {
-          total,
-          limit,
-          offset,
-          current_page: Math.min(currentPage, totalPages),
-          total_pages: totalPages,
-          has_next_page:
-            typeof rawPaginationMeta.has_next_page === "boolean"
-              ? rawPaginationMeta.has_next_page
-              : currentPage < totalPages,
-          has_prev_page:
-            typeof rawPaginationMeta.has_prev_page === "boolean"
-              ? rawPaginationMeta.has_prev_page
-              : currentPage > 1,
-        },
+        paginationMeta: buildPaginationMeta(
+          normalizedResponse?.paginationMeta ?? {},
+          trips,
+          params.limit ?? 10,
+          params.offset ?? 0,
+        ),
       };
     } catch (error: any) {
-      // If endpoint doesn't exist, return empty data
       if (
         error?.response?.status === 404 ||
         error?.message?.includes("not found")
