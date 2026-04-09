@@ -14,7 +14,7 @@ import { SixDigitOtpInput } from "@/components/common/SixDigitOtpInput";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { authApi } from "@/lib/api";
-import { toastService } from "@/lib/toast";
+import { useSuccessMessage } from "@/hooks/useSuccessMessage";
 //Add global css colors after the Confirmation
 
 const schema = z.object({
@@ -40,6 +40,7 @@ interface Props {
 export const OtpVerification = ({ phone }: Props) => {
   const [otp, setOtp] = useState("");
   const [resendLoading, setResendLoading] = useState(false);
+  const { showSuccess, showError } = useSuccessMessage();
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -74,7 +75,7 @@ export const OtpVerification = ({ phone }: Props) => {
           : [];
 
       if (!roles.some((r: string) => allowedRoles.includes(r))) {
-        toastService.error("Unauthorized access");
+        showError("Unauthorized access");
         resetAuth();
         return;
       }
@@ -85,7 +86,7 @@ export const OtpVerification = ({ phone }: Props) => {
         roles,
       });
 
-      toastService.success("Login successful");
+      showSuccess("Login successful");
       const hasPromoterRole = roles.includes("promoter");
       const hasAdminRole = roles.some((role: string) =>
         adminRoles.includes(role),
@@ -100,10 +101,10 @@ export const OtpVerification = ({ phone }: Props) => {
         return;
       }
 
-      toastService.error("Unauthorized access");
+      showError("Unauthorized access");
       resetAuth();
     } catch {
-      toastService.error("Login failed");
+      showError("Login failed");
       resetAuth();
     }
   };
@@ -115,7 +116,7 @@ export const OtpVerification = ({ phone }: Props) => {
           access: res.data.accessToken,
           refresh: res.data.refreshToken,
         }),
-      onError: () => toastService.error("OTP Verification Failed"),
+      onError: () => showError("OTP Verification Failed"),
     });
   };
 
@@ -126,7 +127,7 @@ export const OtpVerification = ({ phone }: Props) => {
         window.location.reload();
       }, 100);
     } catch {
-      toastService.error("Failed to resend OTP");
+      showError("Failed to resend OTP");
     } finally {
       setResendLoading(false);
     }

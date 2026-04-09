@@ -1,5 +1,6 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { promoterApi } from "../services/promoterApi";
 
 interface UsePromoterEditProps {
@@ -16,6 +17,7 @@ export function usePromoterEdit({
   assignedAddress,
 }: UsePromoterEditProps) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [formData, setFormData] = useState({
     fullName: fullName ?? "",
@@ -25,6 +27,22 @@ export function usePromoterEdit({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const updatePromoterMutation = useMutation({
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: string;
+      payload: { name: string; phoneNumber: string; address: string };
+    }) => promoterApi.updatePromoter(id, payload),
+    onSuccess: async (_, variables) => {
+      await queryClient.invalidateQueries({ queryKey: ["promoters"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["promoterDetails", variables.id],
+      });
+    },
+  });
 
   useEffect(() => {
     setFormData({
@@ -62,10 +80,13 @@ export function usePromoterEdit({
         throw new Error("Address must be at least 5 characters.");
       }
 
-      await promoterApi.updatePromoter(promoterId, {
-        name,
-        phoneNumber: formData.mobileNumber,
-        address,
+      await updatePromoterMutation.mutateAsync({
+        id: promoterId,
+        payload: {
+          name,
+          phoneNumber: formData.mobileNumber,
+          address,
+        },
       });
 
       navigate({ to: "/promoterList" });

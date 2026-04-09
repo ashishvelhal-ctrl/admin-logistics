@@ -1,157 +1,187 @@
-import { UserCheck, UserPlus, UserRound, Users } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { useAtomValue } from "jotai/react";
+import {
+  Clock3,
+  Plus,
+  RefreshCcw,
+  ShieldCheck,
+  UserRound,
+  Users,
+} from "lucide-react";
 
-import type { FC } from "react";
+import { authAtom } from "@/atoms/authAtom";
+import { PaginationWrapper as Pagination } from "@/components/common/Pagination";
+import RecentOnboardTable from "@/components/common/RecentOnboardTable";
+import StatCard from "@/components/common/StatCard";
+import { Button } from "@/components/ui/button";
 
-interface StatCardProps {
+interface AdminOnboardItem {
   id: string;
-  label: string;
-  value: string;
-  change: string;
-  icon: FC<{ className?: string }>;
+  userName: string;
+  mobileNumber: string;
+  date: string;
+  location: string;
 }
 
-interface ActivityItem {
-  id: string;
-  title: string;
-  description: string;
-  time: string;
-  icon: FC<{ className?: string }>;
-}
+const PAGE_SIZE = 10;
 
-const activities: ActivityItem[] = [
-  {
-    id: "1",
-    title: "Login from Unkonw IP",
-    description: "Promoter Pune Maharashtra",
-    time: "5 min ago",
-    icon: UserPlus,
-  },
-  {
-    id: "2",
-    title: "New Promoter Verified",
-    description: "Promoter Pune Maharashtra",
-    time: "5 min ago",
-    icon: UserCheck,
-  },
-  {
-    id: "3",
-    title: "Login from Unkonw IP",
-    description: "Promoter Pune Maharashtra",
-    time: "5 min ago",
-    icon: UserRound,
-  },
-  {
-    id: "4",
-    title: "Login from Unkonw IP",
-    description: "Promoter Pune Maharashtra",
-    time: "5 min ago",
-    icon: UserRound,
-  },
-];
+const recentPromoterOnboards: AdminOnboardItem[] = Array.from(
+  { length: 20 },
+  (_, index) => ({
+    id: `admin-onboard-${index + 1}`,
+    userName: `Promoter ${index + 1}`,
+    mobileNumber: `93${String(70000000 + index).padStart(8, "0")}`,
+    date: "09-04-2026",
+    location: "Pune",
+  }),
+);
 
-const dashboardStats: StatCardProps[] = [
-  {
-    id: "users",
-    label: "Total Promoters",
-    value: "2,450",
-    change: "+12% this month",
-    icon: Users,
-  },
-  {
-    id: "crops",
-    label: "Active Promoters",
-    value: "186",
-    change: "+5% this month",
-    icon: UserCheck,
-  },
-  {
-    id: "banners",
-    label: "Total Users",
-    value: "324",
-    change: "+8% this month",
-    icon: UserRound,
-  },
-];
+export default function Dashboard() {
+  const navigate = useNavigate();
+  const auth = useAtomValue(authAtom);
+  const userName = auth?.user || "Admin";
+  const [currentPage, setCurrentPage] = useState(1);
 
-const StatCard: FC<Omit<StatCardProps, "id">> = ({
-  label,
-  value,
-  change,
-  icon: Icon,
-}) => (
-  <article className="group bg-white border border-border-stroke rounded-xl p-6 shadow-sm hover:shadow-md transition-all">
-    <header className="flex items-start justify-between">
-      <div>
-        <p className="text-sm font-medium text-icon-1-bg">{label}</p>
-        <p className="text-2xl font-semibold text-heading-color tracking-tight">
-          {value}
+  const totalPages = Math.max(
+    1,
+    Math.ceil(recentPromoterOnboards.length / PAGE_SIZE),
+  );
+  const currentPageData = useMemo(
+    () =>
+      recentPromoterOnboards.slice(
+        (currentPage - 1) * PAGE_SIZE,
+        currentPage * PAGE_SIZE,
+      ),
+    [currentPage],
+  );
+
+  return (
+    <main className="min-h-full space-y-4 bg-common-bg pt-2 pr-3 pb-3 pl-3">
+      <section className="hidden gap-2 px-2 md:flex md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-heading-color">
+            Hello, {userName} 👋
+          </h1>
+          <p className="mt-1 text-sm text-inactive-text">
+            Here&apos;s your admin activity overview
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => navigate({ to: "/promoterForm" })}
+            className="inline-flex h-9 items-center gap-2 rounded-lg border border-border-stroke bg-white px-3 text-sm font-medium text-text-color transition-colors hover:bg-gray-50"
+          >
+            <Plus className="h-4 w-4" />
+            Add Promoter
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate({ to: "/usersList" })}
+            className="inline-flex h-9 items-center gap-2 rounded-lg border border-border-stroke bg-white px-5 text-sm font-medium text-text-color transition-colors hover:bg-gray-50"
+          >
+            Manage Users
+          </button>
+        </div>
+      </section>
+
+      <section className="grid grid-cols-1 gap-4 px-2 md:grid-cols-3">
+        <StatCard
+          label="Total Promoters"
+          value="2,450"
+          growth="+12% this month"
+          Icon={Users}
+        />
+        <StatCard
+          label="Active Promoters"
+          value="1,186"
+          growth="+5% this month"
+          Icon={ShieldCheck}
+        />
+        <StatCard
+          label="Total Users"
+          value="12,324"
+          growth="+8% this month"
+          Icon={UserRound}
+        />
+      </section>
+
+      <section className="space-y-2 px-1 md:hidden">
+        <h1 className="text-3xl font-semibold text-heading-color">
+          Admin Dashboard
+        </h1>
+        <p className="text-sm text-inactive-text">
+          Manage promoters, users, and activity.
         </p>
-        <p className="text-sm font-medium text-icon-text">{change}</p>
-      </div>
-
-      <span className="bg-icon-bg p-3 rounded-lg group-hover:scale-105 transition">
-        <Icon className="w-5 h-5 text-icon-text" />
-      </span>
-    </header>
-  </article>
-);
-
-const RecentActivity: FC = () => (
-  <section className="bg-white border border-border-stroke rounded-xl shadow-sm p-6 h-[calc(85vh-100px)] flex flex-col">
-    <header className="mb-4">
-      <h2 className="text-lg font-semibold text-heading-color">
-        Recent Activity
-      </h2>
-      <p className="text-sm text-text-color mt-1">
-        Track the latest updates and actions across the platform.
-      </p>
-    </header>
-
-    <ul className="space-y-4">
-      {activities.map(({ id, title, description, time, icon: Icon }) => (
-        <li
-          key={id}
-          className="flex justify-between border-b border-border-stroke pb-3 last:border-none"
+        <Button
+          type="button"
+          onClick={() => navigate({ to: "/promoterForm" })}
+          className="h-11 w-full justify-center rounded-lg bg-[#2e7d68] text-xl font-semibold text-white hover:bg-[#286d5b]"
         >
-          <div className="flex gap-3">
-            <span className="bg-icon-bg p-2 rounded-lg">
-              <Icon className="size-sm text-icon-text" />
-            </span>
+          <Plus className="mr-2 h-5 w-5" />
+          Add Promoter
+        </Button>
+        <Button
+          type="button"
+          onClick={() => navigate({ to: "/usersList" })}
+          className="h-11 w-full justify-center rounded-lg bg-[#2e7d68] text-xl font-semibold text-white hover:bg-[#286d5b]"
+        >
+          <Users className="mr-2 h-5 w-5" />
+          Manage Users
+        </Button>
+      </section>
 
-            <div>
-              <p className="text-sm font-medium text-heading-color">{title}</p>
-              <p className="text-sm text-inactive-text">{description}</p>
+      <section className="hidden px-2 md:block">
+        <article className="overflow-hidden rounded-xl border border-border-stroke bg-white">
+          <div className="border-b border-border-stroke px-5 py-4">
+            <h2 className="text-[31px] leading-none font-semibold text-heading-color">
+              Recent Activity
+            </h2>
+          </div>
+
+          <div className="flex flex-col items-center px-4 py-14 text-center sm:py-16">
+            <div className="relative">
+              <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[#eef3f1]">
+                <Clock3 className="h-8 w-8 text-[#95b3a8]" />
+              </span>
+              <span className="absolute -right-2 -bottom-1 flex h-6 w-6 items-center justify-center rounded-full border border-[#d4e0db] bg-white text-xs text-[#b4c5be]">
+                0
+              </span>
             </div>
+
+            <h3 className="mt-5 text-2xl font-semibold text-heading-color">
+              No recent admin activity yet.
+            </h3>
+            <p className="mt-2 max-w-xl text-sm text-inactive-text">
+              When promoters are added, users are managed, or verification
+              actions occur, activity will appear here.
+            </p>
+
+            <button
+              type="button"
+              className="mt-6 inline-flex h-10 items-center gap-2 rounded-full border border-[#2e7d68] px-5 text-sm font-semibold text-[#2e7d68] transition-colors hover:bg-[#f3faf7]"
+            >
+              <RefreshCcw className="h-4 w-4" />
+              Refresh Dashboard
+            </button>
           </div>
+        </article>
+      </section>
 
-          <div className="text-right text-xs text-inactive-text">
-            <p>{time}</p>
-          </div>
-        </li>
-      ))}
-    </ul>
-  </section>
-);
-
-const Dashboard: FC = () => (
-  <main className="pt-1 pr-10 pl-4 space-y-6">
-    <section className="px-8">
-      <h1 className="text-2xl font-semibold text-heading-color">
-        Admin Dashboard
-      </h1>
-      <p className="text-sm text-inactive-text mt-1">
-        Manage users, promoters, and platform-level activity.
-      </p>
-    </section>
-
-    <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-8">
-      {dashboardStats.slice(0, 3).map((stat) => (
-        <StatCard key={stat.id} {...stat} />
-      ))}
-    </section>
-
-    <RecentActivity />
-  </main>
-);
-
-export default Dashboard;
+      <section className="px-1 md:px-2">
+        <h2 className="mb-2 text-3xl font-semibold text-heading-color md:hidden">
+          Recent Promoters
+        </h2>
+        <RecentOnboardTable data={currentPageData} />
+        <div className="flex flex-col gap-2 pt-2 md:flex-row md:items-center md:justify-between md:pt-3 lg:pt-4">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        </div>
+      </section>
+    </main>
+  );
+}

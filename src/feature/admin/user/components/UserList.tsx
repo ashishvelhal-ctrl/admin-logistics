@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { PencilLine, Trash2 } from "lucide-react";
-
 import { useUserList } from "../hooks/useUserList";
 
 import type { UserObject } from "../services/userApi";
@@ -12,7 +10,6 @@ import DeleteModal from "@/components/common/DeleteModal";
 import { ListHeader } from "@/components/common/ListHeader";
 import { PaginationWrapper as Pagination } from "@/components/common/Pagination";
 import { SearchAndFilter } from "@/components/common/SearchAndFilter";
-import { Button } from "@/components/ui/button";
 
 export default function UserManagement() {
   const navigate = useNavigate();
@@ -33,11 +30,6 @@ export default function UserManagement() {
     handlePageChange,
     handleDeleteUser,
   } = useUserList();
-
-  const handleDeleteUserClick = (user: any) => {
-    setUserToDelete(user);
-    setIsDeleteDialogOpen(true);
-  };
 
   const handleDeleteConfirm = async () => {
     if (userToDelete) {
@@ -78,36 +70,23 @@ export default function UserManagement() {
       render: (value: string) => value || "N/A",
     },
     {
-      key: "actions",
-      title: "Action",
-      render: (_: any, user: UserObject) => (
-        <div className="flex gap-2 justify-center">
-          <Button
-            size="sm"
-            className="bg-button-1-bg hover:bg-button-1-bg/90 text-icon-1-color"
-            onClick={() =>
-              navigate({
-                to: "/promoterEdit",
-                search: {
-                  promoterId: user.id,
-                  fullName: user.fullName ?? user.name ?? "",
-                  mobileNumber: user.mobileNumber ?? user.phoneNumber ?? "",
-                  assignedAddress: user.assignedAddress ?? user.address ?? "",
-                },
-              })
-            }
+      key: "status",
+      title: "Status",
+      render: (value: string) => {
+        const statusMap: Record<string, { text: string; color: string }> = {
+          active: { text: "Active", color: "green" },
+          inactive: { text: "Inactive", color: "red" },
+          pending: { text: "Pending", color: "orange" },
+        };
+        const status = statusMap[value] || { text: value, color: "gray" };
+        return (
+          <span
+            className={`px-2 py-1 rounded-full text-sm font-medium bg-${status.color}-100 text-${status.color}-800`}
           >
-            <PencilLine size={14} />
-          </Button>
-          <Button
-            size="sm"
-            className="bg-button-2-bg hover:bg-button-2-bg/90 text-icon-2-color"
-            onClick={() => handleDeleteUserClick(user)}
-          >
-            <Trash2 size={14} />
-          </Button>
-        </div>
-      ),
+            {status.text}
+          </span>
+        );
+      },
     },
   ];
 

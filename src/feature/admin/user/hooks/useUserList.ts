@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { userApi } from "../services/userApi";
 import type { UserObject, PaginationMeta } from "../services/userApi";
 
@@ -37,185 +38,106 @@ export const useUserList = ({
   initialLimit = 10,
   initialSearch = "",
 }: UseUserListParams = {}): UseUserListReturn => {
+  const queryClient = useQueryClient();
   const safeLimit = Math.max(1, initialLimit);
-  const [users, setUsers] = useState<UserObject[]>([]);
-  const [paginationMeta, setPaginationMeta] = useState<PaginationMeta | null>(
-    null,
-  );
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState(initialSearch);
   const [role, setRole] = useState("");
-  const [roleOptions, setRoleOptions] = useState<
-    Array<{
-      _id: string;
-      title: string;
-      description: string;
-      hierarchy: number;
-      isActive: boolean;
-    }>
-  >([]);
 
-  const calculateOffset = useCallback((page: number, limit: number) => {
-    return (page - 1) * limit;
-  }, []);
+  const searchTerm = search.trim();
+  const roleFilter = role.trim();
 
-  const buildFallbackPaginationMeta = useCallback(
-    (total: number, offset: number): PaginationMeta => {
-      const totalPages = Math.max(1, Math.ceil(total / safeLimit));
-      const currentPageFromOffset = Math.floor(offset / safeLimit) + 1;
-      const safeCurrentPage = Math.min(
-        Math.max(1, currentPageFromOffset),
-        totalPages,
-      );
-
-      return {
-        total,
+  const {
+    data: usersResponse,
+    isLoading: isLoadingUsers,
+    isFetching: isFetchingUsers,
+    error: usersError,
+    refetch: refetchUsers,
+  } = useQuery({
+    queryKey: ["users", safeLimit, currentPage, searchTerm, roleFilter],
+    queryFn: async () => {
+      const offset = (currentPage - 1) * safeLimit;
+      return userApi.getUsers({
         limit: safeLimit,
         offset,
-        current_page: safeCurrentPage,
-        total_pages: totalPages,
-        has_next_page: safeCurrentPage < totalPages,
-        has_prev_page: safeCurrentPage > 1,
-      };
-    },
-    [safeLimit],
-  );
-
-  const fetchUsers = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const offset = calculateOffset(currentPage, safeLimit);
-      const response = await userApi.getUsers({
-        limit: safeLimit,
-        offset,
-        search: search.trim(),
-        role: role.trim() || undefined,
+        search: searchTerm,
+        role: roleFilter || undefined,
       });
+    },
+  });
 
-      const dataArray = Array.isArray(response.data) ? response.data : [];
+  const {
+    data: rolesResponse,
+    error: rolesError,
+    refetch: refetchRoles,
+  } = useQuery({
+    queryKey: ["user-roles"],
+    queryFn: () => userApi.getRoles(),
+  });
 
-      // Transform API data to match column expectations
-      let transformedData: any[] = [];
-      try {
-        transformedData = dataArray.map((user: any) => {
-          return {
-            ...user,
-            // Add backward compatibility fields
-            fullName: user.name,
-            mobileNumber: user.phoneNumber,
-            assignedAddress: user.address,
-            is_verified: user.profileStatus === "dl_verified",
-            onboardingCount: 0, // Default value since API doesn't provide this
-            created_at: user.createdAt,
-          };
-        });
-      } catch (transformError) {
-        console.error("Error during data transformation:", transformError);
-        setError("Data transformation failed");
-        setUsers([]);
-        return;
-      }
+  const deleteUserMutation = useMutation({
+    mutationFn: (userId: string) => userApi.deleteUser(userId),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+  });
 
-      const usersData = Array.isArray(transformedData) ? transformedData : [];
-      setUsers(usersData);
+  const users: UserObject[] = useMemo(() => {
+    const dataArray = Array.isArray(usersResponse?.data)
+      ? usersResponse.data
+      : [];
 
-      const normalizedPaginationMeta = response.paginationMeta
-        ? {
-            ...response.paginationMeta,
-            limit: response.paginationMeta.limit || safeLimit,
-            offset: response.paginationMeta.offset ?? offset,
-            current_page: response.paginationMeta.current_page || currentPage,
-            total_pages: response.paginationMeta.total_pages || 1,
-          }
-        : buildFallbackPaginationMeta(usersData.length, offset);
+    return dataArray.map((user: any) => ({
+      ...user,
+      fullName: user.name,
+      mobileNumber: user.phoneNumber,
+      assignedAddress: user.address,
+      is_verified: user.profileStatus === "dl_verified",
+      onboardingCount: 0,
+      created_at: user.createdAt,
+    }));
+  }, [usersResponse]);
 
-      setPaginationMeta(normalizedPaginationMeta);
+  const paginationMeta: PaginationMeta | null = useMemo(() => {
+    if (!usersResponse) return null;
 
-      if (normalizedPaginationMeta.current_page !== currentPage) {
-        setCurrentPage(normalizedPaginationMeta.current_page);
-      }
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to fetch users";
-      setError(errorMessage);
-      setUsers([]); // Ensure it's always an array
-      setPaginationMeta(null);
-    } finally {
-      setIsLoading(false);
+    return {
+      ...usersResponse.paginationMeta,
+      limit: usersResponse.paginationMeta.limit || safeLimit,
+      offset:
+        usersResponse.paginationMeta.offset ?? (currentPage - 1) * safeLimit,
+      current_page: usersResponse.paginationMeta.current_page || currentPage,
+      total_pages: usersResponse.paginationMeta.total_pages || 1,
+    };
+  }, [usersResponse, currentPage, safeLimit]);
+
+  const roleOptions = useMemo(() => {
+    const baseRoles = Array.isArray(rolesResponse?.roles)
+      ? rolesResponse.roles
+      : [];
+    const allRolesOption = {
+      _id: "",
+      title: "All Roles",
+      description: "Show all users",
+      hierarchy: 0,
+      isActive: true,
+    };
+
+    if (baseRoles.some((item) => item._id === "")) {
+      return baseRoles;
     }
-  }, [
-    currentPage,
-    safeLimit,
-    search,
-    role,
-    calculateOffset,
-    buildFallbackPaginationMeta,
-  ]);
 
-  const fetchRoles = useCallback(async () => {
-    try {
-      const response = await userApi.getRoles();
-      const rolesData = response.roles || [];
-      // Add "All Roles" option at the beginning
-      setRoleOptions([
-        {
-          _id: "",
-          title: "All Roles",
-          description: "Show all users",
-          hierarchy: 0,
-          isActive: true,
-        },
-        ...rolesData,
-      ]);
-    } catch (err) {
-      console.error("Failed to fetch roles:", err);
-      // Set fallback options if API fails
-      setRoleOptions([
-        {
-          _id: "",
-          title: "All Roles",
-          description: "Show all users",
-          hierarchy: 0,
-          isActive: true,
-        },
-        {
-          _id: "admin",
-          title: "Admin",
-          description:
-            "Administrative work. Highest level of authority can do almost anything.",
-          hierarchy: 100,
-          isActive: true,
-        },
-        {
-          _id: "promoter",
-          title: "Promoter",
-          description: "Manage promotional activities.",
-          hierarchy: 20,
-          isActive: true,
-        },
-        {
-          _id: "user",
-          title: "User",
-          description: "Default role assigned to every person.",
-          hierarchy: 1,
-          isActive: true,
-        },
-      ]);
-    }
-  }, []);
+    return [allRolesOption, ...baseRoles];
+  }, [rolesResponse]);
 
-  const handleSearch = useCallback((searchTerm: string) => {
-    setSearch(searchTerm);
-    setCurrentPage(1); // Reset to first page when searching
+  const handleSearch = useCallback((searchTermValue: string) => {
+    setSearch(searchTermValue);
+    setCurrentPage(1);
   }, []);
 
   const handleRoleChange = useCallback((newRole: string) => {
     setRole(newRole);
-    setCurrentPage(1); // Reset to first page when changing role
+    setCurrentPage(1);
   }, []);
 
   const handlePageChange = useCallback(
@@ -230,22 +152,14 @@ export const useUserList = ({
   const handleDeleteUser = useCallback(
     async (userId: string): Promise<boolean> => {
       try {
-        setIsLoading(true);
-        await userApi.deleteUser(userId);
-
-        // Refresh the list after successful deletion
-        await fetchUsers();
+        await deleteUserMutation.mutateAsync(userId);
         return true;
       } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : "Failed to delete user";
-        setError(errorMessage);
+        console.error("Failed to delete user:", err);
         return false;
-      } finally {
-        setIsLoading(false);
       }
     },
-    [fetchUsers],
+    [deleteUserMutation],
   );
 
   const resetFilters = useCallback(() => {
@@ -255,21 +169,26 @@ export const useUserList = ({
   }, []);
 
   const refreshList = useCallback(async () => {
-    await fetchUsers();
-  }, [fetchUsers]);
+    await refetchUsers();
+  }, [refetchUsers]);
 
-  // Calculate total pages from API response
+  const fetchUsers = useCallback(async () => {
+    await refetchUsers();
+  }, [refetchUsers]);
+
+  const fetchRoles = useCallback(async () => {
+    await refetchRoles();
+  }, [refetchRoles]);
+
   const totalPages = paginationMeta?.total_pages || 1;
-
-  // Fetch data when dependencies change
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
-
-  // Fetch roles on component mount
-  useEffect(() => {
-    fetchRoles();
-  }, [fetchRoles]);
+  const isLoading =
+    isLoadingUsers || isFetchingUsers || deleteUserMutation.isPending;
+  const error =
+    (usersError instanceof Error && usersError.message) ||
+    (rolesError instanceof Error && rolesError.message) ||
+    (deleteUserMutation.error instanceof Error &&
+      deleteUserMutation.error.message) ||
+    null;
 
   return {
     users,

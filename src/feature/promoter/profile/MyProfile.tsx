@@ -89,7 +89,7 @@ export default function MyProfile() {
             },
             {
               label: "Target Goal",
-              value: "150/Month",
+              value: "15/Month",
               change: "+12% this month",
             },
           ]}

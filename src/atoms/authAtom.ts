@@ -26,16 +26,12 @@ const sessionStorageOptions = {
   setItem: (key: string, value: AuthState) => {
     try {
       window.sessionStorage.setItem(key, JSON.stringify(value));
-    } catch {
-      // ignore
-    }
+    } catch {}
   },
   removeItem: (key: string) => {
     try {
       window.sessionStorage.removeItem(key);
-    } catch {
-      // ignore
-    }
+    } catch {}
   },
 };
 

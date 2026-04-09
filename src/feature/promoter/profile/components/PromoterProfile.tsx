@@ -68,24 +68,19 @@ export default function PromoterProfile() {
     staleTime: 1000 * 60 * 5,
   });
 
-  let promoterUser = null;
-  try {
-    if (authState.user) {
-      try {
-        promoterUser = JSON.parse(authState.user);
-      } catch {
-        promoterUser = {
-          name: authState.user,
-          phoneNumber: null,
-          address: null,
-          id: null,
-        };
-      }
+  const promoterUser = (() => {
+    if (!authState.user) return null;
+    try {
+      return JSON.parse(authState.user);
+    } catch {
+      return {
+        name: authState.user,
+        phoneNumber: null,
+        address: null,
+        id: null,
+      };
     }
-  } catch (parseErr) {
-    console.error("Failed to process auth user data:", parseErr);
-    promoterUser = null;
-  }
+  })();
 
   const formatPhoneNumber = (phone: string) => {
     if (!phone) return "N/A";
@@ -94,6 +89,13 @@ export default function PromoterProfile() {
     }
     return phone;
   };
+
+  const profileCompletedScore =
+    usersData?.data?.reduce(
+      (sum: number, user: any) =>
+        sum + (user.profileStatus === "verified" ? 10 : 0),
+      0,
+    ) || 0;
 
   const promoter: PromoterProfileData = {
     id: promoterUser?.id || authState.user || "1",
@@ -107,18 +109,8 @@ export default function PromoterProfile() {
       promoterUser?.address || usersData?.data?.[0]?.address || "Pune",
     isActive: true,
     totalOnboard: usersData?.data?.length || 0,
-    totalEarnings:
-      usersData?.data?.reduce(
-        (sum: number, user: any) =>
-          sum + (user.profileStatus === "verified" ? 10 : 0),
-        0,
-      ) || 0,
-    targetCurrent:
-      usersData?.data?.reduce(
-        (sum: number, user: any) =>
-          sum + (user.profileStatus === "verified" ? 10 : 0),
-        0,
-      ) || 0,
+    totalEarnings: profileCompletedScore,
+    targetCurrent: profileCompletedScore,
     targetTotal: (usersData?.data?.length || 0) * 20 || 2000,
     networkMembers:
       usersData?.data?.map((user: any) => ({
@@ -140,15 +132,13 @@ export default function PromoterProfile() {
   const mobilePhoneDisplay = promoter.mobileNumber.startsWith("+91")
     ? promoter.mobileNumber
     : `+91 ${promoter.mobileNumber}`;
-  const monthlyTarget = Math.max(150, promoter.targetCurrent || 0);
+  const monthlyTarget = Math.max(15, promoter.targetCurrent || 0);
 
   const mobileNetworkMembers = useMemo(
     () =>
-      promoter.networkMembers
-        .filter((member) =>
-          member.name.toLowerCase().includes(mobileSearch.toLowerCase()),
-        )
-        .slice(0, 1000),
+      promoter.networkMembers.filter((member) =>
+        member.name.toLowerCase().includes(mobileSearch.toLowerCase()),
+      ),
     [promoter.networkMembers, mobileSearch],
   );
   const MOBILE_PAGE_SIZE = 6;

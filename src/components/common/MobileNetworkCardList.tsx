@@ -43,7 +43,7 @@ export function MobileNetworkCardList({
         <article
           key={item.id}
           className={`rounded-xl border border-border-stroke bg-white px-3 ${
-            isLarge ? "py-3.5" : "py-2.5"
+            isLarge ? "py-1.5" : "py-1.5"
           } flex items-start justify-between`}
         >
           <button
@@ -53,7 +53,7 @@ export function MobileNetworkCardList({
           >
             <p
               className={`font-semibold text-heading-color leading-tight ${
-                isLarge ? "text-[31px]" : "text-[22px]"
+                isLarge ? "text-[31px]" : "text-[20px]"
               }`}
             >
               {item.name}

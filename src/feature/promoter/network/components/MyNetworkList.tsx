@@ -3,6 +3,7 @@ import { ArrowLeft, PencilLine, Plus, Search } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
 
 import { useMyNetworkList } from "../hooks/useMyNetworkList";
+import { formatDate } from "@/lib/format-utils";
 
 import type { Column } from "@/components/common/AdminTable";
 import type { NetworkUser } from "../services/networkApi";
@@ -81,15 +82,8 @@ export default function MyNetworkList() {
 
   function formatMobileDate(date?: string) {
     if (!date) return "OCT 24, 2023";
-    const parsed = new Date(date);
-    if (Number.isNaN(parsed.getTime())) return "OCT 24, 2023";
-    return parsed
-      .toLocaleDateString("en-US", {
-        month: "short",
-        day: "2-digit",
-        year: "numeric",
-      })
-      .toUpperCase();
+    const formatted = formatDate(date, { invalidValue: "OCT 24, 2023" });
+    return formatted === "N/A" ? "OCT 24, 2023" : formatted.toUpperCase();
   }
 
   const columns: Array<Column<NetworkUser>> = [

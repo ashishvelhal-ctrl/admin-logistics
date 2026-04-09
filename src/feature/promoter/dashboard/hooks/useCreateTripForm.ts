@@ -33,7 +33,6 @@ export function useCreateTripForm() {
     queryKey: ["trip-create-users", userQuery],
     queryFn: () =>
       networkApi.getUsers({ limit: 100, offset: 0, search: userQuery }),
-    enabled: true,
   });
 
   const { data: vehiclesResponse } = useQuery({

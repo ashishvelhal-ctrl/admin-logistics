@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
+import { useDebounce } from "@/hooks/use-debounce";
 import { networkApi } from "../services/networkApi";
 
 import type {
@@ -23,39 +25,30 @@ interface UseMyNetworkListReturn {
 const PAGE_LIMIT = 10;
 
 export function useMyNetworkList(): UseMyNetworkListReturn {
-  const [users, setUsers] = useState<NetworkUser[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [paginationMeta, setPaginationMeta] =
-    useState<NetworkPaginationMeta | null>(null);
+  const debouncedSearch = useDebounce(search, 300);
+  const searchTerm = debouncedSearch.trim();
 
-  const fetchUsers = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const response = await networkApi.getUsers({
+  const {
+    data: usersResponse,
+    isLoading: isUsersLoading,
+    isFetching: isUsersFetching,
+    error: usersError,
+    refetch: refetchUsers,
+  } = useQuery({
+    queryKey: ["my-network-users", currentPage, searchTerm],
+    queryFn: () =>
+      networkApi.getUsers({
         limit: PAGE_LIMIT,
         offset: (currentPage - 1) * PAGE_LIMIT,
-        search: search.trim() || undefined,
-      });
+        search: searchTerm || undefined,
+      }),
+  });
 
-      setUsers(Array.isArray(response.data) ? response.data : []);
-      setPaginationMeta(response.paginationMeta ?? null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch users");
-      setUsers([]);
-      setPaginationMeta(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [currentPage, search]);
-
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+  const users = Array.isArray(usersResponse?.data) ? usersResponse.data : [];
+  const paginationMeta: NetworkPaginationMeta | null =
+    usersResponse?.paginationMeta ?? null;
 
   const totalPages = useMemo(
     () => paginationMeta?.total_pages || 1,
@@ -76,8 +69,11 @@ export function useMyNetworkList(): UseMyNetworkListReturn {
   );
 
   const refreshList = useCallback(async () => {
-    await fetchUsers();
-  }, [fetchUsers]);
+    await refetchUsers();
+  }, [refetchUsers]);
+
+  const isLoading = isUsersLoading || isUsersFetching;
+  const error = usersError instanceof Error ? usersError.message : null;
 
   return {
     users,

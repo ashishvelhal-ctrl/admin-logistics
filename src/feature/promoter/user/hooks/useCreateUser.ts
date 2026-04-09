@@ -4,7 +4,7 @@ import { ZodError } from "zod";
 import { useNavigate } from "@tanstack/react-router";
 import { useCreatePromoterUser } from "./usePromoterUsers";
 import { createPromoterUserSchema } from "../schema/promoter.schema";
-import { toastService } from "@/lib/toast";
+import { useSuccessMessage } from "@/hooks/useSuccessMessage";
 
 export interface CreateUserFormData {
   name: string;
@@ -16,6 +16,7 @@ export interface CreateUserFormData {
 export function useCreateUser() {
   const navigate = useNavigate();
   const createPromoterUser = useCreatePromoterUser();
+  const { showSuccess, showError } = useSuccessMessage();
 
   const [formData, setFormData] = useState<CreateUserFormData>({
     name: "",
@@ -67,7 +68,7 @@ export function useCreateUser() {
         hashCode: Math.random().toString(36).slice(2),
       });
 
-      toastService.success("OTP sent successfully");
+      showSuccess("OTP sent successfully");
       navigate({
         to: "/verifyUserOtp",
         search: {
@@ -90,9 +91,7 @@ export function useCreateUser() {
         return;
       }
 
-      toastService.error(
-        error instanceof Error ? error.message : "Failed to send OTP",
-      );
+      showError(error instanceof Error ? error.message : "Failed to send OTP");
     }
   };
 

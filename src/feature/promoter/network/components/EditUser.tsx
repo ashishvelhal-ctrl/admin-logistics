@@ -78,7 +78,6 @@ export default function EditUser() {
         updateData: {
           name,
           address,
-          // mobileNumber: formData.mobileNumber // Temporarily comment out to test
         },
       });
 

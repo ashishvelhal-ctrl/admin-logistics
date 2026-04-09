@@ -176,15 +176,7 @@ export function useTripMapEffects({
         strokeWeight: 5,
       },
     });
-  }, [
-    open,
-    isLoaded,
-    mapCenter,
-    mapContainerRef,
-    mapRef,
-    directionsServiceRef,
-    directionsRendererRef,
-  ]);
+  }, [open, isLoaded, mapCenter]);
 
   useEffect(() => {
     if (!open || !isLoaded || !mapRef.current || isInitializing) return;
@@ -218,8 +210,6 @@ export function useTripMapEffects({
     open,
     isLoaded,
     isInitializing,
-    directionsServiceRef,
-    directionsRendererRef,
     clearDirections,
     fitMapToPoints,
   ]);
@@ -272,7 +262,6 @@ export function useTripMapEffects({
     isLoaded,
     activeField,
     targetField,
-    mapRef,
     setFieldLoadingState,
     setMapError,
     applyResolvedLocation,
@@ -365,11 +354,5 @@ export function useTripMapEffects({
     setIsInitializing,
     setSuggestions,
     setActiveField,
-    mapRef,
-    directionsServiceRef,
-    directionsRendererRef,
-    currentLocationMarkerRef,
-    pickupMarkerRef,
-    dropMarkerRef,
   ]);
 }

@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-// import { toast } from "sonner"; // Uncomment if you have sonner installed
 
 import { promoterService } from "../service/promoter.service";
 import type {
@@ -41,9 +40,9 @@ export const useCreatePromoterUser = () => {
       // OTP sent successfully
       // Invalidate users list to refresh data
       queryClient.invalidateQueries({ queryKey: promoterQueryKeys.users() });
-    },
-    onError: () => {
-      // toast.error(error.message || "Failed to create user");
+      queryClient.invalidateQueries({ queryKey: ["my-network-users"] });
+      queryClient.invalidateQueries({ queryKey: ["promoterProfileUsers"] });
+      queryClient.invalidateQueries({ queryKey: ["trip-create-users"] });
     },
   });
 };
@@ -67,9 +66,9 @@ export const useUpdatePromoterUser = () => {
       queryClient.setQueryData(promoterQueryKeys.user(data.id), data);
       // Invalidate users list to refresh data
       queryClient.invalidateQueries({ queryKey: promoterQueryKeys.users() });
-    },
-    onError: () => {
-      // toast.error(error.message || "Failed to update user");
+      queryClient.invalidateQueries({ queryKey: ["my-network-users"] });
+      queryClient.invalidateQueries({ queryKey: ["promoterProfileUsers"] });
+      queryClient.invalidateQueries({ queryKey: ["trip-create-users"] });
     },
   });
 };
@@ -83,6 +82,9 @@ export const useVerifyPromoterUserOtp = () => {
       promoterService.verifyPromoterUserOtp(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: promoterQueryKeys.users() });
+      queryClient.invalidateQueries({ queryKey: ["my-network-users"] });
+      queryClient.invalidateQueries({ queryKey: ["promoterProfileUsers"] });
+      queryClient.invalidateQueries({ queryKey: ["trip-create-users"] });
     },
   });
 };

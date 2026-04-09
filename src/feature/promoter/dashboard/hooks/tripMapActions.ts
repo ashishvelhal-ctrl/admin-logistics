@@ -337,9 +337,6 @@ export function createTripMapActions({
   return {
     clearDirections,
     fitMapToPoints,
-    clearFieldLocation,
-    handleMarkerDragEnd,
-    updateMarker,
     applyResolvedLocation,
     restoreFromCurrentLocation,
     restoreSavedField,

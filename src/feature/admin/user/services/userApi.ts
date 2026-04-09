@@ -1,24 +1,23 @@
 import { apiClient } from "@/lib/api";
 
-// Define types based on backend structure
 export interface UserObject {
   id: string;
   name: string;
-  fullName?: string; // For backward compatibility - map from name
+  fullName?: string;
   phoneNumber: string;
-  mobileNumber?: string; // For backward compatibility - map from phoneNumber
+  mobileNumber?: string;
   roles: string[];
   address?: string;
-  assignedAddress?: string; // For backward compatibility - map from address
+  assignedAddress?: string;
   provideLogistics?: boolean;
   profileStatus?: string;
-  is_verified?: boolean; // For backward compatibility - map from profileStatus
-  onboardingCount?: number; // For backward compatibility
+  is_verified?: boolean;
+  onboardingCount?: number;
   drivingLicense?: string;
   drivingLicenseData?: any;
   deviceTokens?: string[];
   createdAt: string;
-  created_at?: string; // For backward compatibility - map from createdAt
+  created_at?: string;
   updatedAt: string;
   [key: string]: any;
 }
@@ -93,28 +92,17 @@ export const userApi = {
       ? `/admin/users?${queryParams.toString()}`
       : "/admin/users";
 
-    const rawResponse = (await apiClient.get(url)) as any;
+    const responseData = (await apiClient.get(url)) as any;
 
-    const normalizedResponse =
-      rawResponse &&
-      typeof rawResponse === "object" &&
-      rawResponse.data &&
-      !Array.isArray(rawResponse.data) &&
-      Array.isArray(rawResponse.data.data)
-        ? rawResponse.data
-        : rawResponse;
-
-    const users = Array.isArray(normalizedResponse?.data)
-      ? normalizedResponse.data
-      : Array.isArray(rawResponse?.data)
-        ? rawResponse.data
-        : Array.isArray(rawResponse)
-          ? rawResponse
-          : [];
+    const users = Array.isArray(responseData?.data)
+      ? responseData.data
+      : Array.isArray(responseData)
+        ? responseData
+        : [];
 
     const requestedLimit = toPositiveInt(params.limit, 10);
     const requestedOffset = toNonNegativeInt(params.offset, 0);
-    const rawPaginationMeta = normalizedResponse?.paginationMeta ?? {};
+    const rawPaginationMeta = responseData?.paginationMeta ?? {};
     const total = toNonNegativeInt(rawPaginationMeta.total, users.length);
     const limit = toPositiveInt(rawPaginationMeta.limit, requestedLimit);
     const offset = toNonNegativeInt(rawPaginationMeta.offset, requestedOffset);
@@ -129,10 +117,7 @@ export const userApi = {
     const safeCurrentPage = Math.min(currentPage, totalPages);
 
     return {
-      message:
-        normalizedResponse?.message ??
-        rawResponse?.message ??
-        "Users fetched successfully",
+      message: responseData?.message ?? "Users fetched successfully",
       data: users,
       paginationMeta: {
         total,
@@ -154,47 +139,9 @@ export const userApi = {
 
   // Get available roles
   getRoles: async (): Promise<RolesResponse> => {
-    try {
-      const response = (await apiClient.get("/admin/roles")) as any;
-      const rolesData = response.data?.roles || response.data?.data || [];
-      return { roles: rolesData };
-    } catch (err) {
-      console.error("Failed to fetch roles:", err);
-      // Set fallback options if API fails
-      return {
-        roles: [
-          {
-            _id: "",
-            title: "All Roles",
-            description: "Show all users",
-            hierarchy: 0,
-            isActive: true,
-          },
-          {
-            _id: "admin",
-            title: "Admin",
-            description:
-              "Administrative work. Highest level of authority can do almost anything.",
-            hierarchy: 100,
-            isActive: true,
-          },
-          {
-            _id: "promoter",
-            title: "Promoter",
-            description: "Manage promotional activities.",
-            hierarchy: 20,
-            isActive: true,
-          },
-          {
-            _id: "user",
-            title: "User",
-            description: "Default role assigned to every person.",
-            hierarchy: 1,
-            isActive: true,
-          },
-        ],
-      };
-    }
+    const responseData = (await apiClient.get("/admin/roles")) as any;
+    const rolesData = responseData?.roles || responseData?.data || [];
+    return { roles: rolesData };
   },
 
   // Delete a user by ID (if needed)

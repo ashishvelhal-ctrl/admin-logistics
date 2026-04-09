@@ -37,19 +37,6 @@ const toNonNegativeInt = (value: unknown, fallback: number): number => {
   return Number.isFinite(parsed) && parsed >= 0 ? Math.floor(parsed) : fallback;
 };
 
-const normalizeResponseData = (rawResponse: any) => {
-  if (
-    rawResponse &&
-    typeof rawResponse === "object" &&
-    rawResponse.data &&
-    !Array.isArray(rawResponse.data) &&
-    typeof rawResponse.data === "object"
-  ) {
-    return rawResponse.data;
-  }
-  return rawResponse;
-};
-
 interface RawPaginationMeta {
   total?: unknown;
   limit?: unknown;
@@ -115,33 +102,17 @@ export const networkApi = {
       ? `/promoter/users?${queryParams.toString()}`
       : "/promoter/users";
 
-    const rawResponse = (await apiClient.get(url)) as any;
-    const normalizedResponse =
-      rawResponse &&
-      typeof rawResponse === "object" &&
-      rawResponse.data &&
-      !Array.isArray(rawResponse.data) &&
-      Array.isArray(rawResponse.data.data)
-        ? rawResponse.data
-        : rawResponse;
-
-    const users = Array.isArray(normalizedResponse?.data)
-      ? normalizedResponse.data
-      : Array.isArray(rawResponse?.data)
-        ? rawResponse.data
-        : [];
+    const responseData = (await apiClient.get(url)) as any;
+    const users = Array.isArray(responseData?.data) ? responseData.data : [];
 
     const requestedLimit = toPositiveInt(params.limit, 10);
     const requestedOffset = toNonNegativeInt(params.offset, 0);
 
     return {
-      message:
-        normalizedResponse?.message ??
-        rawResponse?.message ??
-        "Users fetched successfully",
+      message: responseData?.message ?? "Users fetched successfully",
       data: users,
       paginationMeta: buildPaginationMeta(
-        normalizedResponse?.paginationMeta ?? {},
+        responseData?.paginationMeta ?? {},
         users,
         requestedLimit,
         requestedOffset,
@@ -187,13 +158,10 @@ export const networkApi = {
   getUserProfileCompletionStatus: async (
     id: string,
   ): Promise<UserProfileCompletionStatus> => {
-    const rawResponse = (await apiClient.get(
+    const responseData = (await apiClient.get(
       `/promoter/user/${id}/status`,
     )) as any;
-    const normalized = normalizeResponseData(rawResponse);
-    return (normalized?.data ??
-      normalized ??
-      {}) as UserProfileCompletionStatus;
+    return (responseData?.data ?? {}) as UserProfileCompletionStatus;
   },
 
   getUserVehicles: async (
@@ -211,22 +179,14 @@ export const networkApi = {
       ? `/promoter/user/${id}/vehicles?${queryParams.toString()}`
       : `/promoter/user/${id}/vehicles`;
 
-    const rawResponse = (await apiClient.get(url)) as any;
-    const normalizedResponse = normalizeResponseData(rawResponse);
-    const vehicles = Array.isArray(normalizedResponse?.data)
-      ? normalizedResponse.data
-      : Array.isArray(rawResponse?.data)
-        ? rawResponse.data
-        : [];
+    const responseData = (await apiClient.get(url)) as any;
+    const vehicles = Array.isArray(responseData?.data) ? responseData.data : [];
 
     return {
-      message:
-        normalizedResponse?.message ??
-        rawResponse?.message ??
-        "Vehicles fetched successfully",
+      message: responseData?.message ?? "Vehicles fetched successfully",
       data: vehicles,
       paginationMeta: buildPaginationMeta(
-        normalizedResponse?.paginationMeta ?? {},
+        responseData?.paginationMeta ?? {},
         vehicles,
         params.limit ?? 10,
         params.offset ?? 0,
@@ -253,23 +213,14 @@ export const networkApi = {
       : `/promoter/user/service-posts?userId=${id}`;
 
     try {
-      const rawResponse = (await apiClient.get(url)) as any;
-
-      const normalizedResponse = normalizeResponseData(rawResponse);
-      const trips = Array.isArray(normalizedResponse?.data)
-        ? normalizedResponse.data
-        : Array.isArray(rawResponse?.data)
-          ? rawResponse.data
-          : [];
+      const responseData = (await apiClient.get(url)) as any;
+      const trips = Array.isArray(responseData?.data) ? responseData.data : [];
 
       return {
-        message:
-          normalizedResponse?.message ??
-          rawResponse?.message ??
-          "Trips fetched successfully",
+        message: responseData?.message ?? "Trips fetched successfully",
         data: trips,
         paginationMeta: buildPaginationMeta(
-          normalizedResponse?.paginationMeta ?? {},
+          responseData?.paginationMeta ?? {},
           trips,
           params.limit ?? 10,
           params.offset ?? 0,

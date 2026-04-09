@@ -12,10 +12,10 @@ import type {
 type UseTripMapPickerParams = {
   open: boolean;
   targetField: LocationField;
-  initialPickup: string;
-  initialDrop: string;
-  initialPickupCoordinates: Coordinates | null;
-  initialDropCoordinates: Coordinates | null;
+  initialPickup?: string;
+  initialDrop?: string;
+  initialPickupCoordinates?: Coordinates | null;
+  initialDropCoordinates?: Coordinates | null;
   onApply: (payload: TripMapApplyPayload) => void;
   onOpenChange: (open: boolean) => void;
 };
@@ -23,10 +23,10 @@ type UseTripMapPickerParams = {
 export function useTripMapPicker({
   open,
   targetField,
-  initialPickup,
-  initialDrop,
-  initialPickupCoordinates,
-  initialDropCoordinates,
+  initialPickup = "",
+  initialDrop = "",
+  initialPickupCoordinates = null,
+  initialDropCoordinates = null,
   onApply,
   onOpenChange,
 }: UseTripMapPickerParams) {

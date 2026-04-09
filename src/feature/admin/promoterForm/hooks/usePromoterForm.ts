@@ -1,9 +1,11 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { promoterApi } from "../services/promoterApi";
 
 export function usePromoterForm() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -13,6 +15,13 @@ export function usePromoterForm() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const createPromoterMutation = useMutation({
+    mutationFn: promoterApi.createPromoter,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["promoters"] });
+    },
+  });
 
   const normalizePhoneNumber = (phoneNumber: string) => {
     const digitsOnly = phoneNumber.replace(/\D/g, "");
@@ -48,7 +57,7 @@ export function usePromoterForm() {
         throw new Error("Phone number must be exactly 10 digits.");
       }
 
-      await promoterApi.createPromoter({
+      await createPromoterMutation.mutateAsync({
         name,
         phoneNumber,
         address,

@@ -1,86 +1,115 @@
-export interface NetworkUser {
-  id: string;
-  name: string;
-  phoneNumber: string;
-  address?: string;
-  profileStatus?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  [key: string]: any;
-}
+import { z } from "zod";
 
-export interface NetworkPaginationMeta {
-  total: number;
-  limit: number;
-  offset: number;
-  current_page: number;
-  total_pages: number;
-  has_next_page: boolean;
-  has_prev_page: boolean;
-}
+export const networkUserSchema = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    phoneNumber: z.string(),
+    address: z.string().optional(),
+    profileStatus: z.string().optional(),
+    drivingLicense: z.string().optional(),
+    dateOfBirth: z.string().optional(),
+    totalTrips: z.number().optional(),
+    requirementPost: z.number().optional(),
+    cancellationRate: z.number().optional(),
+    createdAt: z.string().optional(),
+    updatedAt: z.string().optional(),
+  })
+  .passthrough();
 
-export interface NetworkUsersResponse {
-  message: string;
-  data: NetworkUser[];
-  paginationMeta: NetworkPaginationMeta;
-}
+export const networkPaginationMetaSchema = z.object({
+  total: z.number(),
+  limit: z.number(),
+  offset: z.number(),
+  current_page: z.number(),
+  total_pages: z.number(),
+  has_next_page: z.boolean(),
+  has_prev_page: z.boolean(),
+});
 
-export interface GetNetworkUsersParams {
-  limit?: number;
-  offset?: number;
-  search?: string;
-}
+export const networkUsersResponseSchema = z.object({
+  message: z.string(),
+  data: z.array(networkUserSchema),
+  paginationMeta: networkPaginationMetaSchema,
+});
 
-export interface CreateNetworkUserPayload {
-  name: string;
-  phoneNumber: string;
-  address: string;
-}
+export const getNetworkUsersParamsSchema = z.object({
+  limit: z.number().optional(),
+  offset: z.number().optional(),
+  search: z.string().optional(),
+});
 
-export interface UpdateNetworkUserPayload {
-  name?: string;
-  address?: string;
-}
+export const createNetworkUserPayloadSchema = z.object({
+  name: z.string(),
+  phoneNumber: z.string(),
+  address: z.string(),
+});
 
-export interface UserProfileCompletionStatus {
-  profileStatus?: string;
-  completionPercentage?: number;
-  isComplete?: boolean;
-  isDrivingLicenseVerified?: boolean;
-  [key: string]: any;
-}
+export const updateNetworkUserPayloadSchema = z.object({
+  name: z.string().optional(),
+  address: z.string().optional(),
+});
 
-export interface UserVehiclesResponse {
-  message: string;
-  data: any[];
-  paginationMeta: NetworkPaginationMeta;
-}
+export const userProfileCompletionStatusSchema = z
+  .object({
+    profileStatus: z.string().optional(),
+    completionPercentage: z.number().optional(),
+    isComplete: z.boolean().optional(),
+    isDrivingLicenseVerified: z.boolean().optional(),
+    drivingLicenseVerified: z.boolean().optional(),
+  })
+  .passthrough();
 
-export interface UserTrip {
-  id: string;
-  date: string;
-  time: string;
-  price: number;
-  startLocation: {
-    address: string;
-    point: { lat: number; lng: number };
-  };
-  endLocation: {
-    address: string;
-    point: { lat: number; lng: number };
-  };
-  status?: string;
-  createdAt?: string;
-  [key: string]: any;
-}
+export const userVehiclesResponseSchema = z.object({
+  message: z.string(),
+  data: z.array(z.unknown()),
+  paginationMeta: networkPaginationMetaSchema,
+});
 
-export interface UserTripsResponse {
-  message: string;
-  data: UserTrip[];
-  paginationMeta: NetworkPaginationMeta;
-}
+export const userTripSchema = z
+  .object({
+    id: z.string(),
+    date: z.string(),
+    time: z.string(),
+    price: z.number(),
+    startLocation: z.object({
+      address: z.string(),
+      point: z.object({ lat: z.number(), lng: z.number() }),
+    }),
+    endLocation: z.object({
+      address: z.string(),
+      point: z.object({ lat: z.number(), lng: z.number() }),
+    }),
+    status: z.string().optional(),
+    createdAt: z.string().optional(),
+  })
+  .passthrough();
 
-export interface PaginationParams {
-  limit?: number;
-  offset?: number;
-}
+export const userTripsResponseSchema = z.object({
+  message: z.string(),
+  data: z.array(userTripSchema),
+  paginationMeta: networkPaginationMetaSchema,
+});
+
+export const paginationParamsSchema = z.object({
+  limit: z.number().optional(),
+  offset: z.number().optional(),
+});
+
+export type NetworkUser = z.infer<typeof networkUserSchema>;
+export type NetworkPaginationMeta = z.infer<typeof networkPaginationMetaSchema>;
+export type NetworkUsersResponse = z.infer<typeof networkUsersResponseSchema>;
+export type GetNetworkUsersParams = z.infer<typeof getNetworkUsersParamsSchema>;
+export type CreateNetworkUserPayload = z.infer<
+  typeof createNetworkUserPayloadSchema
+>;
+export type UpdateNetworkUserPayload = z.infer<
+  typeof updateNetworkUserPayloadSchema
+>;
+export type UserProfileCompletionStatus = z.infer<
+  typeof userProfileCompletionStatusSchema
+>;
+export type UserVehiclesResponse = z.infer<typeof userVehiclesResponseSchema>;
+export type UserTrip = z.infer<typeof userTripSchema>;
+export type UserTripsResponse = z.infer<typeof userTripsResponseSchema>;
+export type PaginationParams = z.infer<typeof paginationParamsSchema>;

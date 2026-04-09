@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { PaginationWrapper as Pagination } from "@/components/common/Pagination";
 import { networkApi, type UserTrip } from "../services/networkApi";
+import { formatDate } from "@/lib/format-utils";
 import { cn } from "@/lib/utils";
 
 interface TripTableProps {
@@ -18,7 +19,6 @@ export default function TripTable({
 }: TripTableProps) {
   const ITEMS_PER_PAGE = 5;
 
-  // Fetch trips from API
   const {
     data: tripsData,
     isLoading: isLoadingTrips,
@@ -37,19 +37,12 @@ export default function TripTable({
   const trips = tripsData?.data || [];
   const totalPages = tripsData?.paginationMeta?.total_pages || 1;
 
-  // Format date for display
-  const formatDate = (dateString: string) => {
+  const formatTripDate = (dateString: string) => {
     if (!dateString) return "-";
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("en-IN", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      });
-    } catch {
-      return dateString;
-    }
+    return formatDate(dateString, {
+      locale: "en-IN",
+      invalidValue: dateString,
+    });
   };
 
   if (isLoadingTrips) {
@@ -129,7 +122,7 @@ export default function TripTable({
                 <div className="grid grid-cols-5 gap-4">
                   <div>
                     <div className="font-semibold text-heading-color">
-                      {formatDate(trip.date)}
+                      {formatTripDate(trip.date)}
                     </div>
                     <div className="text-xs text-muted-foreground">
                       {trip.time || "-"}

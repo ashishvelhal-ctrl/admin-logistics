@@ -66,12 +66,6 @@ export default function EditProfile() {
         throw new Error("Address must be at least 5 characters.");
       }
 
-      console.log("Updating profile with data:", {
-        userId: "current-user-id", // This should be the actual user ID from auth
-        data: { name, address },
-      });
-      console.log("Profile updated successfully (simulated)");
-
       navigate({ to: "/myProfile" });
     } catch (error) {
       setSubmitError(

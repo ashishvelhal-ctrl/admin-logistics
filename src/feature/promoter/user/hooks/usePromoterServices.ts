@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useMemo } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { promoterService } from "../service/promoter.service";
 
@@ -71,7 +72,7 @@ interface VehicleVerificationResponse {
 
 export const usePromoterServices = () => {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
   const VERIFIED_USER_STORAGE_KEY = "promoter_verified_user";
 
   const getVerifiedUserId = (): string => {
@@ -96,30 +97,14 @@ export const usePromoterServices = () => {
     dlNumber: string,
     dateOfBirth: string,
   ): Promise<DLVerificationResponse> => {
-    setIsLoading(true);
     try {
-      const userId = getVerifiedUserId();
-      const response = await promoterService.verifyDrivingLicense({
-        userId,
+      return await verifyDrivingLicenseMutation.mutateAsync({
         dlNumber,
         dateOfBirth,
       });
-
-      const verificationResult = response.data?.verification ?? response.data;
-      const result = {
-        message: response.message,
-        data: verificationResult,
-      };
-
-      // Store verification data in session storage
-      sessionStorage.setItem("dlVerificationData", JSON.stringify(result));
-
-      return result;
     } catch (error) {
       console.error("DL Verification Error:", error);
       throw error;
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -127,8 +112,86 @@ export const usePromoterServices = () => {
   const verifyVehicle = async (
     vehicleNumber: string,
   ): Promise<VehicleVerificationResponse> => {
-    setIsLoading(true);
     try {
+      return await verifyVehicleMutation.mutateAsync(vehicleNumber);
+    } catch (error) {
+      console.error("Vehicle Verification Error:", error);
+      throw error;
+    }
+  };
+
+  // Create Vehicle
+  const createVehicle = async (vehicleData: any) => {
+    try {
+      return await createVehicleMutation.mutateAsync(vehicleData);
+    } catch (error) {
+      console.error("Vehicle Creation Error:", error);
+      throw error;
+    }
+  };
+
+  // Navigate to verification pages
+  const goToDLVerification = () => {
+    navigate({ to: "/verifyDrivingLicence" });
+  };
+
+  const goToVehicleVerification = () => {
+    navigate({ to: "/verificationVehical" });
+  };
+
+  const goToVehicleCreation = () => {
+    navigate({ to: "/addvehical" });
+  };
+
+  const verifyDrivingLicenseMutation = useMutation({
+    mutationFn: async ({
+      dlNumber,
+      dateOfBirth,
+    }: {
+      dlNumber: string;
+      dateOfBirth: string;
+    }): Promise<DLVerificationResponse> => {
+      const userId = getVerifiedUserId();
+      const response = await promoterService.verifyDrivingLicense({
+        userId,
+        dlNumber,
+        dateOfBirth,
+      });
+      const verificationResult = response.data?.verification ?? response.data;
+      const result = {
+        message: response.message,
+        data: verificationResult,
+      };
+      sessionStorage.setItem("dlVerificationData", JSON.stringify(result));
+      return result;
+    },
+    onSuccess: async () => {
+      const userId = getVerifiedUserId();
+      await queryClient.invalidateQueries({ queryKey: ["my-network-users"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["promoterUserDetails", userId],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["promoterUserProfileCompletionStatus", userId],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["user-vehicles", userId],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["promoterUserVehicles", userId],
+      });
+      await queryClient.invalidateQueries({ queryKey: ["promoter"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["promoterProfileUsers"],
+      });
+      await queryClient.invalidateQueries({ queryKey: ["trip-create-users"] });
+    },
+  });
+
+  const verifyVehicleMutation = useMutation({
+    mutationFn: async (
+      vehicleNumber: string,
+    ): Promise<VehicleVerificationResponse> => {
       const userId = getVerifiedUserId();
       const response = await promoterService.createVehicle({
         userId,
@@ -170,24 +233,30 @@ export const usePromoterServices = () => {
         },
       };
 
-      // Store verification data in session storage
       sessionStorage.setItem("vehicleVerificationData", JSON.stringify(result));
-
       return result;
-    } catch (error) {
-      console.error("Vehicle Verification Error:", error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Create Vehicle
-  const createVehicle = async (vehicleData: any) => {
-    setIsLoading(true);
-    try {
+    },
+    onSuccess: async () => {
       const userId = getVerifiedUserId();
-      const response = await promoterService.createVehicle({
+      await queryClient.invalidateQueries({ queryKey: ["my-network-users"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["user-vehicles", userId],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["promoterUserVehicles", userId],
+      });
+      await queryClient.invalidateQueries({ queryKey: ["promoter"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["promoterProfileUsers"],
+      });
+      await queryClient.invalidateQueries({ queryKey: ["trip-create-users"] });
+    },
+  });
+
+  const createVehicleMutation = useMutation({
+    mutationFn: async (vehicleData: any) => {
+      const userId = getVerifiedUserId();
+      return promoterService.createVehicle({
         userId,
         rcNumber: vehicleData.rcNumber,
         loadCapacity: vehicleData.loadCapacity,
@@ -195,27 +264,35 @@ export const usePromoterServices = () => {
         thumbnailImage: vehicleData.thumbnailImage,
         additionalImages: vehicleData.additionalImages,
       });
-      return response;
-    } catch (error) {
-      console.error("Vehicle Creation Error:", error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    },
+    onSuccess: async () => {
+      const userId = getVerifiedUserId();
+      await queryClient.invalidateQueries({ queryKey: ["my-network-users"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["user-vehicles", userId],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["promoterUserVehicles", userId],
+      });
+      await queryClient.invalidateQueries({ queryKey: ["promoter"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["promoterProfileUsers"],
+      });
+      await queryClient.invalidateQueries({ queryKey: ["trip-create-users"] });
+    },
+  });
 
-  // Navigate to verification pages
-  const goToDLVerification = () => {
-    navigate({ to: "/verifyDrivingLicence" });
-  };
-
-  const goToVehicleVerification = () => {
-    navigate({ to: "/verificationVehical" });
-  };
-
-  const goToVehicleCreation = () => {
-    navigate({ to: "/addvehical" });
-  };
+  const isLoading = useMemo(
+    () =>
+      verifyDrivingLicenseMutation.isPending ||
+      verifyVehicleMutation.isPending ||
+      createVehicleMutation.isPending,
+    [
+      verifyDrivingLicenseMutation.isPending,
+      verifyVehicleMutation.isPending,
+      createVehicleMutation.isPending,
+    ],
+  );
 
   return {
     isLoading,

@@ -80,7 +80,7 @@ export function Sidebar({ variant, onNavigate }: SidebarProps) {
       title: "My Network",
       icon: Users2,
       url: "/myNetwork",
-      activePaths: ["/myNetwork", "/promoterUserDetails"],
+      activePaths: ["/myNetwork", "/promoterUserDetails", "/userDetails"],
       roles: ["promoter"],
     },
     {
@@ -94,7 +94,7 @@ export function Sidebar({ variant, onNavigate }: SidebarProps) {
       title: "My Profile",
       icon: User,
       url: "/myProfile",
-      activePaths: ["/myProfile"],
+      activePaths: ["/myProfile", "/editProfile"],
       roles: ["promoter"],
     },
   ];
@@ -125,7 +125,7 @@ export function Sidebar({ variant, onNavigate }: SidebarProps) {
                   {userName}
                 </p>
                 <p className="text-sm text-inactive-text mt-1">
-                  +91 9307154814
+                  {auth?.roles?.includes("admin") ? "Admin" : "Promoter"}
                 </p>
               </div>
             </div>

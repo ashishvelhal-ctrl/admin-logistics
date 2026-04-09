@@ -28,32 +28,15 @@ class PromoterService {
     queryParams.append("limit", defaultQuery.limit.toString());
     queryParams.append("offset", defaultQuery.offset.toString());
     if (defaultQuery.search) queryParams.append("search", defaultQuery.search);
-    const rawResponse = (await apiClient.get(
+    const responseData = (await apiClient.get(
       `/promoter/users?${queryParams.toString()}`,
     )) as any;
-
-    const normalizedResponse =
-      rawResponse &&
-      typeof rawResponse === "object" &&
-      rawResponse.data &&
-      !Array.isArray(rawResponse.data) &&
-      Array.isArray(rawResponse.data.data)
-        ? rawResponse.data
-        : rawResponse;
-
-    const users = Array.isArray(normalizedResponse?.data)
-      ? normalizedResponse.data
-      : Array.isArray(rawResponse?.data)
-        ? rawResponse.data
-        : [];
+    const users = Array.isArray(responseData?.data) ? responseData.data : [];
 
     return {
-      message:
-        normalizedResponse?.message ??
-        rawResponse?.message ??
-        "Users fetched successfully",
+      message: responseData?.message ?? "Users fetched successfully",
       data: users,
-      paginationMeta: normalizedResponse?.paginationMeta ?? {
+      paginationMeta: responseData?.paginationMeta ?? {
         total: users.length,
         limit: defaultQuery.limit,
         offset: defaultQuery.offset,

@@ -1,73 +1,20 @@
 import { apiClient } from "@/lib/api";
+import type {
+  PromoterListParams,
+  PromoterListResponse,
+  PromoterMutationPayload,
+  RolesResponse,
+  UserObject,
+} from "../schema/promoterSchema";
 
-// Define types based on backend structure
-export interface UserObject {
-  id: string;
-  name: string;
-  fullName?: string; // For backward compatibility - map from name
-  phoneNumber: string;
-  mobileNumber?: string; // For backward compatibility - map from phoneNumber
-  roles: string[];
-  address?: string;
-  assignedAddress?: string; // For backward compatibility - map from address
-  provideLogistics?: boolean;
-  profileStatus?: string;
-  is_verified?: boolean; // For backward compatibility - map from profileStatus
-  onboardingCount?: number; // For backward compatibility
-  drivingLicense?: string;
-  drivingLicenseData?: any;
-  deviceTokens?: string[];
-  createdAt: string;
-  created_at?: string; // For backward compatibility - map from createdAt
-  updatedAt: string;
-  [key: string]: any;
-}
-
-export interface PaginationMeta {
-  total: number;
-  limit: number;
-  offset: number;
-  current_page: number;
-  total_pages: number;
-  has_next_page: boolean;
-  has_prev_page: boolean;
-}
-
-export interface PromoterListResponse {
-  message: string;
-  data: UserObject[];
-  paginationMeta: PaginationMeta;
-}
-
-export interface PromoterListParams {
-  limit?: number;
-  offset?: number;
-  search?: string;
-  role?: string;
-}
-
-export interface RolesResponse {
-  roles?: Array<{
-    _id: string;
-    title: string;
-    description: string;
-    hierarchy: number;
-    isActive: boolean;
-  }>;
-  data?: Array<{
-    _id: string;
-    title: string;
-    description: string;
-    hierarchy: number;
-    isActive: boolean;
-  }>;
-}
-
-export interface PromoterMutationPayload {
-  name: string;
-  phoneNumber: string;
-  address?: string;
-}
+export type {
+  PaginationMeta,
+  PromoterListParams,
+  PromoterListResponse,
+  PromoterMutationPayload,
+  RolesResponse,
+  UserObject,
+} from "../schema/promoterSchema";
 
 const toPositiveInt = (value: unknown, fallback: number): number => {
   const parsedValue = Number(value);
@@ -83,33 +30,18 @@ const toNonNegativeInt = (value: unknown, fallback: number): number => {
     : fallback;
 };
 
-const buildPromoterBodyWithPhoneNumber = (
-  payload: PromoterMutationPayload,
-): Record<string, unknown> => ({
+const buildCreatePromoterBody = (payload: PromoterMutationPayload) => ({
   name: payload.name,
   address: payload.address,
   phoneNumber: payload.phoneNumber,
 });
 
-const buildPromoterBodyForUpdate = (
-  payload: PromoterMutationPayload,
-): Record<string, unknown> => ({
+const buildUpdatePromoterBody = (payload: PromoterMutationPayload) => ({
   name: payload.name,
   address: payload.address,
-  // Note: phoneNumber is not allowed in update according to backend schema
 });
 
-const shouldRetryWithMobileNumber = (error: unknown): boolean => {
-  if (error instanceof Error) {
-    const message = error.message.toLowerCase();
-    return (
-      message.includes("validation failed") ||
-      message.includes("unrecognized key") ||
-      message.includes("phonenumber")
-    );
-  }
-  return false;
-};
+const normalizeResponseData = (response: any) => response?.data ?? response;
 
 export const promoterApi = {
   // Fetch promoter list with pagination and search
@@ -130,27 +62,17 @@ export const promoterApi = {
       : "/admin/promoters";
 
     const rawResponse = (await apiClient.get(url)) as any;
+    const responseData = normalizeResponseData(rawResponse);
 
-    const normalizedResponse =
-      rawResponse &&
-      typeof rawResponse === "object" &&
-      rawResponse.data &&
-      !Array.isArray(rawResponse.data) &&
-      Array.isArray(rawResponse.data.data)
-        ? rawResponse.data
-        : rawResponse;
-
-    const promoters = Array.isArray(normalizedResponse?.data)
-      ? normalizedResponse.data
-      : Array.isArray(rawResponse?.data)
-        ? rawResponse.data
-        : Array.isArray(rawResponse)
-          ? rawResponse
-          : [];
+    const promoters = Array.isArray(responseData?.data)
+      ? responseData.data
+      : Array.isArray(responseData)
+        ? responseData
+        : [];
 
     const requestedLimit = toPositiveInt(params.limit, 10);
     const requestedOffset = toNonNegativeInt(params.offset, 0);
-    const rawPaginationMeta = normalizedResponse?.paginationMeta ?? {};
+    const rawPaginationMeta = responseData?.paginationMeta ?? {};
     const total = toNonNegativeInt(rawPaginationMeta.total, promoters.length);
     const limit = toPositiveInt(rawPaginationMeta.limit, requestedLimit);
     const offset = toNonNegativeInt(rawPaginationMeta.offset, requestedOffset);
@@ -166,7 +88,7 @@ export const promoterApi = {
 
     return {
       message:
-        normalizedResponse?.message ??
+        responseData?.message ??
         rawResponse?.message ??
         "Promoters fetched successfully",
       data: promoters,
@@ -189,129 +111,52 @@ export const promoterApi = {
   },
 
   createPromoter: async (payload: PromoterMutationPayload): Promise<void> => {
-    try {
-      await apiClient.post(
-        "/admin/promoter",
-        buildPromoterBodyWithPhoneNumber(payload),
-      );
-    } catch (firstError) {
-      if (!shouldRetryWithMobileNumber(firstError)) {
-        throw firstError;
-      }
-
-      try {
-        await apiClient.post(
-          "/admin/promoter",
-          buildPromoterBodyForUpdate(payload),
-        );
-      } catch (secondError) {
-        throw secondError;
-      }
-    }
+    await apiClient.post("/admin/promoter", buildCreatePromoterBody(payload));
   },
 
   updatePromoter: async (
     promoterId: string,
     payload: PromoterMutationPayload,
   ): Promise<void> => {
-    // According to backend schema, updates only allow name and address, not phoneNumber
     await apiClient.patch(
       `/admin/promoter/${promoterId}`,
-      buildPromoterBodyForUpdate(payload),
+      buildUpdatePromoterBody(payload),
     );
   },
 
-  // Get available roles
   getRoles: async (): Promise<RolesResponse> => {
-    try {
-      const response = (await apiClient.get("/admin/roles")) as any;
-      const rolesData = response.data?.roles || response.data?.data || [];
-      return { roles: rolesData };
-    } catch (err) {
-      console.error("Failed to fetch roles:", err);
-      // Set fallback options if API fails
-      return {
-        roles: [
-          {
-            _id: "",
-            title: "All Roles",
-            description: "Show all users",
-            hierarchy: 0,
-            isActive: true,
-          },
-          {
-            _id: "admin",
-            title: "Admin",
-            description:
-              "Administrative work. Highest level of authority can do almost anything.",
-            hierarchy: 100,
-            isActive: true,
-          },
-          {
-            _id: "promoter",
-            title: "Promoter",
-            description: "Manage promotional activities.",
-            hierarchy: 20,
-            isActive: true,
-          },
-          {
-            _id: "user",
-            title: "User",
-            description: "Default role assigned to every person.",
-            hierarchy: 1,
-            isActive: true,
-          },
-        ],
-      };
-    }
+    const response = (await apiClient.get("/admin/roles")) as any;
+    const responseData = normalizeResponseData(response);
+    const rolesData = responseData?.roles || responseData?.data || [];
+    return { roles: rolesData };
   },
 
   // Get a specific promoter by ID
   getPromoterById: async (promoterId: string): Promise<UserObject | null> => {
     try {
-      // Fetch all promoters and find by ID (since search might not work with MongoID)
       const response = (await apiClient.get(
-        `/admin/promoters?limit=100`,
+        "/admin/promoters?limit=100",
       )) as any;
-
-      // Check all possible data locations
-      let promoters = [];
-      if (Array.isArray(response.data?.data)) {
-        promoters = response.data.data;
-      } else if (Array.isArray(response.data)) {
-        promoters = response.data;
-      } else if (
-        response.data?.data?.data &&
-        Array.isArray(response.data.data.data)
-      ) {
-        promoters = response.data.data.data;
-      }
-
-      if (promoters.length > 0) {
-        // Find the promoter with matching ID
-        const promoter = promoters.find((p: any) => {
-          const id = p.id || p._id;
-          return id === promoterId;
-        });
-
-        if (promoter) {
-          return promoter;
-        }
-      }
-
-      return null;
-    } catch (err) {
+      const responseData = normalizeResponseData(response);
+      const promoters = Array.isArray(responseData?.data)
+        ? responseData.data
+        : Array.isArray(responseData)
+          ? responseData
+          : [];
+      const promoter = promoters.find(
+        (p: any) => (p.id || p._id) === promoterId,
+      );
+      return promoter ?? null;
+    } catch {
       return null;
     }
   },
 
-  // Get promoter's network users (admin view)
   getPromoterNetwork: async (
     _promoterId: string,
     params: { limit?: number; offset?: number } = {},
   ): Promise<{ data: any[]; total: number }> => {
     try {
-      // Try using the promoter users endpoint
       const queryParams = new URLSearchParams();
       if (params.limit) queryParams.append("limit", String(params.limit));
       if (params.offset) queryParams.append("offset", String(params.offset));
@@ -321,25 +166,17 @@ export const promoterApi = {
         : "/promoter/users";
 
       const response = (await apiClient.get(url)) as any;
+      const responseData = normalizeResponseData(response);
 
       return {
-        data: response.data?.data || [],
-        total: response.data?.paginationMeta?.total || 0,
+        data: responseData?.data || [],
+        total: responseData?.paginationMeta?.total || 0,
       };
-    } catch (err: any) {
-      // Handle 403 Forbidden - admin can't access promoter endpoint
-      if (
-        err?.response?.status === 403 ||
-        err?.message?.includes("Access denied")
-      ) {
-        return { data: [], total: 0 };
-      }
-
+    } catch {
       return { data: [], total: 0 };
     }
   },
 
-  // Get users for a specific promoter (admin endpoint)
   getPromoterUsers: async (
     promoterId: string,
     params: { limit?: number; offset?: number } = {},
@@ -354,14 +191,7 @@ export const promoterApi = {
         : `/admin/promoters/${promoterId}/users`;
 
       const response = (await apiClient.get(url)) as any;
-
-      // Handle different response structures
-      // Case 1: response is directly the data object { message: '...', data: [...], paginationMeta: {...} }
-      // Case 2: response is wrapped { data: { message: '...', data: [...], paginationMeta: {...} } }
-      const isDirectResponse = Array.isArray(response.data);
-      const responseData = isDirectResponse
-        ? response
-        : response.data || response;
+      const responseData = normalizeResponseData(response);
 
       const users = Array.isArray(responseData.data)
         ? responseData.data
@@ -376,8 +206,7 @@ export const promoterApi = {
         0;
 
       return { data: users, total };
-    } catch (err: any) {
-      console.error("Failed to fetch promoter users:", err);
+    } catch {
       return { data: [], total: 0 };
     }
   },

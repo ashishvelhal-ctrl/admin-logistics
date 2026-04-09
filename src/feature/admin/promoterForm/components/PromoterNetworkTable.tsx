@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Search } from "lucide-react";
 
+import { useDebounce } from "@/hooks/use-debounce";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -72,6 +73,7 @@ export default function PromoterDetailsRightPanel({
   // Use default promoter ID - this makes the component work in any context
   const promoterId = "1";
   const [searchValue, setSearchValue] = useState("");
+  const debouncedSearchValue = useDebounce(searchValue, 300);
   const [statusFilter, setStatusFilter] = useState<"all" | NetworkStatus>(
     "all",
   );
@@ -105,21 +107,23 @@ export default function PromoterDetailsRightPanel({
   const filteredRows = useMemo(() => {
     return tableRows.filter((row) => {
       const matchesSearch =
-        row.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-        row.secondary.toLowerCase().includes(searchValue.trim().toLowerCase());
+        row.name.toLowerCase().includes(debouncedSearchValue.toLowerCase()) ||
+        row.secondary
+          .toLowerCase()
+          .includes(debouncedSearchValue.trim().toLowerCase());
       const matchesStatus =
         statusFilter === "all" || row.status === statusFilter;
 
       return matchesSearch && matchesStatus;
     });
-  }, [tableRows, searchValue, statusFilter]);
+  }, [tableRows, debouncedSearchValue, statusFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
 
   useEffect(() => {
     setPage(1);
-  }, [searchValue, statusFilter, activeView]);
+  }, [debouncedSearchValue, statusFilter, activeView]);
 
   useEffect(() => {
     if (page > totalPages) {

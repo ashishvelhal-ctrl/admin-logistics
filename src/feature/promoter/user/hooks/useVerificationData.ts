@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+
+import { formatDate } from "@/lib/format-utils";
 import type {
   DLVerificationData,
   VehicleVerificationData,
@@ -14,15 +16,6 @@ export function useDLVerificationData() {
       setVerificationData(JSON.parse(storedData));
     }
   }, []);
-
-  const formatDate = (dateString: string) => {
-    if (!dateString || dateString === "1800-01-01T00:00:00.000Z") return "N/A";
-    return new Date(dateString).toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-  };
 
   return {
     verificationData,
@@ -40,15 +33,6 @@ export function useVehicleVerificationData() {
       setVerificationData(JSON.parse(storedData));
     }
   }, []);
-
-  const formatDate = (dateString: string) => {
-    if (!dateString || dateString === "1800-01-01T00:00:00.000Z") return "N/A";
-    return new Date(dateString).toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-  };
 
   return {
     verificationData,

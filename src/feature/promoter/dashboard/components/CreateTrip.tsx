@@ -4,7 +4,7 @@ import type { ChangeEvent } from "react";
 import { Button } from "@/components/ui/button";
 import PageHeader from "@/components/common/PageHeader";
 import { FormActionRow } from "@/components/common/FormActionRow";
-import { toastService } from "@/lib/toast";
+import { useSuccessMessage } from "@/hooks/useSuccessMessage";
 import { useCreateTripForm } from "../hooks/useCreateTripForm";
 import { useCreateTrip } from "../hooks/useCreateTrip";
 import type { CreateTripPayload } from "../services/tripApi";
@@ -39,6 +39,7 @@ const buildCreateTripPayload = (formData: TripFormData): CreateTripPayload => ({
 export default function CreateTrip() {
   const navigate = useNavigate();
   const createTripMutation = useCreateTrip();
+  const { showSuccess, showError } = useSuccessMessage();
   const {
     formData,
     mapOpen,
@@ -69,37 +70,37 @@ export default function CreateTrip() {
 
   const handleCreateTrip = async () => {
     if (!formData.selectedUserId || !formData.vehicle) {
-      toastService.error("Please select both user and vehicle");
+      showError("Please select both user and vehicle");
       return;
     }
 
     if (!formData.pickupLocation || !formData.dropLocation) {
-      toastService.error("Please select pickup and drop locations");
+      showError("Please select pickup and drop locations");
       return;
     }
 
     if (!formData.pickupCoordinates || !formData.dropCoordinates) {
-      toastService.error("Please confirm pickup and drop on the map");
+      showError("Please confirm pickup and drop on the map");
       return;
     }
 
     if (!formData.date || !formData.time || !formData.price.trim()) {
-      toastService.error("Please complete date, time, and price");
+      showError("Please complete date, time, and price");
       return;
     }
 
     const price = Number(formData.price);
     if (!Number.isFinite(price) || price <= 0) {
-      toastService.error("Please enter a valid price");
+      showError("Please enter a valid price");
       return;
     }
 
     try {
       await createTripMutation.mutateAsync(buildCreateTripPayload(formData));
-      toastService.success("Trip created successfully");
+      showSuccess("Trip created successfully");
       navigate({ to: "/dashboardp" });
     } catch (error) {
-      toastService.error(
+      showError(
         error instanceof Error ? error.message : "Failed to create trip",
       );
     }

@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useVerifyPromoterUserOtp } from "./usePromoterUsers";
 import { useSendOTP } from "@/feature/auth/hooks/useSendOtp";
-import { toastService } from "@/lib/toast";
+import { useSuccessMessage } from "@/hooks/useSuccessMessage";
 import {
   PENDING_USER_STORAGE_KEY,
   VERIFIED_USER_STORAGE_KEY,
@@ -17,6 +17,7 @@ export function useUserOtpVerification() {
   const search = useSearch({ from: "/(promoter)/verifyUserOtp" });
   const verifyOtpMutation = useVerifyPromoterUserOtp();
   const sendOTPMutation = useSendOTP();
+  const { showSuccess, showError } = useSuccessMessage();
 
   const [otp, setOtp] = useState("");
   const [, setResendLoading] = useState(false);
@@ -43,7 +44,7 @@ export function useUserOtpVerification() {
       : pendingUser?.phoneNumber;
 
     if (!phoneNumber) {
-      toastService.error("User details not found. Please add details again.");
+      showError("User details not found. Please add details again.");
       if (isExistingUser) {
         navigate({ to: "/myNetwork" });
       } else {
@@ -58,9 +59,9 @@ export function useUserOtpVerification() {
         phoneNumber,
         hashCode: Math.random().toString(36).slice(2),
       });
-      toastService.success("OTP resent successfully");
+      showSuccess("OTP resent successfully");
     } catch (error) {
-      toastService.error(
+      showError(
         error instanceof Error ? error.message : "Failed to resend OTP",
       );
     } finally {
@@ -99,7 +100,7 @@ export function useUserOtpVerification() {
       : pendingUser?.phoneNumber;
 
     if (!phoneNumber) {
-      toastService.error("User details not found. Please add details again.");
+      showError("User details not found. Please add details again.");
       if (isExistingUser) {
         navigate({ to: "/myNetwork" });
       } else {
@@ -109,7 +110,7 @@ export function useUserOtpVerification() {
     }
 
     if (!/^\d{6}$/.test(otp)) {
-      toastService.error("Please enter a valid 6-digit OTP");
+      showError("Please enter a valid 6-digit OTP");
       return;
     }
 
@@ -120,7 +121,7 @@ export function useUserOtpVerification() {
       });
 
       if (isExistingUser) {
-        toastService.success("Phone number verified successfully!");
+        showSuccess("Phone number verified successfully!");
         navigate({ to: "/myNetwork" });
         return;
       }
@@ -138,7 +139,7 @@ export function useUserOtpVerification() {
       sessionStorage.removeItem(PENDING_USER_STORAGE_KEY);
       navigate({ to: "/dashboardp" });
     } catch (error) {
-      toastService.error(
+      showError(
         error instanceof Error ? error.message : "Failed to verify OTP",
       );
     }
