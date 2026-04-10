@@ -1,4 +1,4 @@
-import { PencilLine } from "lucide-react";
+import { PencilLine, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -14,6 +14,8 @@ interface MobileNetworkCardListProps {
   items: MobileNetworkCardItem[];
   onRowClick?: (item: MobileNetworkCardItem) => void;
   onEditClick?: (item: MobileNetworkCardItem) => void;
+  onDeleteClick?: (item: MobileNetworkCardItem) => void;
+  deleteLabel?: string;
   editStyle?: "button" | "icon";
   size?: "compact" | "large";
   emptyMessage?: string;
@@ -23,6 +25,8 @@ export function MobileNetworkCardList({
   items,
   onRowClick,
   onEditClick,
+  onDeleteClick,
+  deleteLabel = "Delete user",
   editStyle = "icon",
   size = "compact",
   emptyMessage = "No users found.",
@@ -71,23 +75,37 @@ export function MobileNetworkCardList({
           </button>
 
           {editStyle === "button" ? (
-            <Button
-              size="sm"
-              className="bg-button-1-bg hover:bg-button-1-bg/90 text-icon-1-color flex-shrink-0"
-              onClick={() => onEditClick?.(item)}
-            >
-              <PencilLine size={12} />
-            </Button>
-          ) : (
+            <div className="flex shrink-0 gap-2">
+              {onEditClick && (
+                <Button
+                  size="sm"
+                  className="bg-button-1-bg hover:bg-button-1-bg/90 text-icon-1-color"
+                  onClick={() => onEditClick(item)}
+                >
+                  <PencilLine size={12} />
+                </Button>
+              )}
+              {onDeleteClick && (
+                <Button
+                  size="sm"
+                  className="bg-button-2-bg hover:bg-button-2-bg/90 text-icon-2-color"
+                  onClick={() => onDeleteClick(item)}
+                  aria-label={deleteLabel}
+                >
+                  <Trash2 size={12} />
+                </Button>
+              )}
+            </div>
+          ) : onEditClick ? (
             <button
               type="button"
               className="mt-2 text-icon-1-color"
-              onClick={() => onEditClick?.(item)}
+              onClick={() => onEditClick(item)}
               aria-label="Edit user"
             >
               <PencilLine size={14} />
             </button>
-          )}
+          ) : null}
         </article>
       ))}
     </div>

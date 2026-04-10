@@ -159,7 +159,7 @@ export default function PromoterDetails() {
                 ) : (
                   <Button
                     type="button"
-                    className="w-full bg-green-600 text-white hover:bg-green-700"
+                    className="w-full bg-[#2E705F] text-white hover:bg-[#2E705F]/90"
                     onClick={() =>
                       promoterId && restorePromoterMutation.mutate(promoterId)
                     }

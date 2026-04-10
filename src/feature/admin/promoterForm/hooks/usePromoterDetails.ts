@@ -75,14 +75,16 @@ export function usePromoterDetails(promoterId: string | undefined) {
   // Transform API data to component format
   const promoter: PromoterProfile | null = promoterData
     ? {
+        isActive:
+          promoterData.isActive !== false &&
+          promoterData.isDeleted !== true &&
+          !Boolean((promoterData as { deletedAt?: string | null }).deletedAt),
         id: promoterData.id || promoterId || "1",
         fullName: promoterData.fullName || promoterData.name || "Promoter",
         mobileNumber:
           promoterData.mobileNumber || promoterData.phoneNumber || "9876543210",
         assignedAddress:
           promoterData.assignedAddress || promoterData.address || "Pune",
-        isActive:
-          promoterData.isActive !== false && promoterData.isDeleted !== true,
         totalOnboard: usersData?.total || 0,
         totalEarnings:
           usersData?.data?.reduce(
