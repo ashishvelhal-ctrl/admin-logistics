@@ -26,12 +26,22 @@ export interface PromoterNetworkMember {
   status: NetworkStatus;
 }
 
+export interface PromoterTripRow {
+  id: string;
+  name: string;
+  secondary: string;
+  status: NetworkStatus;
+}
+
 interface PromoterDetailsRightPanelProps {
+  promoterId: string;
   totalOnboard: number;
+  totalCreatedTrips: number;
   totalEarnings: number;
   targetCurrent: number;
   targetTotal: number;
   networkMembers: PromoterNetworkMember[];
+  tripRows: PromoterTripRow[];
 }
 
 const PAGE_SIZE = 6;
@@ -63,15 +73,15 @@ const statusOptions: Array<{ value: "all" | NetworkStatus; label: string }> = [
 ];
 
 export default function PromoterDetailsRightPanel({
+  promoterId,
   totalOnboard,
   totalEarnings,
   targetCurrent,
   targetTotal,
   networkMembers,
+  tripRows,
 }: PromoterDetailsRightPanelProps) {
   const navigate = useNavigate();
-  // Use default promoter ID - this makes the component work in any context
-  const promoterId = "1";
   const [searchValue, setSearchValue] = useState("");
   const debouncedSearchValue = useDebounce(searchValue, 300);
   const [statusFilter, setStatusFilter] = useState<"all" | NetworkStatus>(
@@ -79,17 +89,6 @@ export default function PromoterDetailsRightPanel({
   );
   const [activeView, setActiveView] = useState<TableView>("network");
   const [page, setPage] = useState(1);
-
-  const tripRows = useMemo(
-    () =>
-      networkMembers.map((member, index) => ({
-        id: `${member.id}-trip-${index}`,
-        name: `Trip #${index + 1}`,
-        secondary: member.name,
-        status: member.status,
-      })),
-    [networkMembers],
-  );
 
   const tableRows = useMemo(() => {
     if (activeView === "network") {

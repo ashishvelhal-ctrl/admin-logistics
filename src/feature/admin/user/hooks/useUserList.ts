@@ -77,8 +77,33 @@ export const useUserList = ({
 
   const deleteUserMutation = useMutation({
     mutationFn: (userId: string) => userApi.deleteUser(userId),
-    onSuccess: async () => {
+    onSuccess: async (_, deletedUserId) => {
+      queryClient.setQueriesData({ queryKey: ["users"] }, (oldData: any) => {
+        if (!oldData || !Array.isArray(oldData.data)) return oldData;
+
+        const nextData = oldData.data.filter(
+          (item: any) => (item.id || item._id) !== deletedUserId,
+        );
+
+        const currentTotal =
+          typeof oldData?.paginationMeta?.total === "number"
+            ? oldData.paginationMeta.total
+            : oldData.data.length;
+
+        return {
+          ...oldData,
+          data: nextData,
+          paginationMeta: oldData.paginationMeta
+            ? {
+                ...oldData.paginationMeta,
+                total: Math.max(0, currentTotal - 1),
+              }
+            : oldData.paginationMeta,
+        };
+      });
+
       await queryClient.invalidateQueries({ queryKey: ["users"] });
+      await queryClient.refetchQueries({ queryKey: ["users"] });
     },
   });
 

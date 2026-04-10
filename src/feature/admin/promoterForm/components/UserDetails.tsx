@@ -6,13 +6,14 @@ import PromoterUserDetailsHeader from "@/feature/promoter/network/components/pro
 import PromoterUserSidebar from "@/feature/promoter/network/components/promoter-user-details/PromoterUserSidebar";
 import PromoterUserStats from "@/feature/promoter/network/components/promoter-user-details/PromoterUserStats";
 import { PromoterUserDetailsState } from "@/feature/promoter/network/components/promoter-user-details/PromoterUserDetailsStates";
-import { networkApi } from "@/feature/promoter/network/services/networkApi";
+import { promoterApi } from "../services/promoterApi";
 import { useViewDrivingLicense } from "@/feature/promoter/user/hooks/useViewDrivingLicense";
 
 export default function UserDetails() {
   const navigate = useNavigate();
   const { userId, promoterId } = useSearch({ from: "/(admin)/userDetails" });
   const selectedUserId = userId ?? "";
+  const { viewDrivingLicense } = useViewDrivingLicense();
 
   const [activeTab, setActiveTab] = useState<"vehicles" | "trips">("vehicles");
   const [vehiclePage, setVehiclePage] = useState(1);
@@ -23,45 +24,70 @@ export default function UserDetails() {
     isLoading: isUserLoading,
     error: userError,
   } = useQuery({
-    queryKey: ["adminUserDetails", selectedUserId],
+    queryKey: ["adminUserDetails", promoterId, selectedUserId],
     queryFn: async () => {
       if (!selectedUserId) return null;
-      return networkApi.getUserById(selectedUserId);
+      if (promoterId) {
+        const userFromPromoter = await promoterApi.getPromoterUserById(
+          promoterId,
+          selectedUserId,
+        );
+        if (userFromPromoter) return userFromPromoter;
+      }
+      return promoterApi.getAdminUserById(selectedUserId);
     },
     enabled: !!selectedUserId,
   });
 
-  const {
-    data: profileStatusData,
-    isLoading: isStatusLoading,
-    error: statusError,
-  } = useQuery({
-    queryKey: ["adminUserProfileCompletionStatus", selectedUserId],
-    queryFn: async () => {
-      if (!selectedUserId) return null;
-      return networkApi.getUserProfileCompletionStatus(selectedUserId);
-    },
-    enabled: !!selectedUserId,
-  });
+  const profileStatusData = useMemo(() => {
+    const normalizedStatus = String(userDetails?.profileStatus || "")
+      .trim()
+      .toLowerCase();
+    const phoneVerifiedStatuses = [
+      "phone_number_verified",
+      "profile_completed",
+      "dl_verified",
+      "verified",
+      "active",
+    ];
+
+    const phoneVerified = phoneVerifiedStatuses.includes(normalizedStatus);
+    const drivingLicenseVerified =
+      normalizedStatus === "dl_verified" ||
+      Boolean(userDetails?.drivingLicense) ||
+      String(userDetails?.drivingLicenseData?.status || "").toLowerCase() ===
+        "verified";
+
+    return {
+      profileStatus: userDetails?.profileStatus,
+      steps: {
+        phoneVerified: { completed: phoneVerified },
+      },
+      isDrivingLicenseVerified: drivingLicenseVerified,
+      drivingLicenseVerified,
+    };
+  }, [userDetails]);
 
   const {
     data: vehiclesResponse,
     isLoading: isVehiclesLoading,
     error: vehiclesError,
   } = useQuery({
-    queryKey: ["adminUserVehicles", selectedUserId],
+    queryKey: ["adminUserVehicles", selectedUserId, vehiclePage],
     queryFn: async () => {
       if (!selectedUserId) return null;
-      return networkApi.getUserVehicles(selectedUserId, {
-        limit: 100,
-        offset: 0,
+      const limit = 5;
+      const offset = (vehiclePage - 1) * limit;
+      return promoterApi.getAdminUserVehicles(selectedUserId, {
+        limit,
+        offset,
       });
     },
     enabled: !!selectedUserId,
   });
 
-  const isLoading = isUserLoading || isStatusLoading || isVehiclesLoading;
-  const error = userError || statusError || vehiclesError;
+  const isLoading = isUserLoading || isVehiclesLoading;
+  const error = userError || vehiclesError;
 
   const isVerified = [
     "verified",
@@ -109,7 +135,10 @@ export default function UserDetails() {
     }));
   }, [vehiclesResponse?.data]);
 
-  const vehicleTotalPages = Math.max(1, Math.ceil(vehicles.length / 5));
+  const vehicleTotalPages = Math.max(
+    1,
+    Number(vehiclesResponse?.paginationMeta?.total_pages ?? 1),
+  );
 
   if (!selectedUserId) {
     return (
@@ -161,8 +190,6 @@ export default function UserDetails() {
     });
   };
 
-  const { viewDrivingLicense } = useViewDrivingLicense();
-
   return (
     <div className="bg-common-bg pr-4 pl-3 pb-6 md:pr-10 md:pl-4">
       <PromoterUserDetailsHeader
@@ -196,9 +223,11 @@ export default function UserDetails() {
           setVehiclePage={setVehiclePage}
           vehicleTotalPages={vehicleTotalPages}
           vehicles={vehicles}
+          vehicleServerPaginated
           tripPage={tripPage}
           setTripPage={setTripPage}
           userId={selectedUserId}
+          tripApiMode="admin"
           onAddVehicle={() => navigate({ to: "/addvehical" })} //commnet out after the backend is ready
         />
       </div>

@@ -37,8 +37,51 @@ export function usePromoterEdit({
       payload: { name: string; phoneNumber: string; address: string };
     }) => promoterApi.updatePromoter(id, payload),
     onSuccess: async (_, variables) => {
+      queryClient.setQueriesData(
+        { queryKey: ["promoters"] },
+        (oldData: any) => {
+          if (!oldData || !Array.isArray(oldData.data)) return oldData;
+          return {
+            ...oldData,
+            data: oldData.data.map((item: any) =>
+              (item.id || item._id) === variables.id
+                ? {
+                    ...item,
+                    name: variables.payload.name,
+                    fullName: variables.payload.name,
+                    address: variables.payload.address,
+                    assignedAddress: variables.payload.address,
+                    phoneNumber: variables.payload.phoneNumber,
+                    mobileNumber: variables.payload.phoneNumber,
+                  }
+                : item,
+            ),
+          };
+        },
+      );
+
+      queryClient.setQueryData(
+        ["promoterDetails", variables.id],
+        (oldData: any) => {
+          if (!oldData) return oldData;
+          return {
+            ...oldData,
+            name: variables.payload.name,
+            fullName: variables.payload.name,
+            address: variables.payload.address,
+            assignedAddress: variables.payload.address,
+            phoneNumber: variables.payload.phoneNumber,
+            mobileNumber: variables.payload.phoneNumber,
+          };
+        },
+      );
+
       await queryClient.invalidateQueries({ queryKey: ["promoters"] });
       await queryClient.invalidateQueries({
+        queryKey: ["promoterDetails", variables.id],
+      });
+      await queryClient.refetchQueries({ queryKey: ["promoters"] });
+      await queryClient.refetchQueries({
         queryKey: ["promoterDetails", variables.id],
       });
     },

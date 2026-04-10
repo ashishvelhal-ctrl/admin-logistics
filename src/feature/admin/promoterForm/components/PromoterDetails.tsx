@@ -39,15 +39,18 @@ export default function PromoterDetails() {
     promoter,
     isLoadingPromoter,
     isLoadingUsers,
+    isLoadingTrips,
     promoterError,
     usersError,
+    tripsError,
     deletePromoterMutation,
     restorePromoterMutation,
   } = usePromoterDetails(promoterId);
 
-  if (promoterError || usersError) {
+  if (promoterError || usersError || tripsError) {
     console.error("Promoter API Error:", promoterError);
     console.error("Users API Error:", usersError);
+    console.error("Trips API Error:", tripsError);
   }
 
   if (!promoterId) {
@@ -65,7 +68,7 @@ export default function PromoterDetails() {
     );
   }
 
-  if (isLoadingPromoter || isLoadingUsers) {
+  if (isLoadingPromoter || isLoadingUsers || isLoadingTrips) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-4">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -194,11 +197,14 @@ export default function PromoterDetails() {
         </div>
 
         <PromoterNetworkTable
+          promoterId={String(promoter.id)}
           totalOnboard={promoter.totalOnboard}
+          totalCreatedTrips={promoter.totalCreatedTrips}
           totalEarnings={promoter.totalEarnings}
           targetCurrent={promoter.targetCurrent}
           targetTotal={promoter.targetTotal}
           networkMembers={promoter.networkMembers}
+          tripRows={promoter.tripRows}
         />
       </div>
     </div>

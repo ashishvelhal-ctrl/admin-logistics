@@ -18,9 +18,11 @@ type StatsProps = {
   setVehiclePage: (page: number) => void;
   vehicleTotalPages: number;
   vehicles: any[];
+  vehicleServerPaginated?: boolean;
   tripPage: number;
   setTripPage: (page: number) => void;
   userId: string;
+  tripApiMode?: "promoter" | "admin";
   onAddVehicle: () => void;
 };
 
@@ -32,9 +34,11 @@ export default function PromoterUserStats({
   setVehiclePage,
   vehicleTotalPages,
   vehicles,
+  vehicleServerPaginated = false,
   tripPage,
   setTripPage,
   userId,
+  tripApiMode = "promoter",
   onAddVehicle,
 }: StatsProps) {
   return (
@@ -121,10 +125,12 @@ export default function PromoterUserStats({
               currentPage={vehiclePage}
               onPageChange={setVehiclePage}
               totalPages={vehicleTotalPages}
+              serverPaginated={vehicleServerPaginated}
             />
           ) : (
             <TripTable
               userId={userId}
+              apiMode={tripApiMode}
               currentPage={tripPage}
               onPageChange={setTripPage}
             />

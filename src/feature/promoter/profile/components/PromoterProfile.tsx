@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import PromoterContactInfo from "@/feature/admin/promoterForm/components/PromoterContactInfo";
 import PromoterNetworkTable, {
   type PromoterNetworkMember,
+  type PromoterTripRow,
 } from "@/feature/admin/promoterForm/components/PromoterNetworkTable";
 import StatusPieChart from "@/feature/admin/promoterForm/components/StatusPieChart";
 import { networkApi } from "@/feature/promoter/network/services/networkApi";
@@ -125,6 +126,15 @@ export default function PromoterProfile() {
               : "inProgress",
       })) || [],
   };
+
+  const promoterTripRows: PromoterTripRow[] = promoter.networkMembers.map(
+    (member, index) => ({
+      id: `${member.id}-trip-${index}`,
+      name: `Trip #${index + 1}`,
+      secondary: member.name,
+      status: member.status,
+    }),
+  );
 
   const completedCount = getStatusCount(promoter.networkMembers, "completed");
   const inProgressCount = getStatusCount(promoter.networkMembers, "inProgress");
@@ -352,11 +362,14 @@ export default function PromoterProfile() {
           </div>
 
           <PromoterNetworkTable
+            promoterId={String(promoter.id)}
             totalOnboard={promoter.totalOnboard}
+            totalCreatedTrips={promoterTripRows.length}
             totalEarnings={promoter.totalEarnings}
             targetCurrent={promoter.targetCurrent}
             targetTotal={promoter.targetTotal}
             networkMembers={promoter.networkMembers}
+            tripRows={promoterTripRows}
           />
         </div>
       </section>

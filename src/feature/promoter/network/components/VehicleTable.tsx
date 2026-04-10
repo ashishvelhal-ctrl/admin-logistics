@@ -8,6 +8,7 @@ interface VehicleTableProps {
   currentPage: number;
   onPageChange: (page: number) => void;
   totalPages: number;
+  serverPaginated?: boolean;
 }
 
 export default function VehicleTable({
@@ -15,13 +16,15 @@ export default function VehicleTable({
   currentPage,
   onPageChange,
   totalPages,
+  serverPaginated = false,
 }: VehicleTableProps) {
   const paginatedVehicles = useMemo(() => {
+    if (serverPaginated) return vehicles;
     const ITEMS_PER_PAGE = 5;
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const endIndex = startIndex + ITEMS_PER_PAGE;
     return vehicles.slice(startIndex, endIndex);
-  }, [vehicles, currentPage]);
+  }, [vehicles, currentPage, serverPaginated]);
 
   return (
     <div className="space-y-4">
@@ -82,15 +85,13 @@ export default function VehicleTable({
           )}
         </div>
       </div>
-      {totalPages > 1 && (
-        <div className="flex justify-center">
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={onPageChange}
-          />
-        </div>
-      )}
+      <div className="flex justify-center">
+        <Pagination
+          currentPage={currentPage}
+          totalPages={Math.max(1, totalPages)}
+          onPageChange={onPageChange}
+        />
+      </div>
     </div>
   );
 }

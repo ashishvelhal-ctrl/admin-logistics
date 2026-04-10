@@ -103,9 +103,37 @@ export const usePromoterList = ({
 
   const deletePromoterMutation = useMutation({
     mutationFn: (promoterId: string) => promoterApi.deletePromoter(promoterId),
-    onSuccess: async () => {
+    onSuccess: async (_, deletedPromoterId) => {
+      queryClient.setQueriesData(
+        { queryKey: ["promoters"] },
+        (oldData: any) => {
+          if (!oldData || !Array.isArray(oldData.data)) return oldData;
+
+          const nextData = oldData.data.filter(
+            (item: any) => (item.id || item._id) !== deletedPromoterId,
+          );
+
+          const currentTotal =
+            typeof oldData?.paginationMeta?.total === "number"
+              ? oldData.paginationMeta.total
+              : oldData.data.length;
+
+          return {
+            ...oldData,
+            data: nextData,
+            paginationMeta: oldData.paginationMeta
+              ? {
+                  ...oldData.paginationMeta,
+                  total: Math.max(0, currentTotal - 1),
+                }
+              : oldData.paginationMeta,
+          };
+        },
+      );
+
       await queryClient.invalidateQueries({ queryKey: ["promoters"] });
       await queryClient.invalidateQueries({ queryKey: ["promoterDetails"] });
+      await queryClient.refetchQueries({ queryKey: ["promoters"] });
     },
   });
 

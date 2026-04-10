@@ -13,8 +13,8 @@ const DeleteModal = ({ open, title, onClose, onConfirm }: Props) => {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/40">
-      <div className="w-[620px] bg-white rounded-xl p-6 shadow-lg">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="z-50 w-[620px] rounded-xl bg-white p-6 shadow-lg">
         <h2 className="text-lg font-semibold mb-2 flex items-center gap-2">
           <TriangleAlert className="size-5 text-icon-2-color" />
           Delete {title}

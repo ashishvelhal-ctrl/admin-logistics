@@ -1,6 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { promoterApi } from "../services/promoterApi";
-import type { PromoterNetworkMember } from "../components/PromoterNetworkTable";
+import type {
+  PromoterNetworkMember,
+  PromoterTripRow,
+} from "../components/PromoterNetworkTable";
 
 export interface PromoterProfile {
   id: string;
@@ -9,10 +12,28 @@ export interface PromoterProfile {
   assignedAddress: string;
   isActive: boolean;
   totalOnboard: number;
+  totalCreatedTrips: number;
   totalEarnings: number;
   targetCurrent: number;
   targetTotal: number;
   networkMembers: PromoterNetworkMember[];
+  tripRows: PromoterTripRow[];
+}
+
+function normalizeTripStatus(status: unknown): PromoterNetworkMember["status"] {
+  const value = String(status || "")
+    .trim()
+    .toLowerCase();
+
+  if (value === "completed" || value === "delivered" || value === "verified") {
+    return "completed";
+  }
+
+  if (value === "pending" || value === "requested" || value === "new") {
+    return "pending";
+  }
+
+  return "inProgress";
 }
 
 export function usePromoterDetails(promoterId: string | undefined) {
@@ -37,11 +58,27 @@ export function usePromoterDetails(promoterId: string | undefined) {
     mutationFn: async (id: string) => {
       return promoterApi.deletePromoter(id);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
+    onSuccess: async (_, id) => {
+      queryClient.setQueryData(["promoterDetails", id], (oldData: any) => {
+        if (!oldData) return oldData;
+        const now = new Date().toISOString();
+        return {
+          ...oldData,
+          isActive: false,
+          isDeleted: true,
+          deletedAt: oldData.deletedAt ?? now,
+          updatedAt: now,
+        };
+      });
+
+      await queryClient.invalidateQueries({
         queryKey: ["promoterDetails", promoterId],
       });
-      queryClient.invalidateQueries({ queryKey: ["promoters"] });
+      await queryClient.invalidateQueries({ queryKey: ["promoters"] });
+      await queryClient.refetchQueries({
+        queryKey: ["promoterDetails", promoterId],
+      });
+      await queryClient.refetchQueries({ queryKey: ["promoters"] });
     },
   });
 
@@ -50,11 +87,27 @@ export function usePromoterDetails(promoterId: string | undefined) {
     mutationFn: async (id: string) => {
       return promoterApi.restorePromoter(id);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
+    onSuccess: async (_, id) => {
+      queryClient.setQueryData(["promoterDetails", id], (oldData: any) => {
+        if (!oldData) return oldData;
+        const now = new Date().toISOString();
+        return {
+          ...oldData,
+          isActive: true,
+          isDeleted: false,
+          deletedAt: null,
+          updatedAt: now,
+        };
+      });
+
+      await queryClient.invalidateQueries({
         queryKey: ["promoterDetails", promoterId],
       });
-      queryClient.invalidateQueries({ queryKey: ["promoters"] });
+      await queryClient.invalidateQueries({ queryKey: ["promoters"] });
+      await queryClient.refetchQueries({
+        queryKey: ["promoterDetails", promoterId],
+      });
+      await queryClient.refetchQueries({ queryKey: ["promoters"] });
     },
   });
 
@@ -72,7 +125,37 @@ export function usePromoterDetails(promoterId: string | undefined) {
     enabled: !!promoterId,
   });
 
+  const {
+    data: servicePostGroups,
+    isLoading: isLoadingTrips,
+    error: tripsError,
+  } = useQuery({
+    queryKey: ["promoterServicePosts", promoterId],
+    queryFn: async () => {
+      if (!promoterId) return [];
+      return promoterApi.getServicePostsByPromoterId(promoterId);
+    },
+    enabled: !!promoterId,
+  });
+
   // Transform API data to component format
+  const tripRows: PromoterTripRow[] =
+    servicePostGroups?.flatMap((group: any, groupIndex: number) => {
+      const createdBy = group?.user?.name || "Unknown";
+      const servicePosts = Array.isArray(group?.servicePosts)
+        ? group.servicePosts
+        : [];
+
+      return servicePosts.map((post: any, postIndex: number) => ({
+        id: String(post?.id || post?._id || `${groupIndex}-${postIndex}`),
+        name: post?.postId
+          ? `Trip #${post.postId}`
+          : `Trip #${groupIndex + 1}-${postIndex + 1}`,
+        secondary: createdBy,
+        status: normalizeTripStatus(post?.status),
+      }));
+    }) || [];
+
   const promoter: PromoterProfile | null = promoterData
     ? {
         isActive:
@@ -86,6 +169,7 @@ export function usePromoterDetails(promoterId: string | undefined) {
         assignedAddress:
           promoterData.assignedAddress || promoterData.address || "Pune",
         totalOnboard: usersData?.total || 0,
+        totalCreatedTrips: tripRows.length,
         totalEarnings:
           usersData?.data?.reduce(
             (sum: number, user: any) =>
@@ -114,6 +198,7 @@ export function usePromoterDetails(promoterId: string | undefined) {
                   ? "pending"
                   : "inProgress",
           })) || [],
+        tripRows,
       }
     : null;
 
@@ -121,8 +206,10 @@ export function usePromoterDetails(promoterId: string | undefined) {
     promoter,
     isLoadingPromoter,
     isLoadingUsers,
+    isLoadingTrips,
     promoterError,
     usersError,
+    tripsError,
     deletePromoterMutation,
     restorePromoterMutation,
   };

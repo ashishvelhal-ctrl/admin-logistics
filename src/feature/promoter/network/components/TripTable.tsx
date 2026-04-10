@@ -3,17 +3,20 @@ import { useQuery } from "@tanstack/react-query";
 
 import { PaginationWrapper as Pagination } from "@/components/common/Pagination";
 import { networkApi, type UserTrip } from "../services/networkApi";
+import { promoterApi } from "@/feature/admin/promoterForm/services/promoterApi";
 import { formatDate } from "@/lib/format-utils";
 import { cn } from "@/lib/utils";
 
 interface TripTableProps {
   userId: string;
+  apiMode?: "promoter" | "admin";
   currentPage: number;
   onPageChange: (page: number) => void;
 }
 
 export default function TripTable({
   userId,
+  apiMode = "promoter",
   currentPage,
   onPageChange,
 }: TripTableProps) {
@@ -24,11 +27,17 @@ export default function TripTable({
     isLoading: isLoadingTrips,
     error: tripsError,
   } = useQuery({
-    queryKey: ["userTrips", userId, currentPage],
+    queryKey: ["userTrips", apiMode, userId, currentPage],
     queryFn: async () => {
       if (!userId)
         return { data: [], paginationMeta: { total: 0, total_pages: 1 } };
       const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+      if (apiMode === "admin") {
+        return promoterApi.getAdminUserTrips(userId, {
+          limit: ITEMS_PER_PAGE,
+          offset,
+        });
+      }
       return networkApi.getUserTrips(userId, { limit: ITEMS_PER_PAGE, offset });
     },
     enabled: !!userId,
@@ -159,15 +168,13 @@ export default function TripTable({
           )}
         </div>
       </div>
-      {totalPages > 1 && (
-        <div className="flex justify-center">
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={onPageChange}
-          />
-        </div>
-      )}
+      <div className="flex justify-center">
+        <Pagination
+          currentPage={currentPage}
+          totalPages={Math.max(1, totalPages)}
+          onPageChange={onPageChange}
+        />
+      </div>
     </div>
   );
 }

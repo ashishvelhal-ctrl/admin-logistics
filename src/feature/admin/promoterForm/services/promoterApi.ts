@@ -190,24 +190,278 @@ export const promoterApi = {
         ? `/admin/promoters/${promoterId}/users?${queryParams.toString()}`
         : `/admin/promoters/${promoterId}/users`;
 
-      const response = (await apiClient.get(url)) as any;
-      const responseData = normalizeResponseData(response);
+      const rawResponse = (await apiClient.get(url)) as any;
+      const responseData = normalizeResponseData(rawResponse);
 
-      const users = Array.isArray(responseData.data)
+      const users = Array.isArray(responseData?.data)
         ? responseData.data
-        : Array.isArray(responseData.users)
-          ? responseData.users
-          : [];
+        : Array.isArray(rawResponse?.data)
+          ? rawResponse.data
+          : Array.isArray(responseData?.users)
+            ? responseData.users
+            : Array.isArray(rawResponse?.users)
+              ? rawResponse.users
+              : Array.isArray(responseData)
+                ? responseData
+                : [];
 
-      const total =
-        responseData.paginationMeta?.total ||
-        responseData.total ||
-        users.length ||
-        0;
+      const total = Number(
+        responseData?.paginationMeta?.total ??
+          rawResponse?.paginationMeta?.total ??
+          responseData?.total ??
+          rawResponse?.total ??
+          users.length ??
+          0,
+      );
 
       return { data: users, total };
     } catch {
       return { data: [], total: 0 };
+    }
+  },
+
+  getPromoterUserById: async (
+    promoterId: string,
+    userId: string,
+  ): Promise<any | null> => {
+    const limit = 100;
+    let offset = 0;
+    let total = Number.POSITIVE_INFINITY;
+
+    while (offset < total) {
+      const response = await promoterApi.getPromoterUsers(promoterId, {
+        limit,
+        offset,
+      });
+      const found = response.data.find(
+        (user: any) => String(user.id || user._id) === String(userId),
+      );
+      if (found) return found;
+
+      total = response.total;
+      offset += limit;
+      if (response.data.length < limit) break;
+    }
+
+    return null;
+  },
+
+  getAdminUserById: async (userId: string): Promise<any | null> => {
+    try {
+      const limit = 100;
+      let offset = 0;
+      let total = Number.POSITIVE_INFINITY;
+
+      while (offset < total) {
+        const queryParams = new URLSearchParams();
+        queryParams.append("limit", String(limit));
+        queryParams.append("offset", String(offset));
+        const url = `/admin/users?${queryParams.toString()}`;
+
+        const rawResponse = (await apiClient.get(url)) as any;
+        const responseData = normalizeResponseData(rawResponse);
+
+        const users = Array.isArray(responseData?.data)
+          ? responseData.data
+          : Array.isArray(rawResponse?.data)
+            ? rawResponse.data
+            : Array.isArray(responseData)
+              ? responseData
+              : [];
+
+        const found = users.find(
+          (user: any) => String(user.id || user._id) === String(userId),
+        );
+        if (found) return found;
+
+        total = Number(
+          responseData?.paginationMeta?.total ??
+            rawResponse?.paginationMeta?.total ??
+            users.length ??
+            0,
+        );
+        offset += limit;
+        if (users.length < limit) break;
+      }
+
+      return null;
+    } catch {
+      return null;
+    }
+  },
+
+  getServicePostsByPromoterId: async (promoterId: string): Promise<any[]> => {
+    try {
+      const response = (await apiClient.get(
+        `/admin/promoters/${promoterId}/service-posts`,
+      )) as any;
+      const responseData = normalizeResponseData(response);
+      const groups = Array.isArray(responseData?.data)
+        ? responseData.data
+        : Array.isArray(responseData)
+          ? responseData
+          : [];
+      return groups;
+    } catch {
+      return [];
+    }
+  },
+
+  getAdminUserVehicles: async (
+    userId: string,
+    params: { limit?: number; offset?: number } = {},
+  ): Promise<{ data: any[]; paginationMeta: any }> => {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params.limit !== undefined) {
+        queryParams.append("limit", String(params.limit));
+      }
+      if (params.offset !== undefined) {
+        queryParams.append("offset", String(params.offset));
+      }
+      const url = queryParams.toString()
+        ? `/admin/users/${userId}/vehicles?${queryParams.toString()}`
+        : `/admin/users/${userId}/vehicles`;
+
+      const rawResponse = (await apiClient.get(url)) as any;
+      const responseData = normalizeResponseData(rawResponse);
+      const data = Array.isArray(responseData?.data)
+        ? responseData.data
+        : Array.isArray(rawResponse?.data)
+          ? rawResponse.data
+          : Array.isArray(responseData)
+            ? responseData
+            : [];
+
+      const requestedLimit = toPositiveInt(params.limit, 10);
+      const requestedOffset = toNonNegativeInt(params.offset, 0);
+      const rawPaginationMeta =
+        rawResponse?.paginationMeta ?? responseData?.paginationMeta ?? {};
+      const total = toNonNegativeInt(rawPaginationMeta.total, data.length);
+      const limit = toPositiveInt(rawPaginationMeta.limit, requestedLimit);
+      const offset = toNonNegativeInt(
+        rawPaginationMeta.offset,
+        requestedOffset,
+      );
+      const totalPages = toPositiveInt(
+        rawPaginationMeta.total_pages,
+        Math.max(1, Math.ceil(total / limit)),
+      );
+      const currentPage = toPositiveInt(
+        rawPaginationMeta.current_page,
+        Math.floor(offset / limit) + 1,
+      );
+
+      return {
+        data,
+        paginationMeta: {
+          total,
+          limit,
+          offset,
+          current_page: currentPage,
+          total_pages: totalPages,
+          has_next_page:
+            typeof rawPaginationMeta.has_next_page === "boolean"
+              ? rawPaginationMeta.has_next_page
+              : currentPage < totalPages,
+          has_prev_page:
+            typeof rawPaginationMeta.has_prev_page === "boolean"
+              ? rawPaginationMeta.has_prev_page
+              : currentPage > 1,
+        },
+      };
+    } catch {
+      return {
+        data: [],
+        paginationMeta: {
+          total: 0,
+          limit: params.limit ?? 10,
+          offset: params.offset ?? 0,
+          current_page: 1,
+          total_pages: 1,
+          has_next_page: false,
+          has_prev_page: false,
+        },
+      };
+    }
+  },
+
+  getAdminUserTrips: async (
+    userId: string,
+    params: { limit?: number; offset?: number } = {},
+  ): Promise<{ data: any[]; paginationMeta: any }> => {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params.limit !== undefined) {
+        queryParams.append("limit", String(params.limit));
+      }
+      if (params.offset !== undefined) {
+        queryParams.append("offset", String(params.offset));
+      }
+      queryParams.append("userId", userId);
+
+      const url = `/admin/users/service-posts?${queryParams.toString()}`;
+
+      const rawResponse = (await apiClient.get(url)) as any;
+      const responseData = normalizeResponseData(rawResponse);
+      const data = Array.isArray(responseData?.data)
+        ? responseData.data
+        : Array.isArray(rawResponse?.data)
+          ? rawResponse.data
+          : Array.isArray(responseData)
+            ? responseData
+            : [];
+
+      const requestedLimit = toPositiveInt(params.limit, 10);
+      const requestedOffset = toNonNegativeInt(params.offset, 0);
+      const rawPaginationMeta =
+        rawResponse?.paginationMeta ?? responseData?.paginationMeta ?? {};
+      const total = toNonNegativeInt(rawPaginationMeta.total, data.length);
+      const limit = toPositiveInt(rawPaginationMeta.limit, requestedLimit);
+      const offset = toNonNegativeInt(
+        rawPaginationMeta.offset,
+        requestedOffset,
+      );
+      const totalPages = toPositiveInt(
+        rawPaginationMeta.total_pages,
+        Math.max(1, Math.ceil(total / limit)),
+      );
+      const currentPage = toPositiveInt(
+        rawPaginationMeta.current_page,
+        Math.floor(offset / limit) + 1,
+      );
+
+      return {
+        data,
+        paginationMeta: {
+          total,
+          limit,
+          offset,
+          current_page: currentPage,
+          total_pages: totalPages,
+          has_next_page:
+            typeof rawPaginationMeta.has_next_page === "boolean"
+              ? rawPaginationMeta.has_next_page
+              : currentPage < totalPages,
+          has_prev_page:
+            typeof rawPaginationMeta.has_prev_page === "boolean"
+              ? rawPaginationMeta.has_prev_page
+              : currentPage > 1,
+        },
+      };
+    } catch {
+      return {
+        data: [],
+        paginationMeta: {
+          total: 0,
+          limit: params.limit ?? 10,
+          offset: params.offset ?? 0,
+          current_page: 1,
+          total_pages: 1,
+          has_next_page: false,
+          has_prev_page: false,
+        },
+      };
     }
   },
 
