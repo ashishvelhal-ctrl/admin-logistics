@@ -199,18 +199,19 @@ export const networkApi = {
     params: { limit?: number; offset?: number } = {},
   ): Promise<UserTripsResponse> => {
     const queryParams = new URLSearchParams();
+    const normalizedId = String(id ?? "").trim();
     if (params.limit !== undefined) {
       queryParams.append("limit", String(params.limit));
     }
     if (params.offset !== undefined) {
       queryParams.append("offset", String(params.offset));
     }
-    if (id) {
-      queryParams.append("userId", id);
+    if (normalizedId) {
+      queryParams.append("userId", normalizedId);
     }
     const url = queryParams.toString()
       ? `/promoter/user/service-posts?${queryParams.toString()}`
-      : `/promoter/user/service-posts?userId=${id}`;
+      : "/promoter/user/service-posts";
 
     try {
       const responseData = (await apiClient.get(url)) as any;

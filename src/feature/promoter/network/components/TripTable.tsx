@@ -160,7 +160,7 @@ export default function TripTable({
                     </span>
                   </div>
                   <div className="font-semibold text-heading-color">
-                    ${trip.price ? trip.price.toFixed(2) : "0.00"}
+                    ₹{trip.price}
                   </div>
                 </div>
               </div>

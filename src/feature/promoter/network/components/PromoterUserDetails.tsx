@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { networkApi } from "../services/networkApi";
 import { formatDate } from "@/lib/format-utils";
 import { usePromoterUserDetails } from "../hooks/usePromoterUserDetails";
+import { useViewDrivingLicense } from "@/feature/promoter/user/hooks/useViewDrivingLicense";
 import type { UserTrip } from "../schema/networkTypes";
 import PromoterUserDetailsHeader from "./promoter-user-details/PromoterUserDetailsHeader";
 import PromoterUserSidebar from "./promoter-user-details/PromoterUserSidebar";
@@ -17,6 +18,7 @@ import { PromoterUserDetailsState } from "./promoter-user-details/PromoterUserDe
 
 export default function PromoterUserDetails() {
   const navigate = useNavigate();
+  const { viewDrivingLicense } = useViewDrivingLicense();
   const {
     userId,
     activeTab,
@@ -95,44 +97,6 @@ export default function PromoterUserDetails() {
         resend: true,
       },
     });
-  };
-
-  const handleViewDrivingLicense = () => {
-    const dlData = {
-      message: "Driving license verified",
-      data: {
-        licenseNumber: userDetails.drivingLicense || "N/A",
-        name: userDetails.name || "N/A",
-        dob: userDetails.dateOfBirth || "N/A",
-        state: "N/A",
-        dateOfIssue: "N/A",
-        dateOfExpiry: "N/A",
-        gender: "N/A",
-        permanentAddress: userDetails.address || "N/A",
-        temporaryAddress: userDetails.address || "N/A",
-        fatherOrHusbandName: "N/A",
-        citizenship: "N/A",
-        olaName: "N/A",
-        olaCode: "N/A",
-        clientId: userId,
-        permanentZip: "N/A",
-        cityName: "N/A",
-        temporaryZip: "N/A",
-        transportDateOfExpiry: "N/A",
-        transportDateOfIssue: "N/A",
-        bloodGroup: "N/A",
-        vehicleClasses: [],
-        additionalCheck: [],
-        initialDateOfIssue: "N/A",
-        currentStatus: null,
-        vehicleClassDescription: [],
-        status: "VERIFIED",
-        verificationSource: "System",
-      },
-    };
-
-    sessionStorage.setItem("dlVerificationData", JSON.stringify(dlData));
-    navigate({ to: "/verifyDrivingLicence" });
   };
 
   const phoneValue = userDetails.phoneNumber || "";
@@ -224,7 +188,7 @@ export default function PromoterUserDetails() {
               {isDrivingLicenseVerified ? (
                 <button
                   type="button"
-                  onClick={handleViewDrivingLicense}
+                  onClick={() => viewDrivingLicense(String(userId), userDetails)}
                   className="inline-flex items-center gap-1 text-xs font-semibold text-[#2F7D60]"
                 >
                   <CheckCircle2 className="h-3.5 w-3.5" />
@@ -439,7 +403,7 @@ export default function PromoterUserDetails() {
             isVerified={isVerified}
             isDrivingLicenseVerified={isDrivingLicenseVerified}
             onVerifyPhone={handleVerifyPhone}
-            onViewDrivingLicense={handleViewDrivingLicense}
+            onViewDrivingLicense={() => viewDrivingLicense(String(userId), userDetails)}
             onVerifyDrivingLicense={() => navigate({ to: "/drivingLicence" })}
           />
 

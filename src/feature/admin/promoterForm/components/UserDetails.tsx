@@ -228,6 +228,7 @@ export default function UserDetails() {
           setTripPage={setTripPage}
           userId={selectedUserId}
           tripApiMode="admin"
+          showAddVehicle={false}
           onAddVehicle={() => navigate({ to: "/addvehical" })} //commnet out after the backend is ready
         />
       </div>

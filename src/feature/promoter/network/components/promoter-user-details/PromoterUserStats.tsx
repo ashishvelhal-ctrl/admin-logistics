@@ -23,6 +23,7 @@ type StatsProps = {
   setTripPage: (page: number) => void;
   userId: string;
   tripApiMode?: "promoter" | "admin";
+  showAddVehicle?: boolean;
   onAddVehicle: () => void;
 };
 
@@ -39,6 +40,7 @@ export default function PromoterUserStats({
   setTripPage,
   userId,
   tripApiMode = "promoter",
+  showAddVehicle = true,
   onAddVehicle,
 }: StatsProps) {
   return (
@@ -107,7 +109,7 @@ export default function PromoterUserStats({
                 ? "Vehicle Details"
                 : "User Trip History"}
             </h3>
-            {activeTab === "vehicles" ? (
+            {activeTab === "vehicles" && showAddVehicle ? (
               <Button
                 type="button"
                 onClick={onAddVehicle}

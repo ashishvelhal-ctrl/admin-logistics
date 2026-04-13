@@ -58,18 +58,7 @@ export default function PromoterProfile() {
   const [authState] = useAtom(authAtom);
   const [mobileSearch, setMobileSearch] = useState("");
   const [mobilePage, setMobilePage] = useState(1);
-
-  const {
-    data: usersData,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["promoterProfileUsers"],
-    queryFn: () => networkApi.getUsers({ limit: 100, offset: 0 }),
-    staleTime: 1000 * 60 * 5,
-  });
-
-  const promoterUser = (() => {
+  const promoterUser = useMemo(() => {
     if (!authState.user) return null;
     try {
       return JSON.parse(authState.user);
@@ -81,7 +70,33 @@ export default function PromoterProfile() {
         id: null,
       };
     }
-  })();
+  }, [authState.user]);
+  const promoterUserId = promoterUser?.id ? String(promoterUser.id) : "";
+
+  const {
+    data: usersData,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["promoterProfileUsers"],
+    queryFn: () => networkApi.getUsers({ limit: 100, offset: 0 }),
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const {
+    data: tripsData,
+    isLoading: isTripsLoading,
+    error: tripsError,
+  } = useQuery({
+    queryKey: ["promoterProfileTrips", promoterUserId],
+    queryFn: () =>
+      networkApi.getUserTrips(promoterUserId, { limit: 500, offset: 0 }),
+    enabled: Boolean(promoterUserId),
+    staleTime: 1000 * 60 * 2,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
+  });
 
   const formatPhoneNumber = (phone: string) => {
     if (!phone) return "N/A";
@@ -120,24 +135,39 @@ export default function PromoterProfile() {
         phone: user.phoneNumber,
         status:
           user.profileStatus === "verified"
-            ? "completed"
+            ? "active"
             : user.profileStatus === "pending"
               ? "pending"
-              : "inProgress",
+              : "inactive",
       })) || [],
   };
 
-  const promoterTripRows: PromoterTripRow[] = promoter.networkMembers.map(
-    (member, index) => ({
-      id: `${member.id}-trip-${index}`,
-      name: `Trip #${index + 1}`,
-      secondary: member.name,
-      status: member.status,
-    }),
+  const promoterTripRows: PromoterTripRow[] = useMemo(
+    () =>
+      (tripsData?.data ?? []).map((trip: any, index: number) => {
+        const statusRaw = String(trip?.status || "")
+          .trim()
+          .toLowerCase();
+        const status: PromoterNetworkMember["status"] =
+          statusRaw === "completed" || statusRaw === "verified"
+            ? "active"
+            : statusRaw === "pending"
+              ? "pending"
+              : "inactive";
+
+        return {
+          id: String(trip?.id || trip?._id || `trip-${index}`),
+          name: trip?.postId ? `Trip #${trip.postId}` : `Trip #${index + 1}`,
+          secondary:
+            trip?.user?.name || trip?.userName || trip?.createdBy || "User",
+          status,
+        };
+      }),
+    [tripsData?.data],
   );
 
-  const completedCount = getStatusCount(promoter.networkMembers, "completed");
-  const inProgressCount = getStatusCount(promoter.networkMembers, "inProgress");
+  const activeCount = getStatusCount(promoter.networkMembers, "active");
+  const inactiveCount = getStatusCount(promoter.networkMembers, "inactive");
   const pendingCount = getStatusCount(promoter.networkMembers, "pending");
   const mobilePhoneDisplay = promoter.mobileNumber.startsWith("+91")
     ? promoter.mobileNumber
@@ -175,7 +205,7 @@ export default function PromoterProfile() {
     setMobilePage(1);
   }, [mobileSearch]);
 
-  if (error) {
+  if (error || tripsError) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-4">
         <div className="text-lg text-red-600">Error loading profile data</div>
@@ -190,7 +220,7 @@ export default function PromoterProfile() {
     );
   }
 
-  if (isLoading) {
+  if (isLoading || isTripsLoading) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-4">
         <div className="text-lg">Loading profile...</div>
@@ -352,8 +382,8 @@ export default function PromoterProfile() {
                 </h3>
 
                 <StatusPieChart
-                  completedCount={completedCount}
-                  inProgressCount={inProgressCount}
+                  completedCount={activeCount}
+                  inProgressCount={inactiveCount}
                   pendingCount={pendingCount}
                   totalMembers={promoter.networkMembers.length}
                 />
@@ -363,6 +393,7 @@ export default function PromoterProfile() {
 
           <PromoterNetworkTable
             promoterId={String(promoter.id)}
+            userDetailsRoute="/promoterUserDetails"
             totalOnboard={promoter.totalOnboard}
             totalCreatedTrips={promoterTripRows.length}
             totalEarnings={promoter.totalEarnings}

@@ -1,5 +1,8 @@
 import { useNavigate } from "@tanstack/react-router";
+import { useAtom } from "jotai";
 import type { DLVerificationData } from "../types/verification.types";
+import { authAtom } from "@/atoms/authAtom";
+import { ADMIN_ROLES } from "@/routes/guards/-requireRoles";
 
 interface UserDetailsForDL {
   drivingLicense?: string;
@@ -10,6 +13,7 @@ interface UserDetailsForDL {
 
 export function useViewDrivingLicense() {
   const navigate = useNavigate();
+  const [authState] = useAtom(authAtom);
 
   const viewDrivingLicense = (
     userId: string,
@@ -49,7 +53,17 @@ export function useViewDrivingLicense() {
     };
 
     sessionStorage.setItem("dlVerificationData", JSON.stringify(dlData));
-    navigate({ to: "/verifyDrivingLicence" });
+
+    // Check if user has admin role to navigate to admin route
+    const hasAdminRole = authState.roles?.some((role: string) =>
+      ADMIN_ROLES.includes(role as any),
+    );
+
+    if (hasAdminRole) {
+      navigate({ to: "/verifyDrivingLicence" });
+    } else {
+      navigate({ to: "/verifyDrivingLicence" });
+    }
   };
 
   return { viewDrivingLicense };

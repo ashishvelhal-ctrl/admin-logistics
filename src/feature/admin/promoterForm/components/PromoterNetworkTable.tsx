@@ -16,7 +16,7 @@ import {
 import { PaginationWrapper as Pagination } from "@/components/common/Pagination";
 import { cn } from "@/lib/utils";
 
-export type NetworkStatus = "completed" | "pending" | "inProgress";
+export type NetworkStatus = "active" | "inactive" | "pending";
 type TableView = "network" | "trips";
 
 export interface PromoterNetworkMember {
@@ -35,6 +35,7 @@ export interface PromoterTripRow {
 
 interface PromoterDetailsRightPanelProps {
   promoterId: string;
+  userDetailsRoute?: "/userDetails" | "/promoterUserDetails";
   totalOnboard: number;
   totalCreatedTrips: number;
   totalEarnings: number;
@@ -54,26 +55,27 @@ const currencyFormatter = new Intl.NumberFormat("en-IN", {
 });
 
 const statusLabelMap: Record<NetworkStatus, string> = {
-  completed: "Completed",
-  inProgress: "In Progress",
+  active: "Active",
+  inactive: "Inactive",
   pending: "Pending",
 };
 
 const statusBadgeClassMap: Record<NetworkStatus, string> = {
-  completed: "bg-[#E4F7EC] text-[#2E715F]",
-  inProgress: "bg-[#FEF3C7] text-[#92400E]",
+  active: "bg-[#E4F7EC] text-[#2E715F]",
+  inactive: "bg-[#FEF2F2] text-[#DC2626]",
   pending: "bg-[#EEF2F6] text-[#64748B]",
 };
 
 const statusOptions: Array<{ value: "all" | NetworkStatus; label: string }> = [
   { value: "all", label: "All Status" },
-  { value: "completed", label: "Completed" },
-  { value: "inProgress", label: "In Progress" },
+  { value: "active", label: "Active" },
+  { value: "inactive", label: "Inactive" },
   { value: "pending", label: "Pending" },
 ];
 
 export default function PromoterDetailsRightPanel({
   promoterId,
+  userDetailsRoute = "/userDetails",
   totalOnboard,
   totalEarnings,
   targetCurrent,
@@ -292,7 +294,7 @@ export default function PromoterDetailsRightPanel({
                       onClick={() =>
                         activeView === "network" &&
                         navigate({
-                          to: "/userDetails",
+                          to: userDetailsRoute,
                           search: {
                             userId: String(row.id),
                             promoterId: promoterId ?? "1",
