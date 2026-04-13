@@ -9,6 +9,7 @@ interface VehicleTableProps {
   onPageChange: (page: number) => void;
   totalPages: number;
   serverPaginated?: boolean;
+  onVehicleClick?: (vehicle: any) => void;
 }
 
 export default function VehicleTable({
@@ -17,6 +18,7 @@ export default function VehicleTable({
   onPageChange,
   totalPages,
   serverPaginated = false,
+  onVehicleClick,
 }: VehicleTableProps) {
   const paginatedVehicles = useMemo(() => {
     if (serverPaginated) return vehicles;
@@ -54,11 +56,19 @@ export default function VehicleTable({
           ) : (
             paginatedVehicles.map((vehicle: any, index: number) => {
               const isRcVerified = vehicle.rcVerificationStatus === "verified";
+              const vehicleKey = String(
+                vehicle?.id ?? vehicle?._id ?? vehicle?.rcNumber ?? index,
+              );
 
               return (
                 <div
-                  key={index}
-                  className="grid grid-cols-3 border-b border-border-stroke text-sm hover:bg-gray-50"
+                  key={vehicleKey}
+                  className={`grid grid-cols-3 border-b border-border-stroke text-sm ${
+                    onVehicleClick ? "cursor-pointer hover:bg-gray-50" : ""
+                  }`}
+                  onClick={
+                    onVehicleClick ? () => onVehicleClick(vehicle) : undefined
+                  }
                 >
                   <div className="px-5 py-4 font-semibold text-heading-color">
                     {vehicle.rcNumberData?.makerModel || "-"}

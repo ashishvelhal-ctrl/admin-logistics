@@ -71,7 +71,7 @@ export default function Dashboard() {
           <button
             type="button"
             onClick={() => navigate({ to: "/promoterForm" })}
-            className="inline-flex h-9 items-center gap-2 rounded-lg border border-border-stroke bg-white px-3 text-sm font-medium text-text-color transition-colors hover:bg-gray-50"
+            className="inline-flex h-9 items-center gap-2 rounded-lg border border-border-stroke bg-white px-3 text-sm font-medium text-text-color transition-colors hover:bg-gray-50 cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             Add Promoter
@@ -79,7 +79,7 @@ export default function Dashboard() {
           <button
             type="button"
             onClick={() => navigate({ to: "/usersList" })}
-            className="inline-flex h-9 items-center gap-2 rounded-lg border border-border-stroke bg-white px-5 text-sm font-medium text-text-color transition-colors hover:bg-gray-50"
+            className="inline-flex h-9 items-center gap-2 rounded-lg border border-border-stroke bg-white px-5 text-sm font-medium text-text-color transition-colors hover:bg-gray-50 cursor-pointer"
           >
             Manage Users
           </button>
@@ -117,17 +117,17 @@ export default function Dashboard() {
         <Button
           type="button"
           onClick={() => navigate({ to: "/promoterForm" })}
-          className="h-11 w-full justify-center rounded-lg bg-[#2e7d68] text-xl font-semibold text-white hover:bg-[#286d5b]"
+          className="h-11 w-full justify-center rounded-lg bg-[#2e7d68] text-xl font-semibold text-white hover:bg-[#286d5b] cursor-pointer"
         >
-          <Plus className="mr-2 h-5 w-5" />
+          <Plus className="mr-2 h-5 w-5 cursor-pointer" />
           Add Promoter
         </Button>
         <Button
           type="button"
           onClick={() => navigate({ to: "/usersList" })}
-          className="h-11 w-full justify-center rounded-lg bg-[#2e7d68] text-xl font-semibold text-white hover:bg-[#286d5b]"
+          className="h-11 w-full justify-center rounded-lg bg-[#2e7d68] text-xl font-semibold text-white hover:bg-[#286d5b] cursor-pointer"
         >
-          <Users className="mr-2 h-5 w-5" />
+          <Users className="mr-2 h-5 w-5 cursor-pointer" />
           Manage Users
         </Button>
       </section>
@@ -160,9 +160,9 @@ export default function Dashboard() {
 
             <button
               type="button"
-              className="mt-6 inline-flex h-10 items-center gap-2 rounded-full border border-[#2e7d68] px-5 text-sm font-semibold text-[#2e7d68] transition-colors hover:bg-[#f3faf7]"
+              className="mt-6 inline-flex h-10 items-center gap-2 rounded-full border border-[#2e7d68] px-5 text-sm font-semibold text-[#2e7d68] transition-colors hover:bg-[#f3faf7] cursor-pointer"
             >
-              <RefreshCcw className="h-4 w-4" />
+              <RefreshCcw className="h-4 w-4 cursor-pointer" />
               Refresh Dashboard
             </button>
           </div>

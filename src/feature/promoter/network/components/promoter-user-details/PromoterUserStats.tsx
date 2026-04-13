@@ -19,6 +19,7 @@ type StatsProps = {
   vehicleTotalPages: number;
   vehicles: any[];
   vehicleServerPaginated?: boolean;
+  onVehicleClick?: (vehicle: any) => void;
   tripPage: number;
   setTripPage: (page: number) => void;
   userId: string;
@@ -36,6 +37,7 @@ export default function PromoterUserStats({
   vehicleTotalPages,
   vehicles,
   vehicleServerPaginated = false,
+  onVehicleClick,
   tripPage,
   setTripPage,
   userId,
@@ -128,6 +130,7 @@ export default function PromoterUserStats({
               onPageChange={setVehiclePage}
               totalPages={vehicleTotalPages}
               serverPaginated={vehicleServerPaginated}
+              onVehicleClick={onVehicleClick}
             />
           ) : (
             <TripTable

@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { networkApi } from "@/feature/promoter/network/services/networkApi";
+import { useDebounce } from "@/hooks";
 import type {
   LocationField,
   TripFormData,
@@ -28,11 +29,16 @@ export function useCreateTripForm() {
   const [vehicleOpen, setVehicleOpen] = useState(false);
   const [mapOpen, setMapOpen] = useState(false);
   const [mapField, setMapField] = useState<LocationField>("pickup");
+  const debouncedUserQuery = useDebounce(userQuery, 300).trim();
 
   const { data: usersResponse } = useQuery({
-    queryKey: ["trip-create-users", userQuery],
+    queryKey: ["trip-create-users", debouncedUserQuery],
     queryFn: () =>
-      networkApi.getUsers({ limit: 100, offset: 0, search: userQuery }),
+      networkApi.getUsers({
+        limit: 100,
+        offset: 0,
+        search: debouncedUserQuery || undefined,
+      }),
   });
 
   const { data: vehiclesResponse } = useQuery({

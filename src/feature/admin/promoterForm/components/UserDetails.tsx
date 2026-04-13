@@ -37,6 +37,7 @@ export default function UserDetails() {
       return promoterApi.getAdminUserById(selectedUserId);
     },
     enabled: !!selectedUserId,
+    staleTime: 1000 * 60 * 5,
   });
 
   const profileStatusData = useMemo(() => {
@@ -84,6 +85,7 @@ export default function UserDetails() {
       });
     },
     enabled: !!selectedUserId,
+    staleTime: 1000 * 60 * 2,
   });
 
   const isLoading = isUserLoading || isVehiclesLoading;
@@ -139,6 +141,26 @@ export default function UserDetails() {
     1,
     Number(vehiclesResponse?.paginationMeta?.total_pages ?? 1),
   );
+  const handleVehicleClick = (vehicle: any) => {
+    const selectedVehicleId = String(
+      vehicle?.id ??
+        vehicle?._id ??
+        vehicle?.rcNumber ??
+        vehicle?.vehicleNumber ??
+        "",
+    );
+    if (!selectedVehicleId || !selectedUserId) return;
+
+    navigate({
+      to: "/vehicleDetails",
+      search: {
+        userId: selectedUserId,
+        vehicleId: selectedVehicleId,
+        promoterId,
+        mode: "admin",
+      },
+    });
+  };
 
   if (!selectedUserId) {
     return (
@@ -224,6 +246,7 @@ export default function UserDetails() {
           vehicleTotalPages={vehicleTotalPages}
           vehicles={vehicles}
           vehicleServerPaginated
+          onVehicleClick={handleVehicleClick}
           tripPage={tripPage}
           setTripPage={setTripPage}
           userId={selectedUserId}

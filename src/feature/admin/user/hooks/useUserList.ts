@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { userApi } from "../services/userApi";
 import type { UserObject, PaginationMeta } from "../services/userApi";
+import { useDebounce } from "@/hooks";
 
 interface UseUserListParams {
   initialLimit?: number;
@@ -44,7 +45,7 @@ export const useUserList = ({
   const [search, setSearch] = useState(initialSearch);
   const [role, setRole] = useState("");
 
-  const searchTerm = search.trim();
+  const searchTerm = useDebounce(search, 300).trim();
   const roleFilter = role.trim();
 
   const {
@@ -103,7 +104,6 @@ export const useUserList = ({
       });
 
       await queryClient.invalidateQueries({ queryKey: ["users"] });
-      await queryClient.refetchQueries({ queryKey: ["users"] });
     },
   });
 

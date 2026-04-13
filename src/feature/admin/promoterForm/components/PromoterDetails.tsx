@@ -98,8 +98,8 @@ export default function PromoterDetails() {
     );
   }
 
-  const completedCount = getStatusCount(promoter.networkMembers, "completed");
-  const inProgressCount = getStatusCount(promoter.networkMembers, "inProgress");
+  const activeCount = getStatusCount(promoter.networkMembers, "active");
+  const inactiveCount = getStatusCount(promoter.networkMembers, "inactive");
   const pendingCount = getStatusCount(promoter.networkMembers, "pending");
 
   return (
@@ -187,8 +187,8 @@ export default function PromoterDetails() {
               </h3>
 
               <StatusPieChart
-                completedCount={completedCount}
-                inProgressCount={inProgressCount}
+                completedCount={activeCount}
+                inProgressCount={inactiveCount}
                 pendingCount={pendingCount}
                 totalMembers={promoter.networkMembers.length}
               />

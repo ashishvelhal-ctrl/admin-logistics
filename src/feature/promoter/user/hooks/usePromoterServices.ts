@@ -175,16 +175,8 @@ export const usePromoterServices = () => {
         queryKey: ["promoterUserProfileCompletionStatus", userId],
       });
       await queryClient.invalidateQueries({
-        queryKey: ["user-vehicles", userId],
-      });
-      await queryClient.invalidateQueries({
-        queryKey: ["promoterUserVehicles", userId],
-      });
-      await queryClient.invalidateQueries({ queryKey: ["promoter"] });
-      await queryClient.invalidateQueries({
         queryKey: ["promoterProfileUsers"],
       });
-      await queryClient.invalidateQueries({ queryKey: ["trip-create-users"] });
     },
   });
 
@@ -238,18 +230,15 @@ export const usePromoterServices = () => {
     },
     onSuccess: async () => {
       const userId = getVerifiedUserId();
-      await queryClient.invalidateQueries({ queryKey: ["my-network-users"] });
       await queryClient.invalidateQueries({
         queryKey: ["user-vehicles", userId],
       });
       await queryClient.invalidateQueries({
         queryKey: ["promoterUserVehicles", userId],
       });
-      await queryClient.invalidateQueries({ queryKey: ["promoter"] });
       await queryClient.invalidateQueries({
-        queryKey: ["promoterProfileUsers"],
+        queryKey: ["vehicleDetailsVehicles", "promoter", userId],
       });
-      await queryClient.invalidateQueries({ queryKey: ["trip-create-users"] });
     },
   });
 
@@ -267,18 +256,15 @@ export const usePromoterServices = () => {
     },
     onSuccess: async () => {
       const userId = getVerifiedUserId();
-      await queryClient.invalidateQueries({ queryKey: ["my-network-users"] });
       await queryClient.invalidateQueries({
         queryKey: ["user-vehicles", userId],
       });
       await queryClient.invalidateQueries({
         queryKey: ["promoterUserVehicles", userId],
       });
-      await queryClient.invalidateQueries({ queryKey: ["promoter"] });
       await queryClient.invalidateQueries({
-        queryKey: ["promoterProfileUsers"],
+        queryKey: ["vehicleDetailsVehicles", "promoter", userId],
       });
-      await queryClient.invalidateQueries({ queryKey: ["trip-create-users"] });
     },
   });
 

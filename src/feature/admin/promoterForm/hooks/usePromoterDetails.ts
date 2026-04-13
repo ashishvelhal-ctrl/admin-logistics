@@ -26,14 +26,14 @@ function normalizeTripStatus(status: unknown): PromoterNetworkMember["status"] {
     .toLowerCase();
 
   if (value === "completed" || value === "delivered" || value === "verified") {
-    return "completed";
+    return "active";
   }
 
   if (value === "pending" || value === "requested" || value === "new") {
     return "pending";
   }
 
-  return "inProgress";
+  return "inactive";
 }
 
 export function usePromoterDetails(promoterId: string | undefined) {
@@ -75,10 +75,6 @@ export function usePromoterDetails(promoterId: string | undefined) {
         queryKey: ["promoterDetails", promoterId],
       });
       await queryClient.invalidateQueries({ queryKey: ["promoters"] });
-      await queryClient.refetchQueries({
-        queryKey: ["promoterDetails", promoterId],
-      });
-      await queryClient.refetchQueries({ queryKey: ["promoters"] });
     },
   });
 
@@ -104,10 +100,6 @@ export function usePromoterDetails(promoterId: string | undefined) {
         queryKey: ["promoterDetails", promoterId],
       });
       await queryClient.invalidateQueries({ queryKey: ["promoters"] });
-      await queryClient.refetchQueries({
-        queryKey: ["promoterDetails", promoterId],
-      });
-      await queryClient.refetchQueries({ queryKey: ["promoters"] });
     },
   });
 
@@ -193,10 +185,10 @@ export function usePromoterDetails(promoterId: string | undefined) {
               user.profileStatus === "phone_number_verified" ||
               user.profileStatus === "dl_verified" ||
               user.profileStatus === "profile_completed"
-                ? "completed"
+                ? "active"
                 : user.profileStatus === "pending"
                   ? "pending"
-                  : "inProgress",
+                  : "inactive",
           })) || [],
         tripRows,
       }

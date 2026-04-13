@@ -80,10 +80,6 @@ export function usePromoterEdit({
       await queryClient.invalidateQueries({
         queryKey: ["promoterDetails", variables.id],
       });
-      await queryClient.refetchQueries({ queryKey: ["promoters"] });
-      await queryClient.refetchQueries({
-        queryKey: ["promoterDetails", variables.id],
-      });
     },
   });
 

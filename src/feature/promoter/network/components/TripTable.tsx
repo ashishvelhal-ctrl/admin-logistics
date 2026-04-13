@@ -1,7 +1,15 @@
 import { Ban, Truck, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 
 import { PaginationWrapper as Pagination } from "@/components/common/Pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { networkApi, type UserTrip } from "../services/networkApi";
 import { promoterApi } from "@/feature/admin/promoterForm/services/promoterApi";
 import { formatDate } from "@/lib/format-utils";
@@ -21,6 +29,20 @@ export default function TripTable({
   onPageChange,
 }: TripTableProps) {
   const ITEMS_PER_PAGE = 5;
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "active" | "inactive" | "pending"
+  >("all");
+
+  const statusOptions = [
+    { value: "all", label: "All Status" },
+    { value: "active", label: "Active" },
+    { value: "inactive", label: "Inactive" },
+    { value: "pending", label: "Pending" },
+  ];
+
+  useEffect(() => {
+    onPageChange(1);
+  }, [statusFilter, onPageChange]);
 
   const {
     data: tripsData,
@@ -45,6 +67,20 @@ export default function TripTable({
 
   const trips = tripsData?.data || [];
   const totalPages = tripsData?.paginationMeta?.total_pages || 1;
+
+  const filteredTrips = trips.filter((trip: UserTrip) => {
+    if (statusFilter === "all") return true;
+    const normalizedStatus = String(trip.status || "").toLowerCase();
+    if (statusFilter === "active") {
+      return normalizedStatus === "active" || normalizedStatus === "completed";
+    }
+    if (statusFilter === "inactive") {
+      return (
+        normalizedStatus === "inactive" || normalizedStatus === "cancelled"
+      );
+    }
+    return normalizedStatus === statusFilter;
+  });
 
   const formatTripDate = (dateString: string) => {
     if (!dateString) return "-";
@@ -96,6 +132,32 @@ export default function TripTable({
 
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-heading-color">
+            Filter by status:
+          </span>
+          <Select
+            value={statusFilter}
+            onValueChange={(value) => setStatusFilter(value as any)}
+          >
+            <SelectTrigger className="w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {statusOptions.map((option) => (
+                <SelectItem
+                  key={option.value}
+                  value={option.value}
+                  className="cursor-pointer"
+                >
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
       <div className="overflow-hidden border border-border-stroke rounded-lg">
         <div className="bg-[#EEF2F5] text-[11px] font-semibold uppercase tracking-wide text-[#64748B]">
           <div className="grid grid-cols-5 px-5 py-3">
@@ -107,7 +169,7 @@ export default function TripTable({
           </div>
         </div>
         <div className="max-h-[300px] overflow-y-auto">
-          {trips.length === 0 ? (
+          {filteredTrips.length === 0 ? (
             <div className="flex min-h-[250px] flex-col items-center justify-center gap-2 text-center">
               <div className="relative">
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#ECF1F0] text-[#9CB3AE]">
@@ -123,7 +185,7 @@ export default function TripTable({
               </p>
             </div>
           ) : (
-            trips.map((trip: UserTrip, index: number) => (
+            filteredTrips.map((trip: UserTrip, index: number) => (
               <div
                 key={trip.id || index}
                 className="border-b border-border-stroke px-5 py-4 text-sm hover:bg-gray-50"
@@ -147,16 +209,20 @@ export default function TripTable({
                     <span
                       className={cn(
                         "inline-flex rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wide",
-                        trip.status === "completed"
+                        trip.status === "active"
                           ? "bg-green-100 text-green-800"
                           : trip.status === "pending"
                             ? "bg-yellow-100 text-yellow-800"
-                            : trip.status === "cancelled"
+                            : trip.status === "inactive"
                               ? "bg-red-100 text-red-800"
                               : "bg-gray-100 text-gray-800",
                       )}
                     >
-                      {trip.status || "pending"}
+                      {trip.status === "completed"
+                        ? "active"
+                        : trip.status === "cancelled"
+                          ? "inactive"
+                          : trip.status || "pending"}
                     </span>
                   </div>
                   <div className="font-semibold text-heading-color">

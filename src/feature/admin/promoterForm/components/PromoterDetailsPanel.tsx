@@ -34,21 +34,21 @@ const currencyFormatter = new Intl.NumberFormat("en-IN", {
 });
 
 const statusLabelMap: Record<NetworkStatus, string> = {
-  completed: "Completed",
-  inProgress: "In Progress",
+  active: "Active",
+  inactive: "Inactive",
   pending: "Pending",
 };
 
 const statusBadgeClassMap: Record<NetworkStatus, string> = {
-  completed: "bg-[#E4F7EC] text-[#2E715F]",
-  inProgress: "bg-[#FEF3C7] text-[#92400E]",
+  active: "bg-[#E4F7EC] text-[#2E715F]",
+  inactive: "bg-[#FEF3C7] text-[#92400E]",
   pending: "bg-[#EEF2F6] text-[#64748B]",
 };
 
 const statusOptions: Array<{ value: "all" | NetworkStatus; label: string }> = [
   { value: "all", label: "All Status" },
-  { value: "completed", label: "Completed" },
-  { value: "inProgress", label: "In Progress" },
+  { value: "active", label: "Active" },
+  { value: "inactive", label: "Inactive" },
   { value: "pending", label: "Pending" },
 ];
 
@@ -152,7 +152,11 @@ export default function PromoterDetailsRightPanel({
                   </SelectTrigger>
                   <SelectContent>
                     {statusOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
+                      <SelectItem
+                        key={option.value}
+                        value={option.value}
+                        className="cursor-pointer"
+                      >
                         {option.label}
                       </SelectItem>
                     ))}

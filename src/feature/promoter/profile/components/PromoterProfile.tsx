@@ -134,7 +134,10 @@ export default function PromoterProfile() {
         name: user.name,
         phone: user.phoneNumber,
         status:
-          user.profileStatus === "verified"
+          user.profileStatus === "verified" ||
+          user.profileStatus === "phone_number_verified" ||
+          user.profileStatus === "dl_verified" ||
+          user.profileStatus === "profile_completed"
             ? "active"
             : user.profileStatus === "pending"
               ? "pending"

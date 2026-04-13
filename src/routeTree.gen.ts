@@ -16,6 +16,7 @@ import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as promoterVerifyUserOtpRouteImport } from './routes/(promoter)/verifyUserOtp'
 import { Route as promoterVerifyDrivingLicenceRouteImport } from './routes/(promoter)/verifyDrivingLicence'
 import { Route as promoterVerificationVehicalRouteImport } from './routes/(promoter)/verificationVehical'
+import { Route as promoterVehicleDetailsRouteImport } from './routes/(promoter)/vehicleDetails'
 import { Route as promoterPromoterUserDetailsRouteImport } from './routes/(promoter)/promoterUserDetails'
 import { Route as promoterMyProfileRouteImport } from './routes/(promoter)/myProfile'
 import { Route as promoterMyPerformanceRouteImport } from './routes/(promoter)/myPerformance'
@@ -70,6 +71,11 @@ const promoterVerificationVehicalRoute =
     path: '/verificationVehical',
     getParentRoute: () => promoterRouteRoute,
   } as any)
+const promoterVehicleDetailsRoute = promoterVehicleDetailsRouteImport.update({
+  id: '/vehicleDetails',
+  path: '/vehicleDetails',
+  getParentRoute: () => promoterRouteRoute,
+} as any)
 const promoterPromoterUserDetailsRoute =
   promoterPromoterUserDetailsRouteImport.update({
     id: '/promoterUserDetails',
@@ -182,6 +188,7 @@ export interface FileRoutesByFullPath {
   '/myPerformance': typeof promoterMyPerformanceRoute
   '/myProfile': typeof promoterMyProfileRoute
   '/promoterUserDetails': typeof promoterPromoterUserDetailsRoute
+  '/vehicleDetails': typeof promoterVehicleDetailsRoute
   '/verificationVehical': typeof promoterVerificationVehicalRoute
   '/verifyDrivingLicence': typeof promoterVerifyDrivingLicenceRoute
   '/verifyUserOtp': typeof promoterVerifyUserOtpRoute
@@ -207,6 +214,7 @@ export interface FileRoutesByTo {
   '/myPerformance': typeof promoterMyPerformanceRoute
   '/myProfile': typeof promoterMyProfileRoute
   '/promoterUserDetails': typeof promoterPromoterUserDetailsRoute
+  '/vehicleDetails': typeof promoterVehicleDetailsRoute
   '/verificationVehical': typeof promoterVerificationVehicalRoute
   '/verifyDrivingLicence': typeof promoterVerifyDrivingLicenceRoute
   '/verifyUserOtp': typeof promoterVerifyUserOtpRoute
@@ -235,6 +243,7 @@ export interface FileRoutesById {
   '/(promoter)/myPerformance': typeof promoterMyPerformanceRoute
   '/(promoter)/myProfile': typeof promoterMyProfileRoute
   '/(promoter)/promoterUserDetails': typeof promoterPromoterUserDetailsRoute
+  '/(promoter)/vehicleDetails': typeof promoterVehicleDetailsRoute
   '/(promoter)/verificationVehical': typeof promoterVerificationVehicalRoute
   '/(promoter)/verifyDrivingLicence': typeof promoterVerifyDrivingLicenceRoute
   '/(promoter)/verifyUserOtp': typeof promoterVerifyUserOtpRoute
@@ -262,6 +271,7 @@ export interface FileRouteTypes {
     | '/myPerformance'
     | '/myProfile'
     | '/promoterUserDetails'
+    | '/vehicleDetails'
     | '/verificationVehical'
     | '/verifyDrivingLicence'
     | '/verifyUserOtp'
@@ -287,6 +297,7 @@ export interface FileRouteTypes {
     | '/myPerformance'
     | '/myProfile'
     | '/promoterUserDetails'
+    | '/vehicleDetails'
     | '/verificationVehical'
     | '/verifyDrivingLicence'
     | '/verifyUserOtp'
@@ -314,6 +325,7 @@ export interface FileRouteTypes {
     | '/(promoter)/myPerformance'
     | '/(promoter)/myProfile'
     | '/(promoter)/promoterUserDetails'
+    | '/(promoter)/vehicleDetails'
     | '/(promoter)/verificationVehical'
     | '/(promoter)/verifyDrivingLicence'
     | '/(promoter)/verifyUserOtp'
@@ -376,6 +388,13 @@ declare module '@tanstack/react-router' {
       path: '/verificationVehical'
       fullPath: '/verificationVehical'
       preLoaderRoute: typeof promoterVerificationVehicalRouteImport
+      parentRoute: typeof promoterRouteRoute
+    }
+    '/(promoter)/vehicleDetails': {
+      id: '/(promoter)/vehicleDetails'
+      path: '/vehicleDetails'
+      fullPath: '/vehicleDetails'
+      preLoaderRoute: typeof promoterVehicleDetailsRouteImport
       parentRoute: typeof promoterRouteRoute
     }
     '/(promoter)/promoterUserDetails': {
@@ -543,6 +562,7 @@ interface promoterRouteRouteChildren {
   promoterMyPerformanceRoute: typeof promoterMyPerformanceRoute
   promoterMyProfileRoute: typeof promoterMyProfileRoute
   promoterPromoterUserDetailsRoute: typeof promoterPromoterUserDetailsRoute
+  promoterVehicleDetailsRoute: typeof promoterVehicleDetailsRoute
   promoterVerificationVehicalRoute: typeof promoterVerificationVehicalRoute
   promoterVerifyDrivingLicenceRoute: typeof promoterVerifyDrivingLicenceRoute
   promoterVerifyUserOtpRoute: typeof promoterVerifyUserOtpRoute
@@ -560,6 +580,7 @@ const promoterRouteRouteChildren: promoterRouteRouteChildren = {
   promoterMyPerformanceRoute: promoterMyPerformanceRoute,
   promoterMyProfileRoute: promoterMyProfileRoute,
   promoterPromoterUserDetailsRoute: promoterPromoterUserDetailsRoute,
+  promoterVehicleDetailsRoute: promoterVehicleDetailsRoute,
   promoterVerificationVehicalRoute: promoterVerificationVehicalRoute,
   promoterVerifyDrivingLicenceRoute: promoterVerifyDrivingLicenceRoute,
   promoterVerifyUserOtpRoute: promoterVerifyUserOtpRoute,

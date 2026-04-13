@@ -67,7 +67,7 @@ export default function DashBoard() {
           <button
             type="button"
             onClick={() => navigate({ to: "/addUser" })}
-            className="inline-flex items-center gap-2 h-9 px-3 rounded-lg border border-border-stroke text-text-color bg-white hover:bg-gray-50 transition-colors text-sm font-medium"
+            className="inline-flex items-center gap-2 h-9 px-3 rounded-lg border border-border-stroke text-text-color bg-white hover:bg-gray-50 transition-colors text-sm font-medium cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Add New User
@@ -75,7 +75,7 @@ export default function DashBoard() {
           <button
             type="button"
             onClick={() => navigate({ to: "/createTrip" })}
-            className="inline-flex items-center gap-2 h-9 px-7 rounded-lg border border-border-stroke text-text-color bg-white hover:bg-gray-50 transition-colors text-sm font-medium"
+            className="inline-flex items-center gap-2 h-9 px-7 rounded-lg border border-border-stroke text-text-color bg-white hover:bg-gray-50 transition-colors text-sm font-medium cursor-pointer"
           >
             Create Trip
           </button>
@@ -107,7 +107,7 @@ export default function DashBoard() {
         <button
           type="button"
           onClick={() => navigate({ to: "/createTrip" })}
-          className="w-full inline-flex items-center justify-center gap-2 h-11 px-3 rounded-lg text-white bg-[#2e7d68] hover:bg-[#286d5b] transition-colors text-xl font-semibold"
+          className="w-full inline-flex items-center justify-center gap-2 h-11 px-3 rounded-lg text-white bg-[#2e7d68] hover:bg-[#286d5b] transition-colors text-xl font-semibold cursor-pointer"
         >
           <Truck className="w-5 h-5" />
           Create Trip
@@ -115,7 +115,7 @@ export default function DashBoard() {
         <button
           type="button"
           onClick={() => navigate({ to: "/addUser" })}
-          className="w-full inline-flex items-center justify-center gap-2 h-11 px-3 rounded-lg text-white bg-[#2e7d68] hover:bg-[#286d5b] transition-colors text-xl font-semibold"
+          className="w-full inline-flex items-center justify-center gap-2 h-11 px-3 rounded-lg text-white bg-[#2e7d68] hover:bg-[#286d5b] transition-colors text-xl font-semibold cursor-pointer"
         >
           <Plus className="w-5 h-5" />
           Add New User
@@ -150,7 +150,7 @@ export default function DashBoard() {
 
             <button
               type="button"
-              className="mt-6 inline-flex items-center gap-2 h-10 px-5 rounded-full border border-[#2e7d68] text-[#2e7d68] text-sm font-semibold hover:bg-[#f3faf7] transition-colors"
+              className="mt-6 inline-flex items-center gap-2 h-10 px-5 rounded-full border border-[#2e7d68] text-[#2e7d68] text-sm font-semibold hover:bg-[#f3faf7] transition-colors cursor-pointer"
             >
               <RefreshCcw className="w-4 h-4" />
               Refresh Dashboard

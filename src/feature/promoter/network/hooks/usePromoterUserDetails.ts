@@ -22,6 +22,7 @@ export function usePromoterUserDetails() {
       return networkApi.getUserById(userId);
     },
     enabled: !!userId,
+    staleTime: 1000 * 60 * 5,
   });
 
   const {
@@ -35,6 +36,7 @@ export function usePromoterUserDetails() {
       return networkApi.getUserProfileCompletionStatus(userId);
     },
     enabled: !!userId,
+    staleTime: 1000 * 60 * 2,
   });
 
   const {
@@ -48,6 +50,7 @@ export function usePromoterUserDetails() {
       return networkApi.getUserVehicles(userId, { limit: 100, offset: 0 });
     },
     enabled: !!userId,
+    staleTime: 1000 * 60 * 2,
   });
 
   const isLoading = isUserLoading || isStatusLoading || isVehiclesLoading;
@@ -58,6 +61,8 @@ export function usePromoterUserDetails() {
     "dl_verified",
     "active",
     "otp_verified",
+    "phone_number_verified",
+    "profile_completed",
   ].includes(
     String(
       profileStatusData?.profileStatus ?? userDetails?.profileStatus ?? "",

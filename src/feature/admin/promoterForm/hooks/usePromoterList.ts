@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { promoterApi } from "../services/promoterApi";
 import type { PaginationMeta, UserObject } from "../schema/promoterSchema";
+import { useDebounce } from "@/hooks";
 
 interface UsePromoterListParams {
   initialLimit?: number;
@@ -44,7 +45,7 @@ export const usePromoterList = ({
   const [search, setSearch] = useState(initialSearch);
   const [role, setRole] = useState("");
 
-  const searchTerm = search.trim();
+  const searchTerm = useDebounce(search, 300).trim();
   const roleFilter = role.trim();
 
   const calculateOffset = useCallback((page: number, limit: number) => {
@@ -133,7 +134,6 @@ export const usePromoterList = ({
 
       await queryClient.invalidateQueries({ queryKey: ["promoters"] });
       await queryClient.invalidateQueries({ queryKey: ["promoterDetails"] });
-      await queryClient.refetchQueries({ queryKey: ["promoters"] });
     },
   });
 
