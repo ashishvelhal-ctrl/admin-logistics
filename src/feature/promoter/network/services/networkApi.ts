@@ -37,6 +37,59 @@ const toNonNegativeInt = (value: unknown, fallback: number): number => {
   return Number.isFinite(parsed) && parsed >= 0 ? Math.floor(parsed) : fallback;
 };
 
+const normalizeResponseData = (response: any) => {
+  const payload = response?.data;
+
+  // Keep top-level response when data itself is the final list payload.
+  if (Array.isArray(payload)) return response;
+
+  // Unwrap one level when backend nests useful fields under data.
+  if (payload && typeof payload === "object") return payload;
+
+  return response;
+};
+
+const extractArrayData = (response: any): any[] => {
+  if (Array.isArray(response?.data)) return response.data;
+  if (Array.isArray(response)) return response;
+  return [];
+};
+
+const normalizeTrip = (trip: any): UserTrip => {
+  const startLocation = trip?.startLocation ?? {};
+  const endLocation = trip?.endLocation ?? {};
+
+  const startPoint = startLocation?.point ?? {};
+  const endPoint = endLocation?.point ?? {};
+
+  const rawPrice = trip?.price ?? trip?.pricing?.amount;
+  const parsedPrice = Number(rawPrice);
+
+  return {
+    ...trip,
+    id: String(trip?.id ?? trip?._id ?? ""),
+    date: String(trip?.date ?? trip?.pickupDate ?? trip?.createdAt ?? ""),
+    time: String(trip?.time ?? trip?.pickupTimeSlot ?? ""),
+    price: Number.isFinite(parsedPrice) ? parsedPrice : 0,
+    startLocation: {
+      ...startLocation,
+      address: String(startLocation?.address ?? ""),
+      point: {
+        lat: Number(startPoint?.lat ?? 0),
+        lng: Number(startPoint?.lng ?? 0),
+      },
+    },
+    endLocation: {
+      ...endLocation,
+      address: String(endLocation?.address ?? ""),
+      point: {
+        lat: Number(endPoint?.lat ?? 0),
+        lng: Number(endPoint?.lng ?? 0),
+      },
+    },
+  } as UserTrip;
+};
+
 interface RawPaginationMeta {
   total?: unknown;
   limit?: unknown;
@@ -102,17 +155,21 @@ export const networkApi = {
       ? `/promoter/users?${queryParams.toString()}`
       : "/promoter/users";
 
-    const responseData = (await apiClient.get(url)) as any;
-    const users = Array.isArray(responseData?.data) ? responseData.data : [];
+    const rawResponse = (await apiClient.get(url)) as any;
+    const responseData = normalizeResponseData(rawResponse);
+    const users = extractArrayData(responseData);
 
     const requestedLimit = toPositiveInt(params.limit, 10);
     const requestedOffset = toNonNegativeInt(params.offset, 0);
 
     return {
-      message: responseData?.message ?? "Users fetched successfully",
+      message:
+        responseData?.message ??
+        rawResponse?.message ??
+        "Users fetched successfully",
       data: users,
       paginationMeta: buildPaginationMeta(
-        responseData?.paginationMeta ?? {},
+        responseData?.paginationMeta ?? rawResponse?.paginationMeta ?? {},
         users,
         requestedLimit,
         requestedOffset,
@@ -158,10 +215,11 @@ export const networkApi = {
   getUserProfileCompletionStatus: async (
     id: string,
   ): Promise<UserProfileCompletionStatus> => {
-    const responseData = (await apiClient.get(
+    const rawResponse = (await apiClient.get(
       `/promoter/user/${id}/status`,
     )) as any;
-    return (responseData?.data ?? {}) as UserProfileCompletionStatus;
+    const responseData = normalizeResponseData(rawResponse);
+    return (responseData?.data ?? responseData ?? {}) as UserProfileCompletionStatus;
   },
 
   getUserVehicles: async (
@@ -179,14 +237,18 @@ export const networkApi = {
       ? `/promoter/user/${id}/vehicles?${queryParams.toString()}`
       : `/promoter/user/${id}/vehicles`;
 
-    const responseData = (await apiClient.get(url)) as any;
-    const vehicles = Array.isArray(responseData?.data) ? responseData.data : [];
+    const rawResponse = (await apiClient.get(url)) as any;
+    const responseData = normalizeResponseData(rawResponse);
+    const vehicles = extractArrayData(responseData);
 
     return {
-      message: responseData?.message ?? "Vehicles fetched successfully",
+      message:
+        responseData?.message ??
+        rawResponse?.message ??
+        "Vehicles fetched successfully",
       data: vehicles,
       paginationMeta: buildPaginationMeta(
-        responseData?.paginationMeta ?? {},
+        responseData?.paginationMeta ?? rawResponse?.paginationMeta ?? {},
         vehicles,
         params.limit ?? 10,
         params.offset ?? 0,
@@ -214,14 +276,71 @@ export const networkApi = {
       : "/promoter/user/service-posts";
 
     try {
-      const responseData = (await apiClient.get(url)) as any;
-      const trips = Array.isArray(responseData?.data) ? responseData.data : [];
+      const rawResponse = (await apiClient.get(url)) as any;
+      const responseData = normalizeResponseData(rawResponse);
+      const trips = extractArrayData(responseData).map(normalizeTrip);
 
       return {
-        message: responseData?.message ?? "Trips fetched successfully",
+        message:
+          responseData?.message ?? rawResponse?.message ?? "Trips fetched successfully",
         data: trips,
         paginationMeta: buildPaginationMeta(
-          responseData?.paginationMeta ?? {},
+          responseData?.paginationMeta ?? rawResponse?.paginationMeta ?? {},
+          trips,
+          params.limit ?? 10,
+          params.offset ?? 0,
+        ),
+      };
+    } catch (error: any) {
+      if (
+        error?.response?.status === 404 ||
+        error?.message?.includes("not found")
+      ) {
+        return {
+          message: "Trip history not available",
+          data: [],
+          paginationMeta: {
+            total: 0,
+            limit: params.limit ?? 10,
+            offset: params.offset ?? 0,
+            current_page: 1,
+            total_pages: 1,
+            has_next_page: false,
+            has_prev_page: false,
+          },
+        };
+      }
+      throw error;
+    }
+  },
+
+  getPromoterServicePosts: async (
+    params: { limit?: number; offset?: number } = {},
+  ): Promise<UserTripsResponse> => {
+    const queryParams = new URLSearchParams();
+
+    if (params.limit !== undefined) {
+      queryParams.append("limit", String(params.limit));
+    }
+    if (params.offset !== undefined) {
+      queryParams.append("offset", String(params.offset));
+    }
+
+    const url = queryParams.toString()
+      ? `/promoter/user/service-posts?${queryParams.toString()}`
+      : "/promoter/user/service-posts";
+
+    try {
+      const rawResponse = (await apiClient.get(url)) as any;
+      const responseData = normalizeResponseData(rawResponse);
+      const trips = extractArrayData(responseData).map(normalizeTrip);
+
+      return {
+        message:
+          responseData?.message ?? rawResponse?.message ?? "Trips fetched successfully",
+        data: trips,
+        paginationMeta: buildPaginationMeta(
+          responseData?.paginationMeta ?? rawResponse?.paginationMeta ?? {},
           trips,
           params.limit ?? 10,
           params.offset ?? 0,

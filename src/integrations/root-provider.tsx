@@ -13,13 +13,14 @@ export function getContext() {
         refetchOnMount: false,
         retry: (failureCount, error: any) => {
           // Don't retry on 4xx errors or network errors
-          if (error?.response?.status >= 400 && error?.response?.status < 500) {
+          const status = Number(error?.status ?? error?.response?.status);
+          if (status >= 400 && status < 500) {
             return false;
           }
           if (error?.code === "NETWORK_ERROR") {
             return false;
           }
-          return failureCount < 3;
+          return failureCount < 1;
         },
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
         // Add error boundary integration

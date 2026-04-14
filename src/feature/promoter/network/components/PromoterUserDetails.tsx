@@ -148,6 +148,11 @@ export default function PromoterUserDetails() {
     return `₹${safeAmount.toLocaleString("en-IN")}`;
   };
 
+  const getTripCity = (location?: { city?: string; address?: string }) => {
+    const city = String(location?.city || "").trim();
+    return city || "N/A";
+  };
+
   return (
     <div className="bg-common-bg px-3 pb-6 md:pr-10 md:pl-4">
       <PromoterUserDetailsHeader
@@ -371,9 +376,8 @@ export default function PromoterUserDetails() {
                     </Card>
                   ) : (
                     mobileTrips.map((trip: UserTrip, index: number) => {
-                      const fromLocation =
-                        trip.startLocation?.address || "Pune";
-                      const toLocation = trip.endLocation?.address || "Mumbai";
+                      const fromLocation = getTripCity(trip.startLocation);
+                      const toLocation = getTripCity(trip.endLocation);
                       const statusText = trip.status || "completed";
                       return (
                         <Card

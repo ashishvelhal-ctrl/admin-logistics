@@ -1,5 +1,7 @@
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:3000/api/v1";
+  import.meta.env.VITE_SERVER_URL ||
+  import.meta.env.VITE_API_URL ||
+  "http://localhost:3000/api/v1";
 
 export { API_BASE_URL };
 
@@ -8,6 +10,12 @@ export interface ApiResponse<T = any> {
   data?: T;
   error?: string;
 }
+
+type ApiRequestError = Error & {
+  status?: number;
+  response?: { status: number };
+  code?: string;
+};
 
 let isRefreshing = false;
 let queue: any[] = [];
@@ -148,14 +156,23 @@ class ApiClient {
         }
 
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(
+        const error = new Error(
           errorData.message || `HTTP error! status: ${response.status}`,
-        );
+        ) as ApiRequestError;
+        error.status = response.status;
+        error.response = { status: response.status };
+        throw error;
       }
 
       const responseData = await response.json();
       return responseData;
     } catch (error) {
+      if (
+        error instanceof TypeError &&
+        String(error.message || "").toLowerCase().includes("failed to fetch")
+      ) {
+        (error as ApiRequestError).code = "NETWORK_ERROR";
+      }
       console.error("API request failed:", error);
       throw error;
     }

@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 
-import { formatDate, sentenceWords } from "@/lib/format-utils";
+import { formatDate } from "@/lib/format-utils";
 import { networkApi } from "../services/networkApi";
 import { promoterApi } from "@/feature/admin/promoterForm/services/promoterApi";
 
@@ -151,21 +151,6 @@ const getVehicleStatus = (vehicle: any) => {
   };
 };
 
-const extractPrimitiveFields = (value: Record<string, unknown>) => {
-  return Object.entries(value)
-    .filter(([, fieldValue]) => {
-      return (
-        typeof fieldValue === "string" ||
-        typeof fieldValue === "number" ||
-        typeof fieldValue === "boolean"
-      );
-    })
-    .map(([key, fieldValue]) => ({
-      label: sentenceWords(key),
-      value: toDisplayValue(fieldValue),
-    }));
-};
-
 export function useVehicleDetailsPage() {
   const navigate = useNavigate();
   const {
@@ -250,45 +235,6 @@ export function useVehicleDetailsPage() {
     [selectedVehicle],
   );
 
-  const additionalInfo = useMemo(() => {
-    if (!selectedVehicle) return [];
-
-    const excludedKeys = new Set([
-      "id",
-      "_id",
-      "vehicleId",
-      "vehicleType",
-      "vehicleNumber",
-      "vehicleRc",
-      "rcNumberData",
-      "thumbnailImage",
-      "additionalImages",
-      "specialCapabilities",
-    ]);
-
-    const topLevelFields = extractPrimitiveFields(
-      Object.fromEntries(
-        Object.entries(selectedVehicle).filter(
-          ([key]) => !excludedKeys.has(key),
-        ),
-      ),
-    );
-
-    const rcFields = selectedVehicle.rcNumberData
-      ? extractPrimitiveFields(selectedVehicle.rcNumberData)
-      : [];
-
-    const dedup = new Set<string>();
-    const allRows = [...topLevelFields, ...rcFields].filter((row) => {
-      const dedupKey = `${row.label}-${row.value}`;
-      if (dedup.has(dedupKey)) return false;
-      dedup.add(dedupKey);
-      return row.value !== EMPTY_VALUE;
-    });
-
-    return allRows.slice(0, 16);
-  }, [selectedVehicle]);
-
   const goBack = () => {
     if (mode === "admin") {
       navigate({
@@ -319,7 +265,6 @@ export function useVehicleDetailsPage() {
     statusInfo,
     vehicleImages,
     metadataRows,
-    additionalInfo,
     displayModel,
     isLoading,
     error,

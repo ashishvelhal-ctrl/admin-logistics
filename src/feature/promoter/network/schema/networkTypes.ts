@@ -74,10 +74,16 @@ export const userTripSchema = z
     price: z.number(),
     startLocation: z.object({
       address: z.string(),
+      city: z.string().optional(),
+      state: z.string().optional(),
+      pincode: z.string().optional(),
       point: z.object({ lat: z.number(), lng: z.number() }),
     }),
     endLocation: z.object({
       address: z.string(),
+      city: z.string().optional(),
+      state: z.string().optional(),
+      pincode: z.string().optional(),
       point: z.object({ lat: z.number(), lng: z.number() }),
     }),
     status: z.string().optional(),

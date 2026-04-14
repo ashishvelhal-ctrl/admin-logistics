@@ -54,7 +54,7 @@ export function Sidebar({ variant, onNavigate }: SidebarProps) {
       title: "User Management",
       icon: Users,
       url: "/usersList",
-      activePaths: ["/usersList", "/createUsers", "/editUsers", "/userDetails"],
+      activePaths: ["/usersList", "/createUsers", "/editUsers", "/userDetails", "/vehicleDetails"],
       roles: ["admin"],
     },
   ];
@@ -94,7 +94,7 @@ export function Sidebar({ variant, onNavigate }: SidebarProps) {
       title: "My Profile",
       icon: User,
       url: "/myProfile",
-      activePaths: ["/myProfile", "/editProfile"],
+      activePaths: ["/myProfile", "/editProfile", "/vehicleDetails"],
       roles: ["promoter"],
     },
   ];

@@ -8,49 +8,40 @@ import {
   Truck,
   UserRound,
 } from "lucide-react";
-import { useState, useMemo } from "react";
+// import { useState, useMemo } from "react";
 
 import { authAtom } from "@/atoms/authAtom";
-import RecentOnboardTable from "@/components/common/RecentOnboardTable";
+// import RecentOnboardTable from "@/components/common/RecentOnboardTable";
 import StatCard from "@/components/common/StatCard";
-import { PaginationWrapper as Pagination } from "@/components/common/Pagination";
+// import { PaginationWrapper as Pagination } from "@/components/common/Pagination";
 
-interface OnboardItem {
-  id: string;
-  userName: string;
-  mobileNumber: string;
-  date: string;
-  location: string;
-}
+// interface OnboardItem {
+//   id: string;
+//   userName: string;
+//   mobileNumber: string;
+//   date: string;
+//   location: string;
+// }
 
-const recentOnboards: OnboardItem[] = Array.from(
-  { length: 20 },
-  (_, index) => ({
-    id: `onboard-${index + 1}`,
-    userName: "Rahul Sharma",
-    mobileNumber: "9307141518",
-    date: "28-03-2026",
-    location: "Pune",
-  }),
-);
+// const recentOnboards: OnboardItem[] = [];
 
-const PAGE_SIZE = 10;
+// const PAGE_SIZE = 10;
 
 export default function DashBoard() {
   const navigate = useNavigate();
   const auth = useAtomValue(authAtom);
   const userName = auth?.user || "Raj Sharma";
-  const [currentPage, setCurrentPage] = useState(1);
+  // const [currentPage, setCurrentPage] = useState(1);
 
-  const totalPages = Math.max(1, Math.ceil(recentOnboards.length / PAGE_SIZE));
-  const currentPageData = useMemo(
-    () =>
-      recentOnboards.slice(
-        (currentPage - 1) * PAGE_SIZE,
-        currentPage * PAGE_SIZE,
-      ),
-    [currentPage],
-  );
+  // const totalPages = Math.max(1, Math.ceil(recentOnboards.length / PAGE_SIZE));
+  // const currentPageData = useMemo(
+  //   () =>
+  //     recentOnboards.slice(
+  //       (currentPage - 1) * PAGE_SIZE,
+  //       currentPage * PAGE_SIZE,
+  //     ),
+  //   [currentPage],
+  // );
 
   return (
     <main className="pt-2 pr-3 pl-3 pb-3 space-y-4 bg-common-bg min-h-full">
@@ -159,7 +150,7 @@ export default function DashBoard() {
         </article>
       </section>
 
-      <section className="px-1 md:px-2">
+      {/* <section className="px-1 md:px-2">
         <h2 className="text-3xl md:hidden font-semibold text-heading-color mb-2">
           Recent Onboarded
         </h2>
@@ -171,7 +162,7 @@ export default function DashBoard() {
             onPageChange={setCurrentPage}
           />
         </div>
-      </section>
+      </section> */}
     </main>
   );
 }

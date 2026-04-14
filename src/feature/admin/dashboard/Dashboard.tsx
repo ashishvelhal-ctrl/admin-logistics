@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+// import { useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useAtomValue } from "jotai/react";
 import {
@@ -11,50 +11,41 @@ import {
 } from "lucide-react";
 
 import { authAtom } from "@/atoms/authAtom";
-import { PaginationWrapper as Pagination } from "@/components/common/Pagination";
-import RecentOnboardTable from "@/components/common/RecentOnboardTable";
+// import { PaginationWrapper as Pagination } from "@/components/common/Pagination";
+// import RecentOnboardTable from "@/components/common/RecentOnboardTable";
 import StatCard from "@/components/common/StatCard";
 import { Button } from "@/components/ui/button";
 
-interface AdminOnboardItem {
-  id: string;
-  userName: string;
-  mobileNumber: string;
-  date: string;
-  location: string;
-}
+// interface AdminOnboardItem {
+//   id: string;
+//   userName: string;
+//   mobileNumber: string;
+//   date: string;
+//   location: string;
+// }
 
-const PAGE_SIZE = 10;
+// const PAGE_SIZE = 10;
 
-const recentPromoterOnboards: AdminOnboardItem[] = Array.from(
-  { length: 20 },
-  (_, index) => ({
-    id: `admin-onboard-${index + 1}`,
-    userName: `Promoter ${index + 1}`,
-    mobileNumber: `93${String(70000000 + index).padStart(8, "0")}`,
-    date: "09-04-2026",
-    location: "Pune",
-  }),
-);
+// const recentPromoterOnboards: AdminOnboardItem[] = [];
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const auth = useAtomValue(authAtom);
   const userName = auth?.user || "Admin";
-  const [currentPage, setCurrentPage] = useState(1);
+  // const [currentPage, setCurrentPage] = useState(1);
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(recentPromoterOnboards.length / PAGE_SIZE),
-  );
-  const currentPageData = useMemo(
-    () =>
-      recentPromoterOnboards.slice(
-        (currentPage - 1) * PAGE_SIZE,
-        currentPage * PAGE_SIZE,
-      ),
-    [currentPage],
-  );
+  // const totalPages = Math.max(
+  //   1,
+  //   Math.ceil(recentPromoterOnboards.length / PAGE_SIZE),
+  // );
+  // const currentPageData = useMemo(
+  //   () =>
+  //     recentPromoterOnboards.slice(
+  //       (currentPage - 1) * PAGE_SIZE,
+  //       currentPage * PAGE_SIZE,
+  //     ),
+  //   [currentPage],
+  // );
 
   return (
     <main className="min-h-full space-y-4 bg-common-bg pt-2 pr-3 pb-3 pl-3">
@@ -169,7 +160,7 @@ export default function Dashboard() {
         </article>
       </section>
 
-      <section className="px-1 md:px-2">
+      {/* <section className="px-1 md:px-2">
         <h2 className="mb-2 text-3xl font-semibold text-heading-color md:hidden">
           Recent Promoters
         </h2>
@@ -181,7 +172,7 @@ export default function Dashboard() {
             onPageChange={setCurrentPage}
           />
         </div>
-      </section>
+      </section> */}
     </main>
   );
 }

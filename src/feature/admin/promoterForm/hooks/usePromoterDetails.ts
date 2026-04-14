@@ -1,6 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { promoterApi } from "../services/promoterApi";
 import type {
+  PromoterServicePost,
+  PromoterServicePostGroup,
+} from "../services/promoterApi";
+import type {
   PromoterNetworkMember,
   PromoterTripRow,
 } from "../components/PromoterNetworkTable";
@@ -25,15 +29,40 @@ function normalizeTripStatus(status: unknown): PromoterNetworkMember["status"] {
     .trim()
     .toLowerCase();
 
-  if (value === "completed" || value === "delivered" || value === "verified") {
+  if (
+    value === "completed" ||
+    value === "delivered" ||
+    value === "verified" ||
+    value === "active"
+  ) {
     return "active";
   }
 
-  if (value === "pending" || value === "requested" || value === "new") {
+  if (
+    value === "pending" ||
+    value === "requested" ||
+    value === "new" ||
+    value === "in_progress"
+  ) {
     return "pending";
   }
 
   return "inactive";
+}
+
+function buildTripRowTitle(post: PromoterServicePost): string {
+  const start = post?.startLocation?.city?.trim();
+  const end = post?.endLocation?.city?.trim();
+
+  if (start && end) {
+    return `${start} -> ${end}`;
+  }
+
+  if (post?.postId !== undefined && post?.postId !== null && post?.postId !== "") {
+    return `Trip #${post.postId}`;
+  }
+
+  return "Trip";
 }
 
 export function usePromoterDetails(promoterId: string | undefined) {
@@ -132,17 +161,15 @@ export function usePromoterDetails(promoterId: string | undefined) {
 
   // Transform API data to component format
   const tripRows: PromoterTripRow[] =
-    servicePostGroups?.flatMap((group: any, groupIndex: number) => {
+    servicePostGroups?.flatMap((group: PromoterServicePostGroup, groupIndex: number) => {
       const createdBy = group?.user?.name || "Unknown";
       const servicePosts = Array.isArray(group?.servicePosts)
         ? group.servicePosts
         : [];
 
-      return servicePosts.map((post: any, postIndex: number) => ({
+      return servicePosts.map((post: PromoterServicePost, postIndex: number) => ({
         id: String(post?.id || post?._id || `${groupIndex}-${postIndex}`),
-        name: post?.postId
-          ? `Trip #${post.postId}`
-          : `Trip #${groupIndex + 1}-${postIndex + 1}`,
+        name: buildTripRowTitle(post),
         secondary: createdBy,
         status: normalizeTripStatus(post?.status),
       }));

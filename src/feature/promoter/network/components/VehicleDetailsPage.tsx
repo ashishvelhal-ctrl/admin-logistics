@@ -14,7 +14,6 @@ export default function VehicleDetailsPage() {
     statusInfo,
     vehicleImages,
     metadataRows,
-    additionalInfo,
     displayModel,
     isLoading,
     error,
@@ -129,20 +128,24 @@ export default function VehicleDetailsPage() {
             </div>
           </div>
 
-          <div className="border-t border-border-stroke bg-[#F8FAF9] p-4 md:border-t-0 md:border-l">
+          <div className="border-t border-border-stroke bg-[#F8FAF9] pb-3 md:border-t-0 md:border-l">
             {vehicleImages.length > 0 ? (
-              <div className="grid grid-cols-2 gap-2">
+              <div className="pt-5 space-y-4">
                 {vehicleImages.map((url, index) => (
-                  <img
+                  <div
                     key={`${url}-${index}`}
-                    src={url}
-                    alt={`Vehicle ${index + 1}`}
-                    className="h-24 w-full rounded-md border border-border-stroke object-cover"
-                  />
+                    className="w-full overflow-hidden rounded-lg border border-border-stroke bg-white"
+                  >
+                    <img
+                      src={url}
+                      alt={`Vehicle ${index + 1}`}
+                      className="w-full h-[220px] object-cover"
+                    />
+                  </div>
                 ))}
               </div>
             ) : (
-              <div className="flex h-full min-h-[130px] items-center justify-center rounded-md border border-dashed border-border-stroke text-sm text-muted-foreground">
+              <div className="flex h-full min-h-[260px] items-center justify-center rounded-md border border-dashed border-border-stroke text-sm text-muted-foreground">
                 No vehicle images available
               </div>
             )}
@@ -204,30 +207,6 @@ export default function VehicleDetailsPage() {
           </CardContent>
         </Card>
       </div>
-
-      {additionalInfo.length > 0 ? (
-        <Card className="mt-5 border-border-stroke shadow-sm">
-          <CardContent className="p-0">
-            <div className="border-b border-border-stroke bg-[#F8FAF9] px-5 py-4">
-              <h3 className="text-xl font-semibold text-heading-color">
-                Additional Information
-              </h3>
-            </div>
-            <div className="grid gap-4 px-5 py-5 sm:grid-cols-2 lg:grid-cols-3">
-              {additionalInfo.map((field) => (
-                <div key={`${field.label}-${field.value}`}>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-[#8A98A8]">
-                    {field.label}
-                  </p>
-                  <p className="mt-1 text-sm font-semibold text-heading-color">
-                    {field.value}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      ) : null}
     </div>
   );
 }

@@ -16,6 +16,36 @@ export type {
   UserObject,
 } from "../schema/promoterSchema";
 
+export interface PromoterServicePostLocation {
+  address?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
+  point?: {
+    lat?: number;
+    lng?: number;
+  };
+}
+
+export interface PromoterServicePost {
+  id?: string;
+  _id?: string;
+  postId?: string | number;
+  status?: string;
+  startLocation?: PromoterServicePostLocation;
+  endLocation?: PromoterServicePostLocation;
+}
+
+export interface PromoterServicePostGroup {
+  user?: {
+    id?: string;
+    name?: string;
+    phoneNumber?: string;
+    promoter?: string;
+  };
+  servicePosts?: PromoterServicePost[];
+}
+
 const toPositiveInt = (value: unknown, fallback: number): number => {
   const parsedValue = Number(value);
   return Number.isFinite(parsedValue) && parsedValue > 0
@@ -42,6 +72,41 @@ const buildUpdatePromoterBody = (payload: PromoterMutationPayload) => ({
 });
 
 const normalizeResponseData = (response: any) => response?.data ?? response;
+
+const normalizeTrip = (trip: any) => {
+  const startLocation = trip?.startLocation ?? {};
+  const endLocation = trip?.endLocation ?? {};
+
+  const startPoint = startLocation?.point ?? {};
+  const endPoint = endLocation?.point ?? {};
+
+  const rawPrice = trip?.price ?? trip?.pricing?.amount;
+  const parsedPrice = Number(rawPrice);
+
+  return {
+    ...trip,
+    id: String(trip?.id ?? trip?._id ?? ""),
+    date: String(trip?.date ?? trip?.pickupDate ?? trip?.createdAt ?? ""),
+    time: String(trip?.time ?? trip?.pickupTimeSlot ?? ""),
+    price: Number.isFinite(parsedPrice) ? parsedPrice : 0,
+    startLocation: {
+      ...startLocation,
+      address: String(startLocation?.address ?? ""),
+      point: {
+        lat: Number(startPoint?.lat ?? 0),
+        lng: Number(startPoint?.lng ?? 0),
+      },
+    },
+    endLocation: {
+      ...endLocation,
+      address: String(endLocation?.address ?? ""),
+      point: {
+        lat: Number(endPoint?.lat ?? 0),
+        lng: Number(endPoint?.lng ?? 0),
+      },
+    },
+  };
+};
 
 export const promoterApi = {
   // Fetch promoter list with pagination and search
@@ -290,7 +355,9 @@ export const promoterApi = {
     }
   },
 
-  getServicePostsByPromoterId: async (promoterId: string): Promise<any[]> => {
+  getServicePostsByPromoterId: async (
+    promoterId: string,
+  ): Promise<PromoterServicePostGroup[]> => {
     try {
       const response = (await apiClient.get(
         `/admin/promoters/${promoterId}/service-posts`,
@@ -301,7 +368,7 @@ export const promoterApi = {
         : Array.isArray(responseData)
           ? responseData
           : [];
-      return groups;
+      return groups as PromoterServicePostGroup[];
     } catch {
       return [];
     }
@@ -326,11 +393,11 @@ export const promoterApi = {
       const rawResponse = (await apiClient.get(url)) as any;
       const responseData = normalizeResponseData(rawResponse);
       const data = Array.isArray(responseData?.data)
-        ? responseData.data
+        ? responseData.data.map(normalizeTrip)
         : Array.isArray(rawResponse?.data)
-          ? rawResponse.data
+          ? rawResponse.data.map(normalizeTrip)
           : Array.isArray(responseData)
-            ? responseData
+            ? responseData.map(normalizeTrip)
             : [];
 
       const requestedLimit = toPositiveInt(params.limit, 10);
