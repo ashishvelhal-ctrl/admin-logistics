@@ -69,9 +69,6 @@ class ImageUploadHandler {
     try {
       this.dispatch({ type: "SET_UPLOADING", payload: true });
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      if (Math.random() < 0.2) {
-        throw new Error("Upload failed - This is a demo error");
-      }
 
       this.dispatch({ type: "SET_ERROR", payload: null });
       return localUrl;

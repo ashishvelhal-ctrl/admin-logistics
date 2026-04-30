@@ -65,7 +65,6 @@ export default function UserManagement() {
   const navigate = useNavigate();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<any>(null);
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
   const {
     users,
@@ -73,16 +72,13 @@ export default function UserManagement() {
     error,
     currentPage,
     search,
+    status,
     totalPages,
     handleSearch,
+    handleStatusChange,
     handlePageChange,
     handleDeleteUser,
   } = useUserList();
-
-  const filteredUsers = useMemo(() => {
-    if (statusFilter === "all") return users;
-    return users.filter((user) => getUserStatus(user) === statusFilter);
-  }, [users, statusFilter]);
 
   const handleDeleteConfirm = async () => {
     if (userToDelete) {
@@ -101,14 +97,14 @@ export default function UserManagement() {
 
   const mobileCardItems: MobileNetworkCardItem[] = useMemo(
     () =>
-      filteredUsers.map((user) => ({
+      users.map((user) => ({
         id: String(user.id),
         name: user.fullName ?? user.name ?? "User",
         phone: `+91 ${(user.phoneNumber ?? user.mobileNumber ?? "9876543210").replace(/^\+91/, "")}`,
         dateText: STATUS_LABELS[getUserStatus(user)].toUpperCase(),
         locationText: user.assignedAddress ?? user.address ?? "N/A",
       })),
-    [filteredUsers],
+    [users],
   );
 
   const columns: Array<Column<UserObject>> = [
@@ -180,8 +176,10 @@ export default function UserManagement() {
               Status Filter
             </p>
             <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+              value={status}
+              onChange={(e) =>
+                handleStatusChange(e.target.value as StatusFilter)
+              }
               className="h-10 w-full rounded-lg border border-border-stroke bg-common-bg px-3 text-sm text-heading-color"
             >
               {STATUS_OPTIONS.map((option) => (
@@ -225,12 +223,14 @@ export default function UserManagement() {
             onSearchChange={handleSearch}
             selectLabel="Status"
             selectPlaceholder="All Status"
-            selectValue={statusFilter}
-            onSelectChange={(value) => setStatusFilter(value as StatusFilter)}
+            selectValue={status}
+            onSelectChange={(value) =>
+              handleStatusChange(value as StatusFilter)
+            }
             selectOptions={STATUS_OPTIONS}
           />
           <AdminTable
-            data={filteredUsers}
+            data={users}
             columns={columns}
             isLoading={isLoading}
             error={error}

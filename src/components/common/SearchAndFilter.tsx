@@ -80,7 +80,7 @@ export function SearchAndFilter({
           <PopoverContent
             align="start"
             side="bottom"
-            className="z-50 p-0 w-[var(--radix-popover-trigger-width)]"
+            className="z-50 p-0 w-full"
           >
             <Command>
               <CommandInput

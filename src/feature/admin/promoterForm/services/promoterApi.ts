@@ -244,12 +244,14 @@ export const promoterApi = {
 
   getPromoterUsers: async (
     promoterId: string,
-    params: { limit?: number; offset?: number } = {},
+    params: { limit?: number; offset?: number; search?: string; status?: string } = {},
   ): Promise<{ data: any[]; total: number }> => {
     try {
       const queryParams = new URLSearchParams();
       if (params.limit) queryParams.append("limit", String(params.limit));
       if (params.offset) queryParams.append("offset", String(params.offset));
+      if (params.search) queryParams.append("search", params.search);
+      if (params.status) queryParams.append("status", params.status);
 
       const url = queryParams.toString()
         ? `/admin/promoters/${promoterId}/users?${queryParams.toString()}`

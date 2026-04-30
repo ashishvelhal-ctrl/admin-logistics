@@ -43,6 +43,7 @@ export interface UserListParams {
   offset?: number;
   search?: string;
   role?: string;
+  status?: "all" | "active" | "inactive" | "pending" | "deactivated";
 }
 
 export interface RolesResponse {
@@ -87,6 +88,7 @@ export const userApi = {
       queryParams.append("offset", params.offset.toString());
     if (params.search) queryParams.append("search", params.search);
     if (params.role) queryParams.append("role", params.role);
+    if (params.status) queryParams.append("status", params.status);
 
     const url = queryParams.toString()
       ? `/admin/users?${queryParams.toString()}`

@@ -16,7 +16,7 @@ interface UseUserListReturn {
   error: string | null;
   currentPage: number;
   search: string;
-  role: string;
+  status: "all" | "active" | "inactive" | "pending";
   totalPages: number;
   roleOptions: Array<{
     _id: string;
@@ -28,7 +28,9 @@ interface UseUserListReturn {
   fetchUsers: () => Promise<void>;
   fetchRoles: () => Promise<void>;
   handleSearch: (searchTerm: string) => void;
-  handleRoleChange: (role: string) => void;
+  handleStatusChange: (
+    status: "all" | "active" | "inactive" | "pending",
+  ) => void;
   handlePageChange: (page: number) => void;
   handleDeleteUser: (userId: string) => Promise<boolean>;
   resetFilters: () => void;
@@ -43,10 +45,14 @@ export const useUserList = ({
   const safeLimit = Math.max(1, initialLimit);
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState(initialSearch);
-  const [role, setRole] = useState("");
+  const [status, setStatus] = useState<"all" | "active" | "inactive" | "pending">(
+    "all",
+  );
 
   const searchTerm = useDebounce(search, 300).trim();
-  const roleFilter = role.trim();
+  const statusFilter = status;
+  const statusForApi =
+    statusFilter === "inactive" ? "deactivated" : statusFilter;
 
   const {
     data: usersResponse,
@@ -55,14 +61,14 @@ export const useUserList = ({
     error: usersError,
     refetch: refetchUsers,
   } = useQuery({
-    queryKey: ["users", safeLimit, currentPage, searchTerm, roleFilter],
+    queryKey: ["users", safeLimit, currentPage, searchTerm, statusFilter],
     queryFn: async () => {
       const offset = (currentPage - 1) * safeLimit;
       return userApi.getUsers({
         limit: safeLimit,
         offset,
         search: searchTerm,
-        role: roleFilter || undefined,
+        status: statusForApi,
       });
     },
   });
@@ -160,10 +166,13 @@ export const useUserList = ({
     setCurrentPage(1);
   }, []);
 
-  const handleRoleChange = useCallback((newRole: string) => {
-    setRole(newRole);
-    setCurrentPage(1);
-  }, []);
+  const handleStatusChange = useCallback(
+    (newStatus: "all" | "active" | "inactive" | "pending") => {
+      setStatus(newStatus);
+      setCurrentPage(1);
+    },
+    [],
+  );
 
   const handlePageChange = useCallback(
     (page: number) => {
@@ -189,7 +198,7 @@ export const useUserList = ({
 
   const resetFilters = useCallback(() => {
     setSearch("");
-    setRole("");
+    setStatus("all");
     setCurrentPage(1);
   }, []);
 
@@ -222,13 +231,13 @@ export const useUserList = ({
     error,
     currentPage,
     search,
-    role,
+    status,
     totalPages,
     roleOptions,
     fetchUsers,
     fetchRoles,
     handleSearch,
-    handleRoleChange,
+    handleStatusChange,
     handlePageChange,
     handleDeleteUser,
     resetFilters,

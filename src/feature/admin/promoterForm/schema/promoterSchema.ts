@@ -44,6 +44,7 @@ export const promoterListParamsSchema = z.object({
   offset: z.number().optional(),
   search: z.string().optional(),
   role: z.string().optional(),
+  status: z.enum(["all", "active", "deactivated"]).optional(),
 });
 
 export const roleOptionSchema = z.object({

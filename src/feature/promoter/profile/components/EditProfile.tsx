@@ -150,6 +150,7 @@ export default function EditProfile() {
                   }
                   className="h-10 md:h-11"
                   required
+                  readOnly
                 />
               </div>
             </div>

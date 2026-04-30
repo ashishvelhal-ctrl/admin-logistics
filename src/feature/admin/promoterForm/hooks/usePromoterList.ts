@@ -16,7 +16,7 @@ interface UsePromoterListReturn {
   error: string | null;
   currentPage: number;
   search: string;
-  role: string;
+  status: "all" | "active" | "deactivated";
   totalPages: number;
   roleOptions: Array<{
     _id: string;
@@ -28,7 +28,7 @@ interface UsePromoterListReturn {
   fetchPromoters: () => Promise<void>;
   fetchRoles: () => Promise<void>;
   handleSearch: (searchTerm: string) => void;
-  handleRoleChange: (role: string) => void;
+  handleStatusChange: (status: "all" | "active" | "deactivated") => void;
   handlePageChange: (page: number) => void;
   handleDeletePromoter: (promoterId: string) => Promise<boolean>;
   resetFilters: () => void;
@@ -43,10 +43,12 @@ export const usePromoterList = ({
   const safeLimit = Math.max(1, initialLimit);
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState(initialSearch);
-  const [role, setRole] = useState("");
+  const [status, setStatus] = useState<"all" | "active" | "deactivated">(
+    "all",
+  );
 
   const searchTerm = useDebounce(search, 300).trim();
-  const roleFilter = role.trim();
+  const statusFilter = status;
 
   const calculateOffset = useCallback((page: number, limit: number) => {
     return (page - 1) * limit;
@@ -81,14 +83,14 @@ export const usePromoterList = ({
     error: promotersError,
     refetch: refetchPromoters,
   } = useQuery({
-    queryKey: ["promoters", safeLimit, currentPage, searchTerm, roleFilter],
+    queryKey: ["promoters", safeLimit, currentPage, searchTerm, statusFilter],
     queryFn: async () => {
       const offset = calculateOffset(currentPage, safeLimit);
       return promoterApi.getPromoters({
         limit: safeLimit,
         offset,
         search: searchTerm,
-        role: roleFilter || undefined,
+        status: statusFilter,
       });
     },
   });
@@ -205,10 +207,13 @@ export const usePromoterList = ({
     setCurrentPage(1);
   }, []);
 
-  const handleRoleChange = useCallback((newRole: string) => {
-    setRole(newRole);
-    setCurrentPage(1);
-  }, []);
+  const handleStatusChange = useCallback(
+    (newStatus: "all" | "active" | "deactivated") => {
+      setStatus(newStatus);
+      setCurrentPage(1);
+    },
+    [],
+  );
 
   const handlePageChange = useCallback(
     (page: number) => {
@@ -234,7 +239,7 @@ export const usePromoterList = ({
 
   const resetFilters = useCallback(() => {
     setSearch("");
-    setRole("");
+    setStatus("all");
     setCurrentPage(1);
   }, []);
 
@@ -269,13 +274,13 @@ export const usePromoterList = ({
     error,
     currentPage,
     search,
-    role,
+    status,
     totalPages,
     roleOptions,
     fetchPromoters,
     fetchRoles,
     handleSearch,
-    handleRoleChange,
+    handleStatusChange,
     handlePageChange,
     handleDeletePromoter,
     resetFilters,

@@ -15,32 +15,28 @@ import { SearchAndFilter } from "@/components/common/SearchAndFilter";
 import { Button } from "@/components/ui/button";
 import { usePromoterList } from "../hooks/usePromoterList";
 
-type StatusFilter = "all" | "active" | "inactive" | "pending";
+type StatusFilter = "all" | "active" | "deactivated";
 
 const STATUS_OPTIONS: Array<{ value: StatusFilter; label: string }> = [
   { value: "all", label: "All Status" },
   { value: "active", label: "Active" },
-  { value: "inactive", label: "Inactive" },
-  { value: "pending", label: "Pending" },
+  { value: "deactivated", label: "Deactivated" },
 ];
 
-const STATUS_LABELS: Record<Exclude<StatusFilter, "all">, string> = {
-  active: "Active",
-  inactive: "Inactive",
-  pending: "Pending",
-};
-
-function getPromoterStatus(promoter: any): Exclude<StatusFilter, "all"> {
-  if (promoter?.deletedAt) return "inactive";
+function getPromoterStatus(
+  promoter: any,
+): Exclude<StatusFilter, "all"> | "pending" {
+  if (promoter?.deletedAt) return "deactivated";
   if (typeof promoter?.isActive === "boolean") {
-    return promoter.isActive ? "active" : "inactive";
+    return promoter.isActive ? "active" : "deactivated";
   }
 
   const rawStatus = String(promoter?.status || promoter?.profileStatus || "")
     .trim()
     .toLowerCase();
 
-  if (rawStatus.includes("inactive")) return "inactive";
+  if (rawStatus.includes("inactive") || rawStatus.includes("deactivated"))
+    return "deactivated";
   if (rawStatus.includes("pending")) return "pending";
   if (
     rawStatus === "active" ||
@@ -58,7 +54,6 @@ export default function PromoterList() {
   const navigate = useNavigate();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [promoterToDelete, setPromoterToDelete] = useState<any>(null);
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
   const {
     promoters,
@@ -66,18 +61,13 @@ export default function PromoterList() {
     error,
     currentPage,
     search,
+    status,
     totalPages,
     handleSearch,
+    handleStatusChange,
     handlePageChange,
     handleDeletePromoter,
   } = usePromoterList();
-
-  const filteredPromoters = useMemo(() => {
-    if (statusFilter === "all") return promoters;
-    return promoters.filter((promoter: any) => {
-      return getPromoterStatus(promoter) === statusFilter;
-    });
-  }, [promoters, statusFilter]);
 
   const handleDeleteUser = (user: any) => {
     setPromoterToDelete(user);
@@ -101,14 +91,14 @@ export default function PromoterList() {
 
   const mobileCardItems: MobileNetworkCardItem[] = useMemo(
     () =>
-      filteredPromoters.map((promoter: any) => ({
+      promoters.map((promoter: any) => ({
         id: String(promoter.id),
         name: promoter.fullName ?? promoter.name ?? "Promoter",
         phone: `+91 ${(promoter.phoneNumber ?? promoter.mobileNumber ?? "9876543210").replace(/^\+91/, "")}`,
-        dateText: STATUS_LABELS[getPromoterStatus(promoter)].toUpperCase(),
+        dateText: String(getPromoterStatus(promoter)).toUpperCase(),
         locationText: promoter.assignedAddress ?? promoter.address ?? "N/A",
       })),
-    [filteredPromoters],
+    [promoters],
   );
 
   const columns: Array<Column<any>> = [
@@ -203,8 +193,10 @@ export default function PromoterList() {
               Status Filter
             </p>
             <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+              value={status}
+              onChange={(e) =>
+                handleStatusChange(e.target.value as "all" | "active" | "deactivated")
+              }
               className="h-10 w-full rounded-lg border border-border-stroke bg-common-bg px-3 text-sm text-heading-color"
             >
               {STATUS_OPTIONS.map((option) => (
@@ -227,7 +219,7 @@ export default function PromoterList() {
               })
             }
             onEditClick={(item) => {
-              const promoter = filteredPromoters.find(
+              const promoter = promoters.find(
                 (row: any) => String(row.id) === item.id,
               );
               if (!promoter) return;
@@ -245,7 +237,7 @@ export default function PromoterList() {
               });
             }}
             onDeleteClick={(item) => {
-              const promoter = filteredPromoters.find(
+              const promoter = promoters.find(
                 (row: any) => String(row.id) === item.id,
               );
               if (!promoter) return;
@@ -289,12 +281,14 @@ export default function PromoterList() {
             onSearchChange={handleSearch}
             selectLabel="Status"
             selectPlaceholder="All Status"
-            selectValue={statusFilter}
-            onSelectChange={(value) => setStatusFilter(value as StatusFilter)}
+            selectValue={status}
+            onSelectChange={(value) =>
+              handleStatusChange(value as "all" | "active" | "deactivated")
+            }
             selectOptions={STATUS_OPTIONS}
           />
           <AdminTable
-            data={filteredPromoters}
+            data={promoters}
             columns={columns}
             isLoading={isLoading}
             error={error}
